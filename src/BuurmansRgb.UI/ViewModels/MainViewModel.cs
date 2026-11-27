@@ -81,7 +81,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // engine for Instellingen (SystemProcessMeter in App); without it nothing is read. clipboard is
     // the one of Windows for "Code kopiëren" and "Code plakken" (SystemClipboard in App); without it
     // the app has one of its own (AppClipboard), so a test never touches that of the user.
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null, IClipboard? clipboard = null)
+    // fileDialogs and confirmDialogs are the dialogs of the window (WindowDialogs in App); without
+    // them (NoDialogs) no file is chosen and a scene or own effect goes without a question, so a
+    // test never opens a dialog.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null, IClipboard? clipboard = null, IFileDialogs? fileDialogs = null, IConfirmDialogs? confirmDialogs = null)
     {
         _connector = connector;
         _ui = new UiThread();
@@ -105,12 +108,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenRgbStatus = new OpenRgbStatusViewModel();
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Message += (_, message) => StatusMessage = message;
-        Backup = new SettingsBackupViewModel(_session, time);
+        Backup = new SettingsBackupViewModel(_session, time, fileDialogs, confirmDialogs);
         Backup.Message += (_, message) => StatusMessage = message;
-        Sharing = new SharingViewModel(_session, clipboard ?? new AppClipboard());
+        Sharing = new SharingViewModel(_session, clipboard ?? new AppClipboard(), fileDialogs);
         Sharing.Message += (_, message) => StatusMessage = message;
         EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
-        Profiles = new ProfilesViewModel(findPrograms);
+        Profiles = new ProfilesViewModel(findPrograms, fileDialogs, confirmDialogs);
         _time = time ?? TimeProvider.System;
         // The coordinator asks for the preview, the stills and the LED edit only when the user acts,
         // so after they are made here.
@@ -133,7 +136,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = ShowSelectionAsync();
         };
         CustomColors = new CustomColorsViewModel(ColorPicker);
-        _customEffects = new CustomEffectsCoordinator(_session, () => SelectedEffect);
+        _customEffects = new CustomEffectsCoordinator(_session, () => SelectedEffect, confirmDialogs);
         CustomEffectEditor = _customEffects.Editor;
         _customEffects.Message += (_, message) => StatusMessage = message;
         _customEffects.EffectsChanged += (_, _) => ShowEffects();

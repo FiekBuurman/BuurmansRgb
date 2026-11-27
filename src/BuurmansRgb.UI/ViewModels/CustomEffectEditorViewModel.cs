@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -12,9 +13,12 @@ namespace BuurmansRgb.UI.ViewModels;
 // colors the selected step (Paint), and the LED colors of the device make it a pattern
 // (ShowPattern). Each change the user makes goes out as the whole effect with Changed; Show shows
 // the effect of the engine without sending it back. isNameTaken tells whether another effect, an
-// own one with another id or one of the engine, has the name.
-public sealed partial class CustomEffectEditorViewModel(Func<string, string, bool> isNameTaken) : ObservableObject
+// own one with another id or one of the engine, has the name. confirmDialogs asks before the effect
+// is deleted, with its name; the question says that devices and scenes with it become static.
+// Without it (NoDialogs), the effect is deleted without asking.
+public sealed partial class CustomEffectEditorViewModel(Func<string, string, bool> isNameTaken, IConfirmDialogs? confirmDialogs = null) : ObservableObject
 {
+    private readonly IConfirmDialogs _confirm = confirmDialogs ?? NoDialogs.Instance;
     private readonly ReentrancyGuard _showing = new();
     private readonly List<CustomEffectStep> _steps = [];
     private string _id = string.Empty;
@@ -74,11 +78,6 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         : UiText.Format(Strings.CustomEffectSelectedStep, SelectedIndex + 1, _steps.Count, CustomEffectStepItem.Describe(_steps[SelectedIndex]));
 
     public CustomEffect Effect => new(_id, _name, [.. _steps]);
-
-    // Asked before the effect is deleted, with its name; the view shows the question, which says
-    // that devices and scenes with it become static. Without it, the effect is deleted without
-    // asking.
-    public Func<string, bool>? ConfirmDelete { get; set; }
 
     // Shows an effect of the engine. The selection stays on the same place for the same effect,
     // and goes to the first step for another one; a name being typed that is not valid stays, and
@@ -212,7 +211,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
     {
         // The effect that was asked about, also when another one shows while the question is open.
         var id = _id;
-        if (id.Length > 0 && (ConfirmDelete?.Invoke(_name) ?? true))
+        if (id.Length > 0 && _confirm.ConfirmDeleteCustomEffect(_name))
         {
             DeleteRequested?.Invoke(this, id);
         }

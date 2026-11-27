@@ -1,6 +1,4 @@
 using System.Windows;
-using BuurmansRgb.Contracts;
-using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
@@ -10,20 +8,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        DataContextChanged += (_, _) =>
-        {
-            if (DataContext is MainViewModel viewModel)
-            {
-                viewModel.Profiles.ConfirmDelete = ConfirmDeleteProfile;
-                viewModel.Profiles.ConfirmUpdate = name => ConfirmDialog.ForSceneUpdate(this, name).Ask();
-                viewModel.CustomEffectEditor.ConfirmDelete = ConfirmDeleteCustomEffect;
-                viewModel.Backup.ChooseSaveFile = ChooseBackupToSave;
-                viewModel.Backup.ChooseRestoreFile = ChooseBackupToRestore;
-                viewModel.Backup.ConfirmRestore = fileName => ConfirmDialog.ForRestore(this, fileName).Ask();
-                viewModel.Sharing.ChooseExportFile = ChooseShareToSave;
-                viewModel.Sharing.ChooseImportFile = ChooseShareToImport;
-            }
-        };
         StateChanged += (_, _) =>
         {
             Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
@@ -61,52 +45,4 @@ public partial class MainWindow : Window
     }
 
     private void OnCloseClick(object sender, RoutedEventArgs e) => SystemCommands.CloseWindow(this);
-
-    // A deleted profile or own effect cannot come back, so the user confirms it; the focus starts
-    // on Annuleren.
-    private bool ConfirmDeleteProfile(string name) => ConfirmDialog.ForScene(this, name).Ask();
-
-    private bool ConfirmDeleteCustomEffect(string name) => ConfirmDialog.ForCustomEffect(this, name).Ask();
-
-    // The dialogs of Windows for "Instellingen bewaren…" and "terugzetten…"; null when cancelled.
-    private string? ChooseBackupToSave(string suggestedName)
-    {
-        var dialog = new Microsoft.Win32.SaveFileDialog
-        {
-            Title = Strings.BackupSaveTitle,
-            Filter = Strings.BackupFilter,
-            FileName = suggestedName,
-            DefaultExt = SettingsBackup.Extension,
-            AddExtension = true,
-            OverwritePrompt = true,
-        };
-        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
-    }
-
-    private string? ChooseBackupToRestore()
-    {
-        var dialog = new Microsoft.Win32.OpenFileDialog { Title = Strings.BackupRestoreTitle, Filter = Strings.BackupFilter, CheckFileExists = true };
-        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
-    }
-
-    // The dialogs of Windows for "Exporteren…" and "Importeren…" of a scene or own effect; null when
-    // cancelled. They open where Windows opened them last, no folder of the user is set here.
-    private string? ChooseShareToSave(string title, string suggestedName)
-    {
-        var dialog = new Microsoft.Win32.SaveFileDialog
-        {
-            Title = title,
-            Filter = Strings.ShareFilter,
-            FileName = suggestedName,
-            AddExtension = true,
-            OverwritePrompt = true,
-        };
-        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
-    }
-
-    private string? ChooseShareToImport()
-    {
-        var dialog = new Microsoft.Win32.OpenFileDialog { Title = Strings.ShareImportTitle, Filter = Strings.ShareFilter, CheckFileExists = true };
-        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
-    }
 }

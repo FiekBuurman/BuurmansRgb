@@ -14,6 +14,7 @@ public sealed class MainViewModelCustomEffectTests
     private static readonly CustomEffect Avond = new("custom:avond", "Avond", [new CustomEffectStep([Red, Green, Blue], 2, 3)]);
 
     private readonly FakeEngineConnector _connector = new();
+    private readonly FakeDialogs _dialogs = new();
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
 
@@ -246,7 +247,7 @@ public sealed class MainViewModelCustomEffectTests
     public async Task Delete_NotConfirmed_KeepsTheEffect()
     {
         var viewModel = await ConnectWithDiscoAsync();
-        viewModel.CustomEffectEditor.ConfirmDelete = _ => false;
+        _dialogs.ConfirmDeleteCustomEffect = _ => false;
 
         viewModel.CustomEffectEditor.DeleteCommand.Execute(null);
 
@@ -394,5 +395,5 @@ public sealed class MainViewModelCustomEffectTests
         {
             api.Effects = TestEffects.StaticAndRainbow;
             arrange?.Invoke(api);
-        }, _connector);
+        }, _connector, dialogs: _dialogs);
 }

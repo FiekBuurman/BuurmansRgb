@@ -19,6 +19,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     private const char ProgramSeparator = ',';
 
     private readonly Func<Task<IReadOnlyList<RunningProgram>>> _findPrograms;
+    private readonly IFileDialogs _files;
 
     // What the engine has, so Apply only runs for a change.
     private ProfileAutomation _saved = ProfileAutomation.None;
@@ -31,9 +32,11 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     // findPrograms lists the programs to pick from; by default RunningPrograms.Find on the thread
     // pool, as it reads the exe file of each program, which would make the list hang as it opens.
-    public ProfileAutomationViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null)
+    // fileDialogs opens the dialog of "Bladeren…"; without it (NoDialogs) nothing is picked.
+    public ProfileAutomationViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, IFileDialogs? fileDialogs = null)
     {
         _findPrograms = findPrograms ?? (() => Task.Run(Services.RunningPrograms.Find));
+        _files = fileDialogs ?? NoDialogs.Instance;
         Times.CollectionChanged += OnTimesChanged;
         Times.Add(new LoadTimeRow());
     }
@@ -69,6 +72,16 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // From "Kies uit wat nu draait": the field gets the exe name, not the name the list shows.
     [RelayCommand]
     private void PickRunningProgram(RunningProgramItem? item) => PickProgram(item?.Program.ExeName);
+
+    // "Bladeren…": the program the user chose in the dialog, if any.
+    [RelayCommand]
+    private void BrowseProgram()
+    {
+        if (_files.ChooseProgram() is { } path)
+        {
+            PickProgram(path);
+        }
+    }
 
     // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts. It
     // comes after the names in the field, unless it is there already. A name with a comma would

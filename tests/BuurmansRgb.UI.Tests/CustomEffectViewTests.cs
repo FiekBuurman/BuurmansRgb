@@ -128,8 +128,7 @@ public sealed class CustomEffectViewTests
     [Fact]
     public async Task DeleteButton_GivesTheFocusToTheChosenEffectTile()
     {
-        using var viewModel = await ConnectAsync();
-        viewModel.CustomEffectEditor.ConfirmDelete = _ => true;
+        using var viewModel = await ConnectAsync(dialogs: new FakeDialogs { ConfirmDeleteCustomEffect = _ => true });
 
         AppTheme.Run(panel =>
         {
@@ -151,8 +150,7 @@ public sealed class CustomEffectViewTests
     [Fact]
     public async Task DeleteButton_NotConfirmed_KeepsThePanelAndTheFocus()
     {
-        using var viewModel = await ConnectAsync();
-        viewModel.CustomEffectEditor.ConfirmDelete = _ => false;
+        using var viewModel = await ConnectAsync(dialogs: new FakeDialogs { ConfirmDeleteCustomEffect = _ => false });
 
         AppTheme.Run(panel =>
         {
@@ -376,7 +374,7 @@ public sealed class CustomEffectViewTests
         });
     }
 
-    private static Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, CustomEffect? effect = null, string? effectId = null) =>
+    private static Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, CustomEffect? effect = null, string? effectId = null, FakeDialogs? dialogs = null) =>
         ConnectedViewModel.CreateAsync(api =>
         {
             effect ??= Disco;
@@ -384,7 +382,7 @@ public sealed class CustomEffectViewTests
             api.CustomEffects = [effect];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId ?? effect.Id };
             arrange?.Invoke(api);
-        });
+        }, dialogs: dialogs);
 
     private static FrameworkElement Panel(DependencyObject page) =>
         AppTheme.Descendants<FrameworkElement>(page).Single(element => element.Name == "CustomEffectPanel");

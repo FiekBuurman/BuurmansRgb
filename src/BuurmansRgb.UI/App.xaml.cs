@@ -62,8 +62,11 @@ public partial class App : Application
         _animationEffects = new SystemAnimationEffects();
         _processMeter = new SystemProcessMeter();
 
-        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: _processMeter, clipboard: SystemClipboard.Instance);
-        var window = new MainWindow { DataContext = _viewModel };
+        // The dialogs open over the window, so it comes first and gets its view model after.
+        var window = new MainWindow();
+        var dialogs = new WindowDialogs(window);
+        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: _processMeter, clipboard: SystemClipboard.Instance, fileDialogs: dialogs, confirmDialogs: dialogs);
+        window.DataContext = _viewModel;
         MainWindow = window;
         window.Show();
         _activation = _instance.ListenForActivation(() => Dispatcher.BeginInvoke(window.BringToFront));

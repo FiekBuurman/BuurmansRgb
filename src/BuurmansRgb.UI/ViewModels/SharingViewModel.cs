@@ -13,19 +13,21 @@ namespace BuurmansRgb.UI.ViewModels;
 // at an own effect on Kleur, "Importeren…" and "Code plakken" on both pages. The engine makes the
 // JSON and reads one back with every check (ExportSceneAsync, ExportCustomEffectAsync,
 // ImportSharedAsync); this app only picks the file and writes or reads it, puts the code on the
-// clipboard (ShareCode) or reads it from there. The window gives the dialogs (ChooseExportFile,
-// ChooseImportFile); without them, as in a test that sets none, nothing happens. What came of it
-// goes to the status line (Message), a live region. A coordinator: it calls the engine of the
-// session itself, outside its call queue, and says what came of it.
+// clipboard (ShareCode) or reads it from there. The file dialogs are those of the window
+// (IFileDialogs); without them (NoDialogs), as in a test that gives none, nothing happens. What
+// came of it goes to the status line (Message), a live region. A coordinator: it calls the engine of
+// the session itself, outside its call queue, and says what came of it.
 public sealed partial class SharingViewModel : ObservableObject
 {
     private readonly EngineSession _session;
     private readonly IClipboard _clipboard;
+    private readonly IFileDialogs _files;
 
-    internal SharingViewModel(EngineSession session, IClipboard clipboard)
+    internal SharingViewModel(EngineSession session, IClipboard clipboard, IFileDialogs? files = null)
     {
         _session = session;
         _clipboard = clipboard;
+        _files = files ?? NoDialogs.Instance;
     }
 
     // Raised with the message for the status line.
@@ -33,12 +35,6 @@ public sealed partial class SharingViewModel : ObservableObject
 
     // Raised with the result of an import that added a scene or own effect, so the lists show it.
     public event EventHandler<ShareImportResult>? Imported;
-
-    // The save dialog with a title and a suggested file name; the path the user chose, or null.
-    public Func<string, string, string?>? ChooseExportFile { get; set; }
-
-    // The open dialog; the path the user chose, or null.
-    public Func<string?>? ChooseImportFile { get; set; }
 
     // Only with an engine to ask.
     [ObservableProperty]
@@ -90,7 +86,7 @@ public sealed partial class SharingViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task ImportAsync()
     {
-        if (ChooseImportFile?.Invoke() is not { } path || _session.Api is not { } engine)
+        if (_files.ChooseShareToImport() is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -101,7 +97,7 @@ public sealed partial class SharingViewModel : ObservableObject
             byte[]? json;
             try
             {
-                json = await UserFiles.ReadAtMostAsync(path, SharedFiles.MaxJsonBytes);
+                json = await _files.ReadAtMostAsync(path, SharedFiles.MaxJsonBytes);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
@@ -221,7 +217,7 @@ public sealed partial class SharingViewModel : ObservableObject
 
     private async Task ExportAsync(string name, string title, Func<IEngineApi, Task<byte[]>> export)
     {
-        if (ChooseExportFile?.Invoke(title, FileNameFor(name)) is not { } path || _session.Api is not { } engine)
+        if (_files.ChooseShareToSave(title, FileNameFor(name)) is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -229,7 +225,7 @@ public sealed partial class SharingViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            await UserFiles.WriteReplacingAsync(path, await export(engine));
+            await _files.WriteReplacingAsync(path, await export(engine));
 
             Say(UiText.Format(Strings.ShareExported, name, Path.GetFileName(path)));
         }

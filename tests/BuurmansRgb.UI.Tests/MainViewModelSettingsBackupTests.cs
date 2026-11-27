@@ -12,6 +12,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
 {
     private readonly FakeEngineConnector _connector = new();
     private readonly TempDirectory _folder = new();
+    private readonly FakeDialogs _dialogs = new();
     private readonly List<string> _confirmed = [];
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
@@ -50,7 +51,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         using var viewModel = await ConnectAsync(time);
         var path = _folder.File("bewaard.zip");
         string? suggested = null;
-        viewModel.Backup.ChooseSaveFile = name =>
+        _dialogs.ChooseBackupToSave = name =>
         {
             suggested = name;
             return path;
@@ -70,7 +71,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         var path = WriteZip("bewaard.zip", [1, 2, 3]);
-        viewModel.Backup.ChooseSaveFile = _ => path;
+        _dialogs.ChooseBackupToSave = _ => path;
 
         await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
@@ -85,7 +86,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         var path = WriteZip("bewaard.zip", [1, 2, 3]);
-        viewModel.Backup.ChooseSaveFile = _ => path;
+        _dialogs.ChooseBackupToSave = _ => path;
 
         using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
@@ -101,7 +102,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Save_Cancelled_AsksTheEngineNothing()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseSaveFile = _ => null;
+        _dialogs.ChooseBackupToSave = _ => null;
 
         await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
@@ -113,7 +114,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Save_FileThatCannotBeWritten_SaysSo()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseSaveFile = _ => Path.Combine(_folder.Path, "weg", "bewaard.zip");
+        _dialogs.ChooseBackupToSave = _ => Path.Combine(_folder.Path, "weg", "bewaard.zip");
 
         await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
@@ -129,8 +130,8 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         var path = WriteZip("oud.zip", [7, 8, 9]);
-        viewModel.Backup.ChooseRestoreFile = () => path;
-        viewModel.Backup.ConfirmRestore = fileName =>
+        _dialogs.ChooseBackupToRestore = () => path;
+        _dialogs.ConfirmRestore = fileName =>
         {
             _confirmed.Add(fileName);
             return confirm;
@@ -154,8 +155,8 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_Cancelled_AsksNothing()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseRestoreFile = () => null;
-        viewModel.Backup.ConfirmRestore = Refuse;
+        _dialogs.ChooseBackupToRestore = () => null;
+        _dialogs.ConfirmRestore = Refuse;
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -175,8 +176,8 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
             file.SetLength(SettingsBackup.MaxArchiveBytes + 1);
         }
 
-        viewModel.Backup.ChooseRestoreFile = () => path;
-        viewModel.Backup.ConfirmRestore = Refuse;
+        _dialogs.ChooseBackupToRestore = () => path;
+        _dialogs.ConfirmRestore = Refuse;
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -195,8 +196,8 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         Api.RestoreResult = new SettingsRestoreResult(outcome, fileName);
-        viewModel.Backup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
-        viewModel.Backup.ConfirmRestore = _ => true;
+        _dialogs.ChooseBackupToRestore = () => WriteZip("oud.zip", [1]);
+        _dialogs.ConfirmRestore = _ => true;
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -216,8 +217,8 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         Api.SetException = new RemoteInvocationException("no files", 0, errorData: null);
-        viewModel.Backup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
-        viewModel.Backup.ConfirmRestore = _ => true;
+        _dialogs.ChooseBackupToRestore = () => WriteZip("oud.zip", [1]);
+        _dialogs.ConfirmRestore = _ => true;
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -234,8 +235,8 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         Api.SetException = pipe ? new IOException("Pipe is broken.") : new ConnectionLostException("weg");
-        viewModel.Backup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
-        viewModel.Backup.ConfirmRestore = _ => true;
+        _dialogs.ChooseBackupToRestore = () => WriteZip("oud.zip", [1]);
+        _dialogs.ConfirmRestore = _ => true;
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -246,7 +247,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_FileGone_SaysItCouldNotBeRead()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseRestoreFile = () => _folder.File("weg.zip");
+        _dialogs.ChooseBackupToRestore = () => _folder.File("weg.zip");
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -269,6 +270,6 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     }
 
     private Task<MainViewModel> ConnectAsync(TimeProvider? time = null) =>
-        ConnectedViewModel.CreateAsync(connector: _connector, time: time);
+        ConnectedViewModel.CreateAsync(connector: _connector, time: time, dialogs: _dialogs);
 }
 

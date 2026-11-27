@@ -5,11 +5,13 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class ProfilesViewModelSceneTests
 {
-    private readonly ProfilesViewModel _profiles = new();
+    private readonly FakeDialogs _dialogs = new();
+    private readonly ProfilesViewModel _profiles;
     private readonly List<string> _requests = [];
 
     public ProfilesViewModelSceneTests()
     {
+        _profiles = new(confirmDialogs: _dialogs);
         _profiles.SaveRequested += (_, name) => _requests.Add($"save {name}");
         _profiles.LoadRequested += (_, name) => _requests.Add($"load {name}");
         _profiles.UpdateRequested += (_, name) => _requests.Add($"update {name}");
@@ -76,7 +78,7 @@ public sealed class ProfilesViewModelSceneTests
     public void Update_AsksForConfirmationFirst(bool confirmed, string[] expected)
     {
         string? asked = null;
-        _profiles.ConfirmUpdate = name =>
+        _dialogs.ConfirmUpdateScene = name =>
         {
             asked = name;
             return confirmed;

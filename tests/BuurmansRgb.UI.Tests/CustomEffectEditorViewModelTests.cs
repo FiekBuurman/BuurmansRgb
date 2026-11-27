@@ -9,11 +9,12 @@ public sealed class CustomEffectEditorViewModelTests
     private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep([Green, Blue], 2, 0.5)]);
 
     private readonly List<CustomEffect> _changes = [];
+    private readonly FakeDialogs _dialogs = new();
     private readonly CustomEffectEditorViewModel _editor;
 
     public CustomEffectEditorViewModelTests()
     {
-        _editor = new CustomEffectEditorViewModel((id, name) => id != "custom:feest" && name == "Feest");
+        _editor = new CustomEffectEditorViewModel((id, name) => id != "custom:feest" && name == "Feest", _dialogs);
         _editor.Changed += (_, effect) => _changes.Add(effect);
     }
 
@@ -376,7 +377,7 @@ public sealed class CustomEffectEditorViewModelTests
     {
         _editor.Show(Disco);
         string? asked = null;
-        _editor.ConfirmDelete = name =>
+        _dialogs.ConfirmDeleteCustomEffect = name =>
         {
             asked = name;
             return confirmed;
@@ -396,7 +397,7 @@ public sealed class CustomEffectEditorViewModelTests
     public void Delete_OtherEffectWhileAsking_DeletesTheOneAskedAbout()
     {
         _editor.Show(Disco);
-        _editor.ConfirmDelete = _ =>
+        _dialogs.ConfirmDeleteCustomEffect = _ =>
         {
             _editor.Show(new CustomEffect("custom:feest", "Feest", [new CustomEffectStep(Blue, 1, 0)]));
             return true;
