@@ -15,17 +15,17 @@
             mc:Ignorable="d"
             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <StackPanel.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+
         <!-- The twelve bulbs of the strip in the preview. -->
         <x:Array x:Key="StripBulbs" Type="sys:Int32">
             <sys:Int32>1</sys:Int32><sys:Int32>2</sys:Int32><sys:Int32>3</sys:Int32><sys:Int32>4</sys:Int32>
             <sys:Int32>5</sys:Int32><sys:Int32>6</sys:Int32><sys:Int32>7</sys:Int32><sys:Int32>8</sys:Int32>
             <sys:Int32>9</sys:Int32><sys:Int32>10</sys:Int32><sys:Int32>11</sys:Int32><sys:Int32>12</sys:Int32>
         </x:Array>
-
-        <!-- The least width of a column, in em of the body text, as the column of "Bewaar als scène" of the page:
-             the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding and border
-             of the preview (38 px), with a little to spare: 358 px at 100 %. -->
-        <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
 
         <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
              A field like the others, with their border, hover and focus, so you see you can type in it;
@@ -63,6 +63,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        </ResourceDictionary>
     </StackPanel.Resources>
 
     <views:CardGrid MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource MixColumnWidth}}">

@@ -14,13 +14,15 @@
             mc:Ignorable="d"
             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <StackPanel.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+
         <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
             <Setter Property="Margin" Value="0,0,0,6" />
         </Style>
-
-        <!-- The least width of a column with a time of a step, in em of the body text, as the columns with a
-             value of the page: 150 px at 100 %. -->
-        <views:EmConverter x:Key="ValueColumnWidth" Ems="10" />
+        </ResourceDictionary>
     </StackPanel.Resources>
 
     <TextBlock Style="{StaticResource Body}" FontWeight="Normal" Text="{x:Static res:Strings.NoCustomEffects}"

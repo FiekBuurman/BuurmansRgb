@@ -17,6 +17,11 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
+
         <!-- The real devices and the simulated ones each under their own heading; "all devices" has none. -->
         <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
             <CollectionViewSource.GroupDescriptions>
@@ -24,17 +29,12 @@
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
 
-        <!-- Least widths in em of the body text, which a larger text size of Windows makes wider, so
-             fewer columns fit and the rest goes under them. A column of the preview and the sliders
-             fits the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding
-             and border of the preview (38 px), with a little to spare: 358 px at 100 %; the mixing panel
-             (ColorMixer) has the same. A column with a value (brightness, speed, direction or, in
-             CustomEffectEditor, a time of a step) fits its name beside it: 150 px.
-             The title of the page (10 em) keeps 12 em beside the choice of the lamp, and the line of
-             the chosen LEDs as much beside Verloop vullen and Selectie opheffen. -->
-        <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
-        <views:EmConverter x:Key="ValueColumnWidth" Ems="10" />
+        <!-- The title of the page (10 em of the body text) keeps 12 em beside the choice of the lamp, and the
+             line of the chosen LEDs as much beside Verloop vullen and Selectie opheffen. The other least
+             widths (MixColumnWidth, ValueColumnWidth) are in ColorPageResources.xaml, as ColorMixer and
+             CustomEffectEditor use them too. -->
         <views:EmConverter x:Key="HeadingWidth" Ems="12" />
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
