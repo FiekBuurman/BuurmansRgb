@@ -587,7 +587,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - De kop van Apparaten "Apparaten" laten zeggen in plaats van een tweede woordmerk onder dat van
   de titelbalk (gebruikerstest 28-10, B4), zoals Kleur, Scènes en Instellingen een eigen kop
   hebben; dat vraagt eerst een keuze in het ontwerp, want § 5.1 zet het woordmerk bovenaan de
-  pagina Lampen en § 6 ook in de titelbalk
+  pagina Apparaten (in het ontwerp nog "Lampen") en § 6 ook in de titelbalk
 - In het voorbeeld meteen laten zien welke LED een klik kiest, bijv. een dunne ring om de LED die
   `LedLayout.NearestLed` onder de muis vindt; nu kiest een klik naast een LED de dichtstbijzijnde
   ("led-klikdoel"), maar dat zie je pas aan de tooltip, na zijn vertraging
@@ -925,7 +925,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - Na een start met een `settings.json` die er wel was maar niet las (vergrendeld door een
   virusscanner of OneDrive, of geen JSON) werkt de engine met standaardwaarden. Een gewone
   wijziging van de gebruiker kan die dan alsnog over het bestand schrijven: na vijf wachtbeurten
-  (`MaxWaitsForChangeByHand`) slaat `LightingSettingsSaver.SavePending` op met `Save`. De
+  (`MaxWaitsForChangeByHand`) slaat `EngineSettingsSaver.SavePending` op met `Save`. De
   startscènes slaan daarom niets op (`ISettingsStore.LoadDidNotRead`), maar de saver kijkt daar
   niet naar. Beter: bij `LoadDidNotRead` niet schrijven, of eerst het bestand opnieuw lezen en de
   wijziging daarop toepassen (review startscènes, 12-11-2026)
@@ -938,7 +938,7 @@ uitbreidingen in `docs/bouwplan.md`.
   viewmodel en de XAML van Instellingen). Een gedeelde beschrijving met naam, standaard en
   geldige waarden zou de meeste daarvan uit één bron halen. `hadRealDevices` (`openrgb-weg`)
   raakte opnieuw negen plekken: `EngineSettings`, `EngineHost` tweemaal,
-  `LightingSettingsSaver.AdoptLocked`, `IEngineApi`, `EngineApi`, `MainViewModel` driemaal en
+  `EngineSettingsSaver.AdoptLocked`, `IEngineApi`, `EngineApi`, `MainViewModel` driemaal en
   beide fakes in de tests. `autoStartChosen` (`update-autostart`) ging zonder IPC (tray en app
   lopen al via `AutoStartSwitch`) en raakte vier plekken: `EngineSettings`, `JsonSettingsStore`
   (een bestand dat niet leest), `EngineHost` bij starten, kiezen en een wijziging met de hand, en
@@ -1132,7 +1132,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - UI Automation (`InvokePattern.Invoke`) op een knop van de instellingen-app duurt op deze pc
   zo'n 2 seconden; uitzoeken of de app zelf dan bezig is (bijv. met het voorbeeld) of dat het aan
   UI Automation ligt
-- Eén gedeelde schrijver voor `CustomEffectLibrary` en `LightingSettingsSaver`: beide schrijven
+- Eén gedeelde schrijver voor `CustomEffectLibrary` en `EngineSettingsSaver`: beide schrijven
   hun bestand even na de laatste wijziging, loggen de eerste fout volledig en proberen het daarna
   opnieuw, elk met een eigen timer en eigen foutafhandeling
 - Eén patroon voor de instellingen van Windows die de app volgt (contrastthema, tekstgrootte en
@@ -1208,3 +1208,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - `EngineApiTests` (ca. 1130 regels) per gedrag splitsen: `engine-host-dunner` raakte de klasse
   wel (de delen komen nu uit `EngineApiParts`), maar dat waren veldnamen en geen gedrag; splitsen
   was alleen schuiven en zou de diff van de refactor onleesbaar maken (refactorplan 26-11-2026)
+- De rest van de `Profile*`-namen in de UI (viewmodels, views en tests heten nog `Profiles…` en
+  `ProfileAutomationError`) en de `Lamp*`-klassen van de pagina Apparaten zijn bewust niet
+  hernoemd: een volledige rename raakt AutomationIds en botst met `DeviceItem` (refactorplan
+  26-11-2026)
+- `IEngineApi` houdt `…Profile…` als naam op de lijn (`SetProfileAutomationAsync`, `ProfilesChanged`):
+  die hernoemen breekt een oudere app of engine, dus pas samen met een versie van het contract
+  (refactorplan 26-11-2026)

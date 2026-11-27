@@ -224,7 +224,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public PreviewViewModel Preview { get; }
 
-    // Whether the preview, and the lamps on Lampen, move or stand still (Animatie-effecten).
+    // Whether the preview, and the devices on Apparaten, move or stand still (Animatie-effecten).
     public PreviewMotionViewModel Motion { get; }
 
     public NavigationViewModel Navigation { get; }
@@ -460,13 +460,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial bool IsWindowMinimized { get; set; }
 
-    // Only Lampen and Kleur show what the lamps do now; the other pages need no frames.
+    // Only Apparaten and Kleur show what the devices do now; the other pages need no frames.
     public bool ShowsPreview => !IsWindowMinimized && Navigation.CurrentPage is AppPage.Lamps or AppPage.Color;
 
     // A preview that stands still gets one image at a time instead (StillPreviewCoordinator).
     public bool WantsFrames => _stills.WantsFrames;
 
-    // Kleur with one lamp shows only that lamp; Lampen, and Kleur for the whole house, show them
+    // Kleur with one device shows only that device; Apparaten, and Kleur for the whole house, show them
     // all (null).
     public string? FrameDevice => Navigation.CurrentPage == AppPage.Color ? SelectedDevice?.DeviceId : null;
 

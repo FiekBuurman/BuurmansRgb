@@ -5,6 +5,8 @@ using StreamJsonRpc;
 namespace BuurmansRgb.Contracts;
 
 // A null deviceId means all devices: it sets the global lighting and drops per-device choices.
+// "Profile" in the names of the methods and events below is what the user sees as a scene: the
+// names are what goes over the pipe, so they stay as they are.
 [JsonRpcContract]
 [GenerateShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
 public partial interface IEngineApi
