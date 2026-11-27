@@ -1297,7 +1297,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   en iconen) samen, en `Controls.Cards.xaml` staat als laatste, zodat de stijl van `LedBulb` en een
   opzoeking van een token dezelfde brush vinden. Hoeken komen uit de tokens (`ButtonRadius`,
   `RoundRadius`, `FieldRadius`), niet uit getallen in een template.
-  LED-bolletje is een radiale gradiënt (`LedBulb`) in plaats van een `DropShadowEffect`, zodat
+  De gloed van een LED-bolletje is een radiale gradiënt (`LedBulb`) in plaats van een `DropShadowEffect`, zodat
   niet elk bolletje elk frame apart gerenderd wordt. Een LED die geen licht geeft (uit, of elk
   kanaal onder 8: `LedRing.IsDark`) tekent `LedBulb` zonder gloed en met een ring van 1,5 px
   binnen zijn rand in `LedOffRingBrush`; `LedPreviewView` geeft een zwarte LED die ring in plaats
