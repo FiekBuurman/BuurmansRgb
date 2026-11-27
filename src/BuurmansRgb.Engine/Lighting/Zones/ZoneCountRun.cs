@@ -20,14 +20,13 @@ internal sealed class ZoneCountRun
     private int _ledSince;
 
     // ledCount is how many LEDs the count goes up to, the longest the zone can be.
-    public ZoneCountRun(string deviceId, int zoneIndex, string zoneKey, string zoneName, int ledCount, int ledsPerSecond, TimeSpan time)
+    public ZoneCountRun(string deviceId, int zoneIndex, string zoneKey, int ledCount, int ledsPerSecond, TimeSpan time)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(ledCount, 1);
         ThrowIfInvalidPace(ledsPerSecond);
         DeviceId = deviceId;
         ZoneIndex = zoneIndex;
         ZoneKey = zoneKey;
-        ZoneName = zoneName;
         LedCount = ledCount;
         LedsPerSecond = ledsPerSecond;
         Running = ledCount > 1;
@@ -40,10 +39,7 @@ internal sealed class ZoneCountRun
     public int ZoneIndex { get; }
 
     // RgbZone.Key, which tells the zone in a new device list.
-    // ZoneName is only the name shown and does not tell the zone.
     public string ZoneKey { get; }
-
-    public string ZoneName { get; }
 
     public int LedCount { get; }
 
