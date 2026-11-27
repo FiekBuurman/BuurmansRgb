@@ -132,6 +132,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _connector = connector;
         _ui = new UiThread();
         _session = new EngineSession(_ui, OnCallFailed, OnCallSucceeded);
+
+        // The children that need nothing else, first and in a fixed order: those below, such as
+        // AfterRestart and StatusLine, take some of them.
+        Navigation = new NavigationViewModel();
+        Lamps = new LampsViewModel();
+        ColorPicker = new ColorPickerViewModel();
+        LedEditor = new LedEditorViewModel();
+        ColorLoopEditor = new ColorLoopEditorViewModel();
+        EffectColorsEditor = new ColorListEditorViewModel(EffectColors.MinColors, EffectColors.MaxColors, [RgbColor.White]);
+        EffectTiles = new EffectTilesViewModel();
+        WholeHouseTimes = new WholeHouseTimesViewModel();
+        SimulatedDevices = new SimulatedDevicesViewModel();
+        EffectOptions = new EffectOptionsViewModel();
+        SceneTimes = new SwitchOptionViewModel(isOn: false);
+        Hotkeys = new SwitchOptionViewModel(isOn: true);
+        AutoStart = new SwitchOptionViewModel(isOn: false);
+        OpenRgbStatus = new OpenRgbStatusViewModel();
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Message += (_, message) => StatusMessage = message;
         Backup = new SettingsBackupViewModel(_session, time);
@@ -287,9 +304,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Whether the preview, and the lamps on Lampen, move or stand still (Animatie-effecten).
     public PreviewMotionViewModel Motion { get; }
 
-    public NavigationViewModel Navigation { get; } = new();
+    public NavigationViewModel Navigation { get; }
 
-    public LampsViewModel Lamps { get; } = new();
+    public LampsViewModel Lamps { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]
@@ -310,22 +327,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
     public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
 
-    public ColorPickerViewModel ColorPicker { get; } = new();
+    public ColorPickerViewModel ColorPicker { get; }
 
     // "Eigen kleuren" in the toolbox, which the engine keeps; "+" adds the color of ColorPicker.
     public CustomColorsViewModel CustomColors { get; }
 
     // While LEDs are selected in the preview, the color picker colors those LEDs instead of the device.
-    public LedEditorViewModel LedEditor { get; } = new();
+    public LedEditorViewModel LedEditor { get; }
 
     // With the color-loop effect, the color picker colors the selected color of the loop.
-    public ColorLoopEditorViewModel ColorLoopEditor { get; } = new();
+    public ColorLoopEditorViewModel ColorLoopEditor { get; }
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
 
     // With an effect that has a list of colors (comet, scanner, twinkle, fire), the color picker
     // colors the selected color of that list.
-    public ColorListEditorViewModel EffectColorsEditor { get; } = new(EffectColors.MinColors, EffectColors.MaxColors, [RgbColor.White]);
+    public ColorListEditorViewModel EffectColorsEditor { get; }
 
     public bool HasEffectColors => EffectColors.Takes(SelectedEffect?.Id);
 
@@ -340,7 +357,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool IsDeviceColorUnused => SelectedEffect is { } effect && !EffectIds.UsesDeviceColor(effect.Id);
 
     // The effect tiles at the top of Kleur, with the choice of the own effects behind "Eigen effect".
-    public EffectTilesViewModel EffectTiles { get; } = new();
+    public EffectTilesViewModel EffectTiles { get; }
 
     // "Eigen effect" was clicked without own effects: card 4 shows "Jouw effect" while the light
     // keeps its effect, until another effect comes (OnSelectedEffectChanged) or another device or
@@ -402,9 +419,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ProfilesViewModel Profiles { get; }
 
     // "Uit om" and "Aan om" in the block Hele huis on Apparaten.
-    public WholeHouseTimesViewModel WholeHouseTimes { get; } = new();
+    public WholeHouseTimesViewModel WholeHouseTimes { get; }
 
-    public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
+    public SimulatedDevicesViewModel SimulatedDevices { get; }
 
     // The line on Apparaten that says the simulated devices are there to try the app, and that the
     // real ones come by themselves through OpenRGB: only with "Automatisch", while every device is a
@@ -428,21 +445,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // with "Opnieuw verbinden", is the status line (StatusLine).
     public bool ShowsDevicesLost => HadRealDevices == true && !Lamps.HasLamps;
 
-    public EffectOptionsViewModel EffectOptions { get; } = new();
+    public EffectOptionsViewModel EffectOptions { get; }
 
     // The option of the scene times on Instellingen: whether a time that passed while the pc slept
     // or the engine did not run is caught up on. Off, as the engine has it until said.
-    public SwitchOptionViewModel SceneTimes { get; } = new(isOn: false);
+    public SwitchOptionViewModel SceneTimes { get; }
 
     // The option of the hotkeys on Instellingen: whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U
     // switch everything on and off; the engine registers or frees the keys. On, as the engine has
     // it until said.
-    public SwitchOptionViewModel Hotkeys { get; } = new(isOn: true);
+    public SwitchOptionViewModel Hotkeys { get; }
 
     // "Starten met Windows" on Instellingen, the same as the item in the tray menu: the engine
     // keeps it in the registry, and tells through OptionsChanged when the tray menu changes it.
     // Off until the engine said.
-    public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
+    public SwitchOptionViewModel AutoStart { get; }
 
     // "Na een herstart" on Instellingen: what comes back after a restart, and whether by itself.
     public AfterRestartViewModel AfterRestart { get; }
@@ -459,7 +476,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Licht op de achtergrond" on Instellingen: the memory and CPU of the engine.
     public EngineUsageViewModel EngineUsage { get; }
 
-    public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
+    public OpenRgbStatusViewModel OpenRgbStatus { get; }
 
     public EffectsPauseViewModel EffectsPause { get; }
 
