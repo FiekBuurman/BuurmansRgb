@@ -371,7 +371,9 @@ uitbreidingen in `docs/bouwplan.md`.
   eigen `Text`-property: die slikt dezelfde melding opnieuw in, zodat er geen nieuwe aankondiging
   komt, terwijl `CustomEffectViewTests` juist controleert dat een schermlezer hem dan weer hoort.
   De `TextBlock` met `NotifyOnTargetUpdated=True` blijft dus bij de aanroeper, bijv. met een
-  `ContentControl`-stijl rond de tekst
+  `ContentControl`-stijl rond de tekst. `xaml-stijlen-opruimen` liet dit liggen: het blok staat nu
+  zeven keer, en een eigen control zonder dat de melding bij de aanroeper blijft, maakt de
+  live-region-tests rood (refactorplan 26-11-2026)
 - De statusregel onderaan leegmaken bij het wisselen van pagina (of na een tijdje); nu blijft de
   laatste melding staan, bijv. "Vanzelf aanzetten van 'Avond' opgeslagen." van Scènes nog op
   Kleur, zodat hij bij die pagina lijkt te horen (gebruikerstest 28-10, B3). Geldt ook voor de
