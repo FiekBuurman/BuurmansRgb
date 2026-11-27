@@ -37,7 +37,7 @@
             ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
 
     <StackPanel x:Name="CustomEffectPanel" Margin="0,8,0,0" DataContext="{Binding CustomEffectEditor}"
-                Visibility="{Binding DataContext.IsCustomEffect, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}">
+                Visibility="{Binding DataContext.IsCustomEffect, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}, Converter={StaticResource BoolToVisibility}}">
         <DockPanel>
             <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Top" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.CustomEffectDelete}"
                     ToolTip="{x:Static res:Strings.CustomEffectDeleteToolTip}" Command="{Binding DeleteCommand}"
@@ -49,11 +49,11 @@
             <Button Margin="0,0,8,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareExport}"
                     ToolTip="{x:Static res:Strings.ShareExportEffectToolTip}"
                     AutomationProperties.Name="{x:Static res:Strings.ShareExportEffectAccessibleName}"
-                    Command="{Binding DataContext.Sharing.ExportEffectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                    Command="{Binding DataContext.Sharing.ExportEffectCommand, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}}" CommandParameter="{Binding}" />
             <Button Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareCopyCode}"
                     ToolTip="{x:Static res:Strings.ShareCopyEffectCodeToolTip}"
                     AutomationProperties.Name="{x:Static res:Strings.ShareCopyEffectCodeAccessibleName}"
-                    Command="{Binding DataContext.Sharing.CopyEffectCodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                    Command="{Binding DataContext.Sharing.CopyEffectCodeCommand, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}}" CommandParameter="{Binding}" />
         </WrapPanel>
 
         <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectNameLabel}" />
@@ -100,7 +100,7 @@
         <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
                 Content="{x:Static res:Strings.CustomEffectTakePattern}" ToolTip="{x:Static res:Strings.CustomEffectTakePatternToolTip}"
                 ToolTipService.ShowOnDisabled="True"
-                Command="{Binding DataContext.TakeLedPatternCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                Command="{Binding DataContext.TakeLedPatternCommand, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}}" />
 
         <!-- The two times of the chosen step side by side, or under each other when the text of a
              larger text size of Windows needs the room. -->

@@ -365,7 +365,8 @@ uitbreidingen in `docs/bouwplan.md`.
   maat kiest
 - Eén gedeelde stijl voor een melding onder een veld (een `DockPanel` met `WarningMark` en een
   `TextBlock` als live region met `LiveRegion.AnnouncesUpdates`); nu staat dat blok zeven keer in
-  de XAML, onder andere bij de hex-code en de naam van een eigen effect in `ColorPage.xaml`, bij de lengte van
+  de XAML, onder andere bij de hex-code in `ColorMixer.xaml`, de naam van een eigen effect in
+  `CustomEffectEditor.xaml`, bij de lengte van
   een zone in `LedPreviewPanel.xaml` en bij "Vanzelf aanzetten" in `ScenesPage.xaml` (die met
   `HasError` en `BoolToVisibility`, de andere drie met `NullToCollapsed`). Geen control met een
   eigen `Text`-property: die slikt dezelfde melding opnieuw in, zodat er geen nieuwe aankondiging
@@ -647,19 +648,6 @@ uitbreidingen in `docs/bouwplan.md`.
   Bleef liggen bij `dialogen-als-service`: de taak noemde alleen Enter en Escape, en het
   naamvak geeft de tekst van het vak mee, wat een eigen soort commando vraagt
   (refactorplan 26-11-2026)
-- De em-breedtes van Kleur staan sinds `kleurpagina-opsplitsen` twee keer: `MixColumnWidth` in
-  `ColorPage.xaml` (de kolom van "Bewaar als scène") en `ColorMixer.xaml`, `ValueColumnWidth` in
-  `ColorPage.xaml` (Helderheid, Snelheid, Richting) en `CustomEffectEditor.xaml`, en de stijl
-  `Label` alleen nog in `CustomEffectEditor.xaml`. Ze kunnen naar een gedeeld resourcebestand
-  (bijvoorbeeld bij `Controls.Cards.xaml`), zodat een andere breedte op één plek verandert. Bleef
-  liggen: de taak noemde alleen het opsplitsen, en een sleutel in de app-resources geldt voor elke
-  pagina (refactorplan 26-11-2026)
-- Het paneel van een eigen effect (`CustomEffectPanel`) zoekt `IsCustomEffect`, de deelknoppen en
-  "Patroon overnemen" nog via `RelativeSource AncestorType=UserControl`, dus via de pagina. Dat
-  werkt omdat `CustomEffectEditor` en `ColorMixer` panels zijn; wordt een van beide ooit een
-  `UserControl`, dan vinden die bindingen dat control met dezelfde DataContext en werken ze nog,
-  maar `AncestorType=views:CustomEffectEditor` zou duidelijker zijn. Bleef liggen om de verplaatste
-  XAML regel voor regel gelijk te houden (refactorplan 26-11-2026)
 - `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
   `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of

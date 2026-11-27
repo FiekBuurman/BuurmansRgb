@@ -994,7 +994,8 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   UI Automation, zodat een schermlezer dezelfde boom ziet als toen alles in de pagina stond
   (`ValueSliderViewTests`, `ColorPagePartsViewTests`). Een `StaticResource` in zo'n bestand ziet
   alleen de resources van de app en van het bestand zelf, niet die van de pagina: daarom heeft elk
-  zijn eigen `Label`, `HexBox`, `ToolboxTile` of `EmConverter`. `FindName` op de pagina vindt hun
+  zijn eigen `Label`, `HexBox` of `ToolboxTile`, en voegen de pagina, `ColorMixer` en
+  `CustomEffectEditor` de breedtes (`EmConverter`) uit `Views/ColorPageResources.xaml` samen. `FindName` op de pagina vindt hun
   elementen niet; tests zoeken ze in de visuele boom (`AppTheme.Descendants`).
 - **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om de zip
   (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app kiest

@@ -52,13 +52,13 @@
             <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
             <Setter Property="ToolTip" Value="{Binding Name}" />
             <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=views:ColorMixer}}" />
             <Setter Property="CommandParameter" Value="{Binding Color}" />
             <Setter Property="Tag">
                 <Setter.Value>
                     <MultiBinding Converter="{StaticResource EqualValues}">
                         <Binding Path="Color" />
-                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=views:ColorMixer}" />
                     </MultiBinding>
                 </Setter.Value>
             </Setter>
@@ -80,7 +80,7 @@
                         <views:DecorativeItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4" OffRingBrush="{StaticResource StripLedOffRingBrush}"
-                                               Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                               Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=views:ColorMixer}}" />
                             </DataTemplate>
                         </views:DecorativeItemsControl.ItemTemplate>
                     </views:DecorativeItemsControl>
