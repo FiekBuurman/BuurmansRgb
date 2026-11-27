@@ -98,11 +98,11 @@ public sealed class DeviceOutputTests
     [Fact]
     public void IsAnimated_FollowsTheEffect()
     {
-        Assert.False(_output.IsAnimated);
+        Assert.False(_output.NeedsFrames);
 
         _output.Show(new RainbowEffect(), 1.0, EffectSpeed.Default);
 
-        Assert.True(_output.IsAnimated);
+        Assert.True(_output.NeedsFrames);
     }
 
     [Fact]

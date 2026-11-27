@@ -321,7 +321,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
-    public Task<ZoneCountInfo> GetZoneCountAsync(CancellationToken ct = default) => Task.FromResult(_lighting.Count);
+    public Task<ZoneCountInfo> GetZoneCountAsync(CancellationToken ct = default) => Task.FromResult(_lighting.CurrentZoneCount);
 
     // A count stops first and gives its zone its length back, so the new list has the zone as the
     // user knows it.
@@ -569,7 +569,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     {
         if (ZoneCountChanged is { } handler)
         {
-            handler(this, _lighting.Count);
+            handler(this, _lighting.CurrentZoneCount);
         }
     }
 

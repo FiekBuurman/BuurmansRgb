@@ -229,7 +229,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         await DisconnectAsync(client);
 
-        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_parts.Lighting.Count.IsCounting);
+        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_parts.Lighting.CurrentZoneCount.IsCounting);
 
         int ArgbHeader() => _parts.Lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount;
     }

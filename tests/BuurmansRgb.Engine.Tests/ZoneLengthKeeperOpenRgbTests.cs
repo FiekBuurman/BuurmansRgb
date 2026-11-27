@@ -97,13 +97,13 @@ public sealed class ZoneLengthKeeperOpenRgbTests : IDisposable
         counter.Start(_boardId, 1, 1);
         await HeaderLengthAsync(120);
         await SettledAsync();
-        Assert.True(_lighting.Count.Counts(_boardId, 1));
+        Assert.True(_lighting.CurrentZoneCount.Counts(_boardId, 1));
 
         counter.Stop(_boardId, 1);
         await HeaderLengthAsync(30);
         await SettledAsync();
 
-        Assert.False(_lighting.Count.IsCounting);
+        Assert.False(_lighting.CurrentZoneCount.IsCounting);
         Assert.Equal([(0, 1, 30), (0, 1, 120), (0, 1, 30)], _openRgb.Resizes);
         Assert.Equal(30, _keeper.Lengths[_boardId]["Aura Addressable 1"]);
     }

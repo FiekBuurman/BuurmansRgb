@@ -554,7 +554,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
 
         Assert.True(_controller.StartCount(RecordingDeviceProvider.DeviceId, 0, 3, 1));
-        Assert.Equal([ZoneCount.NewestColor, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+        Assert.Equal([ZoneCountRun.NewestColor, RgbColor.Black, RgbColor.Black], _provider.LastColors);
 
         _clock.Advance(Second / 2);
         _controller.RenderAnimationFrame();

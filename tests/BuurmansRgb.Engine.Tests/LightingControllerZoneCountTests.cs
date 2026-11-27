@@ -33,7 +33,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
     }
 
     // The count without its sequence, which only orders the states (Count_SequenceGrowsWithEveryChange).
-    private ZoneCountInfo Count => _controller.Count with { Sequence = 0 };
+    private ZoneCountInfo Count => _controller.CurrentZoneCount with { Sequence = 0 };
 
     public void Dispose() => _controller.Dispose();
 
@@ -43,21 +43,21 @@ public sealed class LightingControllerZoneCountTests : IDisposable
     public async Task Count_SequenceGrowsWithEveryChange()
     {
         await StartAsync();
-        List<long> sequences = [_controller.Count.Sequence];
+        List<long> sequences = [_controller.CurrentZoneCount.Sequence];
 
         _controller.StartCount(Board, Header, Longest, 1);
-        sequences.Add(_controller.Count.Sequence);
+        sequences.Add(_controller.CurrentZoneCount.Sequence);
         AdvanceAndRender(Second);
-        sequences.Add(_controller.Count.Sequence);
+        sequences.Add(_controller.CurrentZoneCount.Sequence);
         AdvanceAndRender(Second / 3);
-        sequences.Add(_controller.Count.Sequence);
+        sequences.Add(_controller.CurrentZoneCount.Sequence);
         _controller.ChangeCount(new ZoneCountChange(Running: false));
-        sequences.Add(_controller.Count.Sequence);
+        sequences.Add(_controller.CurrentZoneCount.Sequence);
         _controller.StopCount();
-        sequences.Add(_controller.Count.Sequence);
+        sequences.Add(_controller.CurrentZoneCount.Sequence);
 
         Assert.Equal([0, 1, 2, 2, 3, 4], sequences);
-        Assert.False(_controller.Count.IsCounting);
+        Assert.False(_controller.CurrentZoneCount.IsCounting);
     }
 
     [Fact]

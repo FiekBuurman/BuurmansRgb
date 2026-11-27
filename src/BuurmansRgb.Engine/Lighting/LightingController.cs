@@ -319,7 +319,7 @@ internal sealed partial class LightingController : ILightingStateSource, IDevice
             {
                 // The step that ends a count is drawn too, also on a device that needs no more
                 // frames then.
-                if (output.IsAnimated || (counted && output.IsCounting))
+                if (output.NeedsFrames || (counted && output.IsCounting))
                 {
                     var flashing = output.IsFlashing;
                     var fading = output.IsFading;
@@ -434,7 +434,7 @@ internal sealed partial class LightingController : ILightingStateSource, IDevice
 
     private void UpdateAnimationLocked()
     {
-        if (!_disposed && _pause == PauseReasons.None && _lighting.IsSet && _outputs.All.Any(output => output.IsAnimated))
+        if (!_disposed && _pause == PauseReasons.None && _lighting.IsSet && _outputs.All.Any(output => output.NeedsFrames))
         {
             _animation.Start();
         }

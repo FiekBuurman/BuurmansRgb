@@ -45,7 +45,7 @@ internal sealed class ZoneCounter : IDisposable
     // ZoneCountInfo.MaxLedsPerSecond.
     public void Start(string deviceId, int zoneIndex, int ledsPerSecond, object? owner = null)
     {
-        ZoneCount.ThrowIfInvalidPace(ledsPerSecond);
+        ZoneCountRun.ThrowIfInvalidPace(ledsPerSecond);
         lock (_gate)
         {
             var device = _lighting.FindDevice(deviceId) ?? throw DeviceErrors.Unknown(deviceId);
@@ -96,7 +96,7 @@ internal sealed class ZoneCounter : IDisposable
         ArgumentNullException.ThrowIfNull(change);
         if (change.LedsPerSecond is { } pace)
         {
-            ZoneCount.ThrowIfInvalidPace(pace);
+            ZoneCountRun.ThrowIfInvalidPace(pace);
         }
 
         lock (_gate)

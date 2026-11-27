@@ -28,7 +28,7 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     private double[]? _positions;
     private double[]? _imagePositions;
     private DeviceFlash? _flash;
-    private ZoneCount? _count;
+    private ZoneCountRun? _count;
     private int _countFirstLed;
     private int _countLedCount;
 
@@ -55,7 +55,7 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
     // A device that flashes needs frames until the flash is over, whatever its effect, one with a
     // count that runs until the count stops, and one that fades until the fade is over.
-    public bool IsAnimated => _effect.IsAnimated || _flash is not null || _count is { Running: true } || _fading;
+    public bool NeedsFrames => _effect.IsAnimated || _flash is not null || _count is { Running: true } || _fading;
 
     public bool IsFlashing => _flash is not null;
 
@@ -144,7 +144,7 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     // firstLed + ledCount: the zone that is counted, as long as the device has it now. Null ends
     // it. The count itself moves on in LightingController, so it goes on when the device list is
     // made again.
-    public void ShowCount(ZoneCount? count, int firstLed = 0, int ledCount = 0)
+    public void ShowCount(ZoneCountRun? count, int firstLed = 0, int ledCount = 0)
     {
         _count = count;
         _countFirstLed = firstLed;

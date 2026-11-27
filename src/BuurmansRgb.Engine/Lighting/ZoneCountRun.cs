@@ -10,7 +10,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // whatever the frame rate, and it stops at the last LED. The zone is known by its index and key,
 // so a device list that has another zone there does not get the count. Only used under the lock
 // of LightingController.
-internal sealed class ZoneCount
+internal sealed class ZoneCountRun
 {
     public static RgbColor NewestColor { get; } = new(0, 255, 0);
 
@@ -20,7 +20,7 @@ internal sealed class ZoneCount
     private int _ledSince;
 
     // ledCount is how many LEDs the count goes up to, the longest the zone can be.
-    public ZoneCount(string deviceId, int zoneIndex, string zoneKey, string zoneName, int ledCount, int ledsPerSecond, TimeSpan time)
+    public ZoneCountRun(string deviceId, int zoneIndex, string zoneKey, string zoneName, int ledCount, int ledsPerSecond, TimeSpan time)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(ledCount, 1);
         ThrowIfInvalidPace(ledsPerSecond);

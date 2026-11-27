@@ -3,24 +3,24 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
 
-// The LEDs of one zone that are counted one by one (ZoneCount).
+// The LEDs of one zone that are counted one by one (ZoneCountRun).
 internal sealed partial class LightingController
 {
     // The LEDs of the zone that are counted (StartCount); one zone at a time.
-    private ZoneCount? _count;
+    private ZoneCountRun? _count;
 
     // Grows with every change of the count, under the lock, so a listener can drop a state that
     // arrives late (ZoneCountInfo.Sequence): CountChanged goes out from the render thread and from
     // IPC threads.
     private long _countSequence;
 
-    // Raised when a count of LEDs starts, goes to another LED, changes or ends; read Count for
+    // Raised when a count of LEDs starts, goes to another LED, changes or ends; read CurrentZoneCount for
     // the newest state. Raised from the render loop too, without allocating.
     public event EventHandler? CountChanged;
 
     // The count of LEDs as it is now, with the sequence of its last change; ZoneCountInfo.None
     // (with that sequence) while no zone is counted.
-    public ZoneCountInfo Count
+    public ZoneCountInfo CurrentZoneCount
     {
         get
         {
@@ -31,7 +31,7 @@ internal sealed partial class LightingController
         }
     }
 
-    // Counts the LEDs of one zone (ZoneCount) from LED 1 on, up to ledCount, at ledsPerSecond:
+    // Counts the LEDs of one zone (ZoneCountRun) from LED 1 on, up to ledCount, at ledsPerSecond:
     // only the drawing; ZoneCounter gives the zone its longest length for it and its own length
     // back. It replaces the count of any zone and changes no lighting. While paused, or for a
     // device or zone the engine does not know (any more), nothing starts and it returns false. A
@@ -47,9 +47,9 @@ internal sealed partial class LightingController
                 return false;
             }
 
-            // ZoneCount checks the pace, before the count that runs stops.
+            // ZoneCountRun checks the pace, before the count that runs stops.
             var time = EffectTime;
-            var count = new ZoneCount(deviceId, zoneIndex, zone.Key, zone.Name, ledCount, ledsPerSecond, time);
+            var count = new ZoneCountRun(deviceId, zoneIndex, zone.Key, zone.Name, ledCount, ledsPerSecond, time);
             StopCountLocked();
             _count = count;
             _countSequence++;
