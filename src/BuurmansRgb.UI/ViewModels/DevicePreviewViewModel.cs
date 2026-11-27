@@ -297,13 +297,7 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     // The LED in the middle of each twelfth of the device, as the strip of "Hele huis" on Lampen.
     private void ShowStrip(IReadOnlyList<RgbColor> colors)
     {
-        var strip = new RgbColor[StripLength];
-        for (var i = 0; i < strip.Length; i++)
-        {
-            var led = (int)((i + 0.5) * colors.Count / strip.Length);
-            strip[i] = led < colors.Count ? colors[led] : RgbColor.Black;
-        }
-
+        var strip = StripSampler.Sample(colors, StripLength);
         Strip = strip;
         ChipLed.Color = strip[0];
         ChipLed.IsLit = strip[0] != RgbColor.Black;

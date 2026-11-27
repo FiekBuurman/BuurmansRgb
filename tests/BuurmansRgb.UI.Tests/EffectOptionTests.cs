@@ -18,6 +18,13 @@ public sealed class EffectOptionTests
         Assert.NotEqual(effectId, EffectOption.Create(effectId).DisplayName);
     }
 
+    [Theory]
+    [MemberData(nameof(EffectIdsOfTheEngine))]
+    public void NameOf_IsTheNameOfCreate(string effectId)
+    {
+        Assert.Equal(EffectOption.Create(effectId).DisplayName, EffectOption.NameOf(effectId));
+    }
+
     [Fact]
     public void Create_UnknownEffect_ShowsItsId()
     {

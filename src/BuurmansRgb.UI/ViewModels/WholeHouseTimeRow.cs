@@ -11,6 +11,8 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
 {
     private readonly TimeOnly _usual;
 
+    private readonly TimeAndDays _days = new();
+
     // While Show fills in the row.
     private readonly ReentrancyGuard _showing = new();
 
@@ -20,10 +22,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
         Hint = hint;
         _usual = usual;
         Text = LoadTime.WriteAt(usual);
-        foreach (var day in Days)
-        {
-            day.PropertyChanged += (_, _) => RaiseChanged();
-        }
+        _days.DayChanged += (_, _) => RaiseChanged();
     }
 
     // Raised when the user changed the switch, the time or a day.
@@ -41,7 +40,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     public string DaysAccessibleName => UiText.Format(Strings.WholeHouseDaysAccessibleName, Label);
 
     // Monday to Sunday; all of them is every day.
-    public IReadOnlyList<DayOption> Days { get; } = DayOption.CreateWeek();
+    public IReadOnlyList<DayOption> Days => _days.Days;
 
     [ObservableProperty]
     public partial bool IsOn { get; set; }
@@ -55,7 +54,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
 
-    public WeekDays CheckedDays => DayOption.Checked(Days);
+    public WeekDays CheckedDays => _days.CheckedDays;
 
     public bool HasValidTime => LoadTime.TryParseAt(Text, out _);
 
@@ -90,7 +89,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
                 Text = LoadTime.WriteAt(time.At);
             }
 
-            DayOption.Check(Days, time?.Days);
+            _days.Show(time?.Days);
         });
     }
 

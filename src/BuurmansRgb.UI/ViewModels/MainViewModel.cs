@@ -73,7 +73,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
-    // instead of the programs that run (WindowedPrograms.Find). appInfo is the bottom of
+    // instead of the programs that run (RunningPrograms.Find). appInfo is the bottom of
     // Instellingen, which the composition root (App) makes with ShellLauncher.Open; without it
     // "Logbestand openen" opens nothing, so a test that passes none never opens Kladblok.
     // animationEffects is "Animatie-effecten" of Windows (SystemAnimationEffects in App); without

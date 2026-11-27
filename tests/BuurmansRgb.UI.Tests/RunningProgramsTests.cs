@@ -8,7 +8,7 @@ namespace BuurmansRgb.UI.Tests;
 
 // The list of "Kies uit wat nu draait" from a made-up list of processes, with the descriptions of
 // their exe files by process id; a description that throws stands for a process that cannot be read.
-public sealed class WindowedProgramsTests
+public sealed class RunningProgramsTests
 {
     [Fact]
     public void Find_NamesEachProgramByTheDescriptionOfItsExe()
@@ -44,13 +44,13 @@ public sealed class WindowedProgramsTests
             new FileNotFoundException(),
             new ArgumentException(),
         ];
-        WindowedProcess[] processes =
+        ProcessWindow[] processes =
         [
             new(0, "brave", ""),
-            .. failures.Select((_, i) => new WindowedProcess(i + 1, $"locked{i + 1}", i % 2 == 0 ? $"Locked {i + 1}" : "")),
+            .. failures.Select((_, i) => new ProcessWindow(i + 1, $"locked{i + 1}", i % 2 == 0 ? $"Locked {i + 1}" : "")),
         ];
 
-        var programs = WindowedPrograms.Find(processes, id => id == 0 ? "Brave Browser" : throw failures[id - 1]);
+        var programs = RunningPrograms.Find(processes, id => id == 0 ? "Brave Browser" : throw failures[id - 1]);
 
         Assert.Equal(
             ["Brave Browser (brave.exe)", "Locked 1 (locked1.exe)", "Locked 3 (locked3.exe)", "Locked 5 (locked5.exe)", "locked2.exe", "locked4.exe"],
@@ -75,7 +75,7 @@ public sealed class WindowedProgramsTests
     {
         var read = new List<int>();
 
-        var programs = WindowedPrograms.Find(
+        var programs = RunningPrograms.Find(
             [new(1, "notepad++", "a.txt - Notepad++"), new(2, "NOTEPAD++", "b.txt - Notepad++"), new(3, "notepad++", "c.txt - Notepad++")],
             id =>
             {
@@ -129,7 +129,7 @@ public sealed class WindowedProgramsTests
 
         var program = Assert.Single(Find([new(1, "WINWORD", title)], new()));
 
-        Assert.InRange(program.Name.Length, WindowedPrograms.MaxNameLength - 2, WindowedPrograms.MaxNameLength);
+        Assert.InRange(program.Name.Length, RunningPrograms.MaxNameLength - 2, RunningPrograms.MaxNameLength);
         Assert.StartsWith(title[..40], program.Name, StringComparison.Ordinal);
         Assert.EndsWith("…", program.Name, StringComparison.Ordinal);
         Assert.Equal("WINWORD.exe", program.ExeName);
@@ -139,11 +139,11 @@ public sealed class WindowedProgramsTests
     [Fact]
     public void Find_CutsOffALongNameBeforeAnEmoji()
     {
-        var title = new string('a', WindowedPrograms.MaxNameLength - 2) + "🎮 en nog wat meer";
+        var title = new string('a', RunningPrograms.MaxNameLength - 2) + "🎮 en nog wat meer";
 
         var program = Assert.Single(Find([new(1, "game", title)], new()));
 
-        Assert.Equal(new string('a', WindowedPrograms.MaxNameLength - 2) + "…", program.Name);
+        Assert.Equal(new string('a', RunningPrograms.MaxNameLength - 2) + "…", program.Name);
         Assert.DoesNotContain(program.Name, char.IsSurrogate);
     }
 
@@ -164,7 +164,7 @@ public sealed class WindowedProgramsTests
     {
         var read = new List<int>();
 
-        var programs = WindowedPrograms.Find(
+        var programs = RunningPrograms.Find(
             [new(1, part, "Windows Input Experience"), new(2, "SystemSettings", "Instellingen"), new(3, "explorer", "Downloads")],
             id =>
             {
@@ -180,8 +180,8 @@ public sealed class WindowedProgramsTests
     [Fact]
     public void Find_LeavesOutEachShellPart()
     {
-        var programs = WindowedPrograms.Find(
-            [.. ProgramNames.ShellParts.Select((part, index) => new WindowedProcess(index + 1, part, "Windows")), new(99, "game", "Game")],
+        var programs = RunningPrograms.Find(
+            [.. ProgramNames.ShellParts.Select((part, index) => new ProcessWindow(index + 1, part, "Windows")), new(99, "game", "Game")],
             _ => null);
 
         Assert.Equal(["game.exe"], programs.Select(program => program.ExeName));
@@ -212,6 +212,6 @@ public sealed class WindowedProgramsTests
 
     private static string Label(RunningProgram program) => new RunningProgramItem(program).Label;
 
-    private static IReadOnlyList<RunningProgram> Find(WindowedProcess[] processes, Dictionary<int, string?> descriptions) =>
-        WindowedPrograms.Find(processes, id => descriptions.GetValueOrDefault(id));
+    private static IReadOnlyList<RunningProgram> Find(ProcessWindow[] processes, Dictionary<int, string?> descriptions) =>
+        RunningPrograms.Find(processes, id => descriptions.GetValueOrDefault(id));
 }

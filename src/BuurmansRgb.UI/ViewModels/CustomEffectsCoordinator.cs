@@ -154,7 +154,7 @@ internal sealed class CustomEffectsCoordinator
     // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
     public bool IsNameTaken(string id, string name) =>
         _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name))
-        || _engineEffects.Any(engineEffect => CustomEffects.NameComparer.Equals(EffectOption.Create(engineEffect).DisplayName, name));
+        || _engineEffects.Any(engineEffect => CustomEffects.NameComparer.Equals(EffectOption.NameOf(engineEffect), name));
 
     // Each change of the editor goes out as the whole effect; a newer one replaces one that waits.
     // A new name shows in the effect choice at once.

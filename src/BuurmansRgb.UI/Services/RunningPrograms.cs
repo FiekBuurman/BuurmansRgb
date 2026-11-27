@@ -8,7 +8,7 @@ namespace BuurmansRgb.UI.Services;
 // open, without the background processes and the parts of Windows nobody would pick. Each one by
 // the name a user knows it by: the description in its exe file, else the title of its window, else
 // its exe name; the field still gets the exe name. In the order of those names.
-public static class WindowedPrograms
+public static class RunningPrograms
 {
     // A longer title, such as that of a document, is cut off, so the list does not get that wide.
     internal const int MaxNameLength = 60;
@@ -31,7 +31,7 @@ public static class WindowedPrograms
 
     // describe gives the description in the exe file of a process by its id; when it throws, as it
     // does for a process that ended or cannot be read, the title or the exe name stands instead.
-    internal static IReadOnlyList<RunningProgram> Find(IEnumerable<WindowedProcess> processes, Func<int, string?> describe)
+    internal static IReadOnlyList<RunningProgram> Find(IEnumerable<ProcessWindow> processes, Func<int, string?> describe)
     {
         var programs = new List<RunningProgram>();
         var byExeName = processes
