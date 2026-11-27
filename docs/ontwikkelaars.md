@@ -593,15 +593,22 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
   **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
   meldingen als het die heeft, via een event `Message` dat `MainViewModel` in de statusregel zet
-  (`SettingsBackupViewModel`, `SharingViewModel`, `EngineOptionsCoordinator`, `SceneCoordinator`);
-  `LampSync` en `StillPreviewCoordinator` hebben er geen en melden een fout via
-  `EngineSession.OnCallFailed`. Sinds `mainviewmodel-opsplitsen` hebben drie delen
-  van `MainViewModel` zo'n eigen coördinator (intern): `StillPreviewCoordinator` (de frames, het
+  (`SettingsBackupViewModel`, `SharingViewModel`, `EngineOptionsCoordinator`, `SceneCoordinator`,
+  `CustomEffectsCoordinator`); `LampSync`, `StillPreviewCoordinator` en `LedEditCoordinator`
+  hebben er geen en melden een fout via `EngineSession.OnCallFailed`. Sinds
+  `mainviewmodel-opsplitsen` en `mainviewmodel-effecten-en-leds` hebben vijf delen van
+  `MainViewModel` zo'n eigen coördinator (intern): `StillPreviewCoordinator` (de frames, het
   stilstaande beeld van het voorbeeld en de flits), `EngineOptionsCoordinator` (de opties van
-  Instellingen en de werkbalk op Kleur) en `SceneCoordinator` (de scènes op Scènes, hun kaarten en
-  de tijden van "Alles uit"). Ze abonneren zich zelf op de events van de pure view models die ze
+  Instellingen en de werkbalk op Kleur), `SceneCoordinator` (de scènes op Scènes, hun kaarten en
+  de tijden van "Alles uit"), `CustomEffectsCoordinator` (de effecten van de engine en de eigen
+  effecten in de effectkeuze, met de editor van kaart 4, die hij zelf maakt omdat die namen bij
+  hem controleert) en `LedEditCoordinator` (LED's kiezen in het voorbeeld en ze kleuren, per LED
+  of in de laag). Ze abonneren zich zelf op de events van de pure view models die ze
   krijgen; wat ze van `MainViewModel` nodig hebben (zoals het gekozen apparaat) krijgen ze als
-  `Func<>`, en wat `MainViewModel` moet doen als event (zoals `SceneCoordinator.Loaded`). De
+  `Func<>`, en wat `MainViewModel` moet doen als event (zoals `SceneCoordinator.Loaded` of
+  `LedEditCoordinator.LedsSent`, waarop het effect naar per LED gaat). De commando's van de
+  XAML (zoals `FillGradientCommand` en `NewCustomEffectCommand`) blijven op `MainViewModel` en
+  sturen door. De
   publieke eigenschappen van `MainViewModel` bleven gelijk; waar nodig sturen ze door (zoals
   `WantsFrames`). De sleutels van een coördinator in de wachtrij die `OnCallSucceeded` moet kennen
   zijn `internal const` (zoals `SceneCoordinator.ProfilesReloadCall`). Elke coördinator heeft
