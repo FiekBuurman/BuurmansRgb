@@ -85,10 +85,14 @@ public sealed class LedPreviewView : FrameworkElement
     private static readonly Pen Outline = CreatePen(System.Windows.Media.Color.FromArgb(0x60, 0x80, 0x80, 0x80), 1.0);
 
     // In the system highlight color, so the ring also shows in dark and high-contrast themes. Read
-    // on every render, so the ring follows a theme change from the next redraw on.
-    private static Pen _selectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
+    // on every render, so the ring follows a theme change from the next redraw on. One per UI
+    // thread, as in ColorBrushes: the pens are frozen, but tests run windows on several threads at
+    // once, and each thread replaces its own pen.
+    [ThreadStatic]
+    private static Pen? _selectionRing;
 
     // 2 px in the text color, as the focus ring of the other controls (design/DESIGN.md § 6).
+    [ThreadStatic]
     private static Pen? _focusRing;
 
     // The arrangement of the LEDs, made again only when what it depends on changes.
@@ -558,11 +562,11 @@ public sealed class LedPreviewView : FrameworkElement
         }
     }
 
-    // Only made again when the highlight color changed. Rendering runs on the UI thread only.
+    // Only made again when the highlight color changed.
     private static Pen SelectionRing()
     {
         var color = SystemColors.HighlightColor;
-        if (((SolidColorBrush)_selectionRing.Brush).Color != color)
+        if (_selectionRing is not { Brush: SolidColorBrush current } || current.Color != color)
         {
             _selectionRing = CreatePen(color, 2.0);
         }
