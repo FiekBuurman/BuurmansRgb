@@ -23,8 +23,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LoopCall = "loop";
     private const string EffectColorsCall = "effect-colors";
     private const string ColorCall = "color";
-    private const string LedsCall = "leds";
-    private const string LayerCall = "layer";
     private const string ResizeCall = "resize";
     private const string CountCall = "count";
     private const string ZonesAlikeCall = "zones-alike";
@@ -43,6 +41,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly StillPreviewCoordinator _stills;
     private readonly EngineOptionsCoordinator _options;
     private readonly CustomEffectsCoordinator _customEffects;
+    private readonly LedEditCoordinator _ledEdit;
     private readonly ReentrancyGuard _syncing = new();
     private IReadOnlyList<DeviceInfo> _devices = [];
 
@@ -67,9 +66,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Counts the changes sent for the selected device, so lighting fetched while the user changed
     // something newer does not move a slider back.
     private int _sentChanges;
-
-    // The LED edit that waits for the stored colors of its device; see EditLedsAsync.
-    private StartingEdit? _startingEdit;
 
     // How long the choice of a lamp rests before it flashes (StillPreviewCoordinator.FlashRest).
     public static TimeSpan FlashRest => StillPreviewCoordinator.FlashRest;
@@ -122,6 +118,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview = new PreviewViewModel(_time);
         Motion = new PreviewMotionViewModel(animationEffects ?? AnimationEffectsOn.Instance);
         _stills = new StillPreviewCoordinator(_session, _time, Preview, Lamps, Motion, EffectOptions, () => ShowsPreview, () => FrameDevice, () => SelectedDevice?.DeviceId);
+        _ledEdit = new LedEditCoordinator(_session, LedEditor, Preview, Lamps, () => _devices, ShowSelectionAsync);
         EffectsPause = new EffectsPauseViewModel(_time);
         AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart, SceneTimes, WholeHouseTimes);
         DeviceRescan = new DeviceRescanViewModel(_time);
@@ -133,7 +130,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Sharing.Imported += (_, result) => _scenes.ShowImported(result);
         _scenes.Loaded += (_, _) =>
         {
-            ClearLedSelection();
+            _ledEdit.ClearSelection();
             _ = ShowSelectionAsync();
         };
         CustomColors = new CustomColorsViewModel(ColorPicker);
@@ -145,9 +142,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _customEffects.Created += (_, id) => SelectedEffect = Effects.FirstOrDefault(option => option.Id == id) ?? SelectedEffect;
         CustomEffectEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
-        Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
-        Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
-        Preview.LedSelectionCleared += (_, _) => _ = ClearLedSelectionAsync();
+        _ledEdit.ChangeSent += (_, _) => _sentChanges++;
+        _ledEdit.LedsSent += (_, deviceId) => OnLedsSent(deviceId);
+        _ledEdit.SelectionShown += (_, _) => _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => _stills.FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => _stills.FlashZone(flash);
@@ -511,7 +508,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         DropConnection();
         DeviceRescan.Clear();
-        ClearLedSelection();
+        _ledEdit.ClearSelection();
         HadRealDevices = null;
         ConnectionState = ConnectionState.Connecting;
         StatusMessage = Strings.StatusConnecting;
@@ -586,7 +583,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        ClearLedSelection();
+        _ledEdit.ClearSelection();
         _ = ShowSelectionAsync();
         _stills.FlashChosen(newValue.DeviceId);
     }
@@ -631,7 +628,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Another effect the user picks ends an LED edit: the picker colors the lamp, the loop or the list
     // of the effect again, as a color for the LEDs would put the lamp back on the per-LED effect. The
-    // effect the app follows (_syncing), such as the per-LED one after SendLeds, keeps the edit. The
+    // effect the app follows (_syncing), such as the per-LED one after LedsSent, keeps the edit. The
     // tiles show the list of the new effect, from its first color.
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
@@ -646,7 +643,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
             if (value.Id != EffectIds.PerLed)
             {
-                ClearLedSelection();
+                _ledEdit.ClearSelection();
             }
 
             ShowPickerColor();
@@ -863,13 +860,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(SelectedLamp));
         _ = _lampSync.RefreshAsync();
 
-        // The edit ends when its device is gone or got another number of LEDs (a zone that was
-        // resized): the colors the editor holds no longer fit the device.
-        if (LedEditor.Selection is { } selection
-            && devices.FirstOrDefault(device => device.Id == selection.DeviceId)?.LedCount != LedEditor.LedCount)
-        {
-            ClearLedSelection();
-        }
+        _ledEdit.EndIfDeviceChanged(devices);
     }
 
     // Devices came or went in the engine, for example because OpenRGB started or stopped, or one
@@ -993,15 +984,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // in most lamp apps. A color of the device ends the scene that is on, as any change by hand.
     private void OnColorPicked(RgbColor color)
     {
-        if (LedEditor.HasSelection && LedEditor.PaintsLayer)
+        if (_ledEdit.TryPaint(color))
         {
-            SendLayer(LedEditor.PaintLayer(color));
+            return;
         }
-        else if (LedEditor.HasSelection)
-        {
-            SendLeds(LedEditor.Paint(color));
-        }
-        else if (IsColorLoop)
+
+        if (IsColorLoop)
         {
             ColorLoopEditor.Paint(color);
             SwitchOnForColor(SelectedDevice);
@@ -1119,19 +1107,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Only with a list of its own: without one the effect has its default already.
     private bool CanResetEffectColors() => SelectedEffect is { } effect && _effectColors.Lists.ContainsKey(effect.Id);
 
-    // In the layer too, when the colors go there.
+    // In the layer too, when the colors go there (LedEditCoordinator.FillGradient).
     [RelayCommand(CanExecute = nameof(CanFillGradient))]
-    private void FillGradient()
-    {
-        if (LedEditor.PaintsLayer)
-        {
-            SendLayer(LedEditor.FillLayerGradient());
-        }
-        else
-        {
-            SendLeds(LedEditor.FillGradient());
-        }
-    }
+    private void FillGradient() => _ledEdit.FillGradient();
 
     private bool CanFillGradient() => LedEditor.CanFillGradient;
 
@@ -1139,7 +1117,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanRemoveLayer))]
     private void RemoveLayer()
     {
-        SendLayer(LedEditor.RemoveLayer(), switchOn: false);
+        _ledEdit.RemoveLayer();
         ShowPickerColor();
     }
 
@@ -1147,139 +1125,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Back to coloring the selected device.
     [RelayCommand]
-    private async Task ClearLedSelectionAsync()
-    {
-        ClearLedSelection();
-        await ShowSelectionAsync();
-    }
-
-    // A range that the keyboard starts on a device without a selection begins at its Anchor. A
-    // Ctrl+click on a device without a selection chooses that LED, as a click does; on a device
-    // with one, it puts the LED in or takes it out.
-    private Task OnLedClickedAsync(LedClick click) => click.Toggle
-        ? EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Toggle(click.Index, click.Extend), selectOnStart: click.Extend)
-        : EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
-
-    private Task OnLedsSelectedAsync(LedSelection leds) =>
-        EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
-
-    // The stored colors are fetched when editing starts on a device, at the LED firstIndex; clicks
-    // on the same device reuse them, so they also hold the edits that are still on their way to
-    // the engine. A click or key on the same device before they came waits for the same colors
-    // and starts at the same LED, so two quick Shift+arrows give one range from where the first
-    // one came. select then picks the LEDs; without selectOnStart not when this call started the
-    // edit, which already picked the LED at firstIndex. When select took out the last chosen LED
-    // (Ctrl+click), it goes as "Selectie opheffen" does.
-    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select, bool selectOnStart = true)
-    {
-        var started = false;
-        if (_session.Current is not { } connection)
-        {
-            return;
-        }
-
-        if (!LedEditor.IsEditing(deviceId))
-        {
-            if (_startingEdit is not { } starting || starting.DeviceId != deviceId || !ReferenceEquals(starting.Connection, connection))
-            {
-                starting = new(connection, deviceId, firstIndex, _session.TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId)), _session.TryCallAsync(connection, api => api.GetOverlayAsync(deviceId)));
-                _startingEdit = starting;
-            }
-
-            var (ok, colors) = await starting.Colors;
-            var (layerOk, layer) = await starting.Layer;
-            if (ReferenceEquals(_startingEdit, starting))
-            {
-                _startingEdit = null;
-            }
-
-            if (!ok || !layerOk || !_session.IsCurrent(connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
-            {
-                return;
-            }
-
-            // The first click or key that waited for the colors started already.
-            if (!LedEditor.IsEditing(deviceId))
-            {
-                LedEditor.Start(device.Id, device.Name, colors, starting.FirstIndex, layer);
-                started = true;
-            }
-        }
-
-        var hadSelection = LedEditor.HasSelection;
-        if (selectOnStart || !started)
-        {
-            select(LedEditor);
-        }
-
-        if (hadSelection && !LedEditor.HasSelection)
-        {
-            await ClearLedSelectionAsync();
-            return;
-        }
-
-        Preview.ShowLedSelection(LedEditor.Selection);
-        _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
-    }
+    private Task ClearLedSelectionAsync() => _ledEdit.ClearSelectionAsync();
 
     // The engine also switches the device to the per-LED effect, so the effect list shows that
-    // when the edited device is the selected one. A lamp that is off goes on after its colors, as
-    // with SwitchOnForColor. Each run of chosen LEDs is its own engine call, so LEDs between them
-    // that are not chosen are never sent (Ctrl+click); the runs of one edit share one place in the
-    // queue, so a dragged slider still sends only its latest value, however many runs there are.
-    private void SendLeds(IReadOnlyList<LedEdit>? edits)
+    // when the edited device is the selected one.
+    private void OnLedsSent(string deviceId)
     {
-        if (edits is not [var first, ..] || !PostRuns(LedsCall, first.DeviceId, edits, (api, edit) => api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors)))
-        {
-            return;
-        }
-
-        Lamps.SwitchOn(first.DeviceId);
-        if (SelectedDevice?.DeviceId == first.DeviceId)
+        if (SelectedDevice?.DeviceId == deviceId)
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
         }
     }
-
-    // The layer keeps the effect of the device, so the effect list stays as it is. A lamp that is off
-    // goes on after its colors, as with SendLeds; taking the layer away leaves it as it is. One call
-    // per run of chosen LEDs, in one place in the queue, as with SendLeds.
-    private void SendLayer(IReadOnlyList<LayerEdit>? edits, bool switchOn = true)
-    {
-        if (edits is not [var first, ..] || !PostRuns(LayerCall, first.DeviceId, edits, (api, edit) => api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors)))
-        {
-            return;
-        }
-
-        if (switchOn)
-        {
-            Lamps.SwitchOn(first.DeviceId);
-        }
-    }
-
-    // The runs of one edit as one call in the queue, keyed by the chosen LEDs the editor just made
-    // them from. False when there is no engine to send them to.
-    private bool PostRuns<T>(string kind, string deviceId, IReadOnlyList<T> edits, Func<IEngineApi, T, Task> send)
-    {
-        if (!_session.HasConnection || LedEditor.Selection is not { } selection)
-        {
-            return false;
-        }
-
-        _sentChanges++;
-        _session.Post((kind, deviceId, selection.Leds), async (IEngineApi api) =>
-        {
-            // Stopping at the first run that fails is good enough: the runs go in rising order, what
-            // makes one fail (a lost engine, a device that went) makes the rest fail too, and the
-            // next step of the edit sends all runs again.
-            foreach (var edit in edits)
-            {
-                await send(api, edit);
-            }
-        });
-        return true;
-    }
-
     // The engine reports the device with its new length through DevicesChanged, which rebuilds
     // the preview; an LED edit of that device ends then, because its LEDs moved.
     private void OnZoneResizeRequested(ZoneResize resize)
@@ -1380,12 +1236,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedDevice = device;
             Navigation.GoTo(AppPage.Color);
         }
-    }
-
-    private void ClearLedSelection()
-    {
-        LedEditor.Clear();
-        Preview.ShowLedSelection(null);
     }
 
     // A frame that was on its way when the preview came to stand still is dropped
@@ -1578,8 +1428,4 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.OtherRgbSoftwareChanged -= OnOtherRgbSoftwareChanged;
         connection.Dispose();
     }
-
-    // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
-    private sealed record StartingEdit(
-        IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors, Task<(bool Ok, IReadOnlyList<RgbColor?> Value)> Layer);
 }
