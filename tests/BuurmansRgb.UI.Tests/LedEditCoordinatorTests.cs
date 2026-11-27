@@ -27,7 +27,7 @@ public sealed class LedEditCoordinatorTests
     public LedEditCoordinatorTests()
     {
         _session = new EngineSession(new UiThread(), _ => { }, _ => { });
-        _preview = new PreviewViewModel(requests: new PreviewActionsCoordinator(_session, () => _preview!, () => null!, () => _ledEdit!));
+        _preview = new PreviewViewModel(requests: new PreviewActionsCoordinator(_session, () => _preview!, () => throw new InvalidOperationException("no stills in this test"), () => _ledEdit!));
         _devices = Api.Devices;
         _preview.ShowDevices(_devices);
         _lamps.ShowDevices(_devices.Select(device => DeviceItem.For(device)));
