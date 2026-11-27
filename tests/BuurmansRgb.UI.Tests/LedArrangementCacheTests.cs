@@ -15,9 +15,9 @@ public sealed class LedArrangementCacheTests
         var cache = new LedArrangementCache();
         IReadOnlyList<string> names = ["A", "B", "C", "Space"];
 
-        Assert.Same(cache.For(6, 100, false, null, null, null), cache.For(6, 100, false, null, null, null));
-        Assert.Same(cache.For(4, 500, false, KeyMap, names, 9.0), cache.For(4, 500, false, KeyMap, names, 9.0));
-        Assert.Same(cache.For(8, 500, true, null, null, null), cache.For(8, 500, true, null, null, null));
+        Assert.Same(Dots(cache, 6, 100), Dots(cache, 6, 100));
+        Assert.Same(cache.For(4, 500, ring: false, matrix: KeyMap, names: names, keyCapFontSize: 9.0), cache.For(4, 500, ring: false, matrix: KeyMap, names: names, keyCapFontSize: 9.0));
+        Assert.Same(Ring(cache, 8, 500), Ring(cache, 8, 500));
     }
 
     // A wider row of dots that still holds as many in a row keeps its arrangement.
@@ -26,9 +26,9 @@ public sealed class LedArrangementCacheTests
     {
         var cache = new LedArrangementCache();
 
-        var first = cache.For(6, 3 * LedLayout.Pitch, false, null, null, null);
+        var first = Dots(cache, 6, 3 * LedLayout.Pitch);
 
-        Assert.Same(first, cache.For(6, 3 * LedLayout.Pitch + 1, false, null, null, null));
+        Assert.Same(first, Dots(cache, 6, 3 * LedLayout.Pitch + 1));
     }
 
     [Fact]
@@ -37,11 +37,11 @@ public sealed class LedArrangementCacheTests
         var cache = new LedArrangementCache();
         IReadOnlyList<string> names = ["A", "B", "C", "Space"];
 
-        var dots = cache.For(6, 3 * LedLayout.Pitch, false, null, null, null);
-        var moreDots = cache.For(7, 3 * LedLayout.Pitch, false, null, null, null);
-        var narrower = cache.For(7, 2 * LedLayout.Pitch, false, null, null, null);
-        var keys = cache.For(4, 500, false, KeyMap, null, null);
-        var wideKeys = cache.For(4, 500, false, KeyMap, names, null);
+        var dots = Dots(cache, 6, 3 * LedLayout.Pitch);
+        var moreDots = Dots(cache, 7, 3 * LedLayout.Pitch);
+        var narrower = Dots(cache, 7, 2 * LedLayout.Pitch);
+        var keys = cache.For(4, 500, ring: false, matrix: KeyMap, names: null, keyCapFontSize: null);
+        var wideKeys = cache.For(4, 500, ring: false, matrix: KeyMap, names: names, keyCapFontSize: null);
 
         Assert.NotSame(dots, moreDots);
         Assert.NotSame(moreDots, narrower);
@@ -54,8 +54,8 @@ public sealed class LedArrangementCacheTests
     {
         var cache = new LedArrangementCache();
 
-        var full = Assert.IsType<RingArrangement>(cache.For(8, double.PositiveInfinity, true, null, null, null));
-        var shrunk = Assert.IsType<RingArrangement>(cache.For(8, RingLayout.Size(8) / 2 + 1, true, null, null, null));
+        var full = Assert.IsType<RingArrangement>(Ring(cache, 8, double.PositiveInfinity));
+        var shrunk = Assert.IsType<RingArrangement>(Ring(cache, 8, RingLayout.Size(8) / 2 + 1));
 
         Assert.Equal(1.0, full.Scale);
         Assert.True(shrunk.Scale < 1.0, $"The ring has scale {shrunk.Scale}.");
@@ -68,10 +68,10 @@ public sealed class LedArrangementCacheTests
     {
         var cache = new LedArrangementCache();
 
-        var plain = (CellArrangement)cache.For(4, 500, false, KeyMap, null, null);
-        var withCaps = (CellArrangement)cache.For(4, 500, false, KeyMap, null, LedLayout.KeyCapDesignSize);
-        var largerText = (CellArrangement)cache.For(4, 500, false, KeyMap, null, 2 * LedLayout.KeyCapDesignSize);
-        var dots = (CellArrangement)cache.For(4, 500, false, null, null, LedLayout.KeyCapDesignSize);
+        var plain = (CellArrangement)cache.For(4, 500, ring: false, matrix: KeyMap, names: null, keyCapFontSize: null);
+        var withCaps = (CellArrangement)cache.For(4, 500, ring: false, matrix: KeyMap, names: null, keyCapFontSize: LedLayout.KeyCapDesignSize);
+        var largerText = (CellArrangement)cache.For(4, 500, ring: false, matrix: KeyMap, names: null, keyCapFontSize: 2 * LedLayout.KeyCapDesignSize);
+        var dots = (CellArrangement)cache.For(4, 500, ring: false, matrix: null, names: null, keyCapFontSize: LedLayout.KeyCapDesignSize);
 
         Assert.True(plain.Keys);
         Assert.Equal(LedLayout.Pitch, plain.Pitch);
@@ -91,4 +91,10 @@ public sealed class LedArrangementCacheTests
     [InlineData(100, 0, 1)]
     public void ColumnsFor_DotsInARowThatWraps(double width, int count, int expected) =>
         Assert.Equal(expected, LedArrangementCache.ColumnsFor(width, count));
+
+    private static ILedArrangement Dots(LedArrangementCache cache, int count, double width) =>
+        cache.For(count, width, ring: false, matrix: null, names: null, keyCapFontSize: null);
+
+    private static ILedArrangement Ring(LedArrangementCache cache, int count, double width) =>
+        cache.For(count, width, ring: true, matrix: null, names: null, keyCapFontSize: null);
 }
