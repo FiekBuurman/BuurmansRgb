@@ -31,10 +31,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ResumeCall = "resume";
     private const string RestartCall = "restart";
     private const string FollowLightingCall = "follow-lighting";
-    private const string CustomEffectsReloadCall = "custom-effects-reload";
     private const string OtherRgbSoftwareReloadCall = "other-rgb-software-reload";
     private const string DismissOtherRgbSoftwareCall = "dismiss-other-rgb-software";
-    private const string CustomEffectCall = "custom-effect";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -44,6 +42,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly SceneCoordinator _scenes;
     private readonly StillPreviewCoordinator _stills;
     private readonly EngineOptionsCoordinator _options;
+    private readonly CustomEffectsCoordinator _customEffects;
     private readonly ReentrancyGuard _syncing = new();
     private IReadOnlyList<DeviceInfo> _devices = [];
 
@@ -71,15 +70,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // The LED edit that waits for the stored colors of its device; see EditLedsAsync.
     private StartingEdit? _startingEdit;
-
-    // The effects of the engine itself, and the own effects of the user, in alphabetical order of
-    // their names, as the engine gave them and with the changes sent since.
-    private IReadOnlyList<string> _engineEffects = [];
-    private IReadOnlyList<CustomEffect> _customEffects = [];
-
-    // Counts the changes to own effects sent from here, so a list fetched while the user changed
-    // one does not bring back an older version.
-    private int _customEffectChanges;
 
     // How long the choice of a lamp rests before it flashes (StillPreviewCoordinator.FlashRest).
     public static TimeSpan FlashRest => StillPreviewCoordinator.FlashRest;
@@ -147,9 +137,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = ShowSelectionAsync();
         };
         CustomColors = new CustomColorsViewModel(ColorPicker);
-        CustomEffectEditor = new CustomEffectEditorViewModel(IsCustomEffectNameTaken);
-        CustomEffectEditor.Changed += (_, effect) => SendCustomEffect(effect);
-        CustomEffectEditor.DeleteRequested += (_, id) => DeleteCustomEffect(id);
+        _customEffects = new CustomEffectsCoordinator(_session, () => SelectedEffect);
+        CustomEffectEditor = _customEffects.Editor;
+        _customEffects.Message += (_, message) => StatusMessage = message;
+        _customEffects.EffectsChanged += (_, _) => ShowEffects();
+        _customEffects.Deleted += (_, id) => OnCustomEffectDeleted(id);
+        _customEffects.Created += (_, id) => SelectedEffect = Effects.FirstOrDefault(option => option.Id == id) ?? SelectedEffect;
         CustomEffectEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
@@ -709,11 +702,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // take the keyboard focus out of it.
     private void ShowEffects()
     {
-        (string Id, string Name, int Steps)[] wanted =
-        [
-            .. EngineEffectNames().Select(effect => (effect.Id, effect.Name, 0)),
-            .. _customEffects.Select(effect => (effect.Id, effect.Name, effect.Steps.Count)),
-        ];
+        var wanted = _customEffects.Options;
         var selectedId = SelectedEffect?.Id;
         _syncing.Run(() =>
         {
@@ -725,18 +714,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             }
 
-            for (var i = 0; i < wanted.Length; i++)
+            for (var i = 0; i < wanted.Count; i++)
             {
-                var (id, name, steps) = wanted[i];
+                var option = wanted[i];
                 var at = i;
-                while (at < Effects.Count && Effects[at].Id != id)
+                while (at < Effects.Count && Effects[at].Id != option.Id)
                 {
                     at++;
                 }
 
                 if (at == Effects.Count)
                 {
-                    Effects.Insert(i, new EffectOption(id, name, steps));
+                    Effects.Insert(i, option);
                     continue;
                 }
 
@@ -745,8 +734,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     Effects.Move(at, i);
                 }
 
-                Effects[i].DisplayName = name;
-                Effects[i].Steps = steps;
+                Effects[i].DisplayName = option.DisplayName;
+                Effects[i].Steps = option.Steps;
             }
 
             if (SelectedEffect is null || !Effects.Contains(SelectedEffect))
@@ -779,43 +768,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The editor shows the chosen own effect as it is known here; the picker follows its step.
     private void ShowCustomEffectEditor()
     {
-        if (SelectedEffect is { IsCustom: true } option && _customEffects.FirstOrDefault(effect => effect.Id == option.Id) is { } effect)
+        if (_customEffects.ShowInEditor(SelectedEffect))
         {
-            var other = effect.Id != CustomEffectEditor.EffectId;
-            CustomEffectEditor.Show(effect);
-            if (other)
-            {
-                ShowPickerColor();
-            }
+            ShowPickerColor();
         }
     }
 
-    // Each change of the editor goes out as the whole effect; a newer one replaces one that waits.
-    // A new name shows in the effect choice at once.
-    private void SendCustomEffect(CustomEffect effect)
+    // The engine gives every device that showed the deleted effect, and so this one, the static
+    // effect; the choice here goes there at once, which hides the editor.
+    private void OnCustomEffectDeleted(string id)
     {
-        if (!_session.HasConnection)
-        {
-            return;
-        }
-
-        _customEffectChanges++;
-        ShowCustomEffect(effect);
-        _session.PostOn((CustomEffectCall, effect.Id), connection => CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect)));
-    }
-
-    // The engine gives every device that shows it, and so this one, the static effect; the choice
-    // here goes there at once, which hides the editor. With the same key, it replaces a change of
-    // the effect that still waits.
-    private void DeleteCustomEffect(string id)
-    {
-        if (!_session.HasConnection || _customEffects.FirstOrDefault(effect => effect.Id == id) is not { } deleted)
-        {
-            return;
-        }
-
-        _customEffectChanges++;
-        _customEffects = [.. _customEffects.Where(effect => effect.Id != id)];
         _syncing.Run(() =>
         {
             if (SelectedEffect?.Id == id)
@@ -825,160 +787,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
         ShowEffects();
         ShowPickerColor();
-        _session.PostOn((CustomEffectCall, id), async connection =>
-        {
-            await CallOrShowCustomEffectsAsync(connection, async () =>
-            {
-                await connection.Api.DeleteCustomEffectAsync(id);
-                return true;
-            });
-            _session.WhenCurrent(connection, () => StatusMessage = UiText.Format(Strings.CustomEffectDeleted, deleted.Name));
-        });
     }
 
     // "LED-kleuren van dit apparaat overnemen": the colors the per-LED effect gives the LEDs of the
     // chosen device become the pattern of the selected step. Not for "Hele huis".
     [RelayCommand(CanExecute = nameof(CanTakeLedPattern))]
-    private async Task TakeLedPatternAsync()
-    {
-        if (_session.Current is not { } connection || SelectedDevice?.DeviceId is not { } deviceId)
-        {
-            return;
-        }
-
-        var effectId = CustomEffectEditor.EffectId;
-        var (ok, colors) = await _session.TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
-        if (ok && _session.IsCurrent(connection) && CustomEffectEditor.EffectId == effectId && IsCustomEffect)
-        {
-            CustomEffectEditor.ShowPattern(colors);
-        }
-    }
+    private Task TakeLedPatternAsync() =>
+        SelectedDevice?.DeviceId is { } deviceId ? _customEffects.TakeLedPatternAsync(deviceId) : Task.CompletedTask;
 
     private bool CanTakeLedPattern() => SelectedDevice?.DeviceId is not null;
 
-    // "+ Eigen effect maken": a new effect of two steps, the color of the lamp and black, a second
-    // each with a second to fade, under the first free name "Eigen effect 1", "Eigen effect 2", ...
-    // Once the engine has saved it, it is the chosen effect, so the lamp shows it and the editor
-    // opens on it.
+    // "+ Eigen effect maken": a new effect of two steps, the color of the lamp and black. Once the
+    // engine has saved it, it is the chosen effect, so the lamp shows it and the editor opens on it.
     [RelayCommand(CanExecute = nameof(CanCreateCustomEffect))]
-    private void NewCustomEffect()
-    {
-        if (!_session.HasConnection)
-        {
-            return;
-        }
+    private void NewCustomEffect() => _customEffects.Create(_deviceColor);
 
-        var name = CustomEffects.FirstFreeName(
-            number => UiText.Format(Strings.CustomEffectNewName, number),
-            candidate => _customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
-        var effect = new CustomEffect(string.Empty, name, [new CustomEffectStep(_deviceColor), new CustomEffectStep(RgbColor.Black)]);
-        _customEffectChanges++;
-        _session.PostOn(new object(), async connection =>
-        {
-            var saved = await CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect));
-            _session.WhenCurrent(connection, () =>
-            {
-                ShowCustomEffect(saved);
-                SelectedEffect = Effects.FirstOrDefault(option => option.Id == saved.Id) ?? SelectedEffect;
-            });
-        });
-    }
-
-    private bool CanCreateCustomEffect() => _session.HasConnection && _customEffects.Count < CustomEffects.MaxEffects;
-
-    // Whether another own effect, or an effect of the engine, has the name in the effect choice;
-    // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
-    private bool IsCustomEffectNameTaken(string id, string name) =>
-        _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name))
-        || EngineEffectNames().Any(effect => CustomEffects.NameComparer.Equals(effect.Name, name));
-
-    // The effects of the engine under the names the effect choice shows them with.
-    private IEnumerable<(string Id, string Name)> EngineEffectNames() =>
-        _engineEffects.Select(id => (id, EffectOption.Create(id).DisplayName));
-
-    // An effect as this app sent it or the engine saved it, in its place in the alphabet.
-    private void ShowCustomEffect(CustomEffect effect)
-    {
-        _customEffects = [.. _customEffects.Where(other => other.Id != effect.Id).Append(effect).OrderBy(other => other.Name, CustomEffects.NameComparer)];
-        ShowEffects();
-    }
-
-    // A change of an own effect the engine refused, such as a name another settings app took
-    // meanwhile or an effect it deleted: the effects as the engine keeps them replace the ones shown
-    // here, without the check of OnCustomEffectsChanged, as the list it sent may have been dropped
-    // for this very change. The error still goes on to OnCallFailed.
-    private async Task<T> CallOrShowCustomEffectsAsync<T>(IEngineConnection connection, Func<Task<T>> call)
-    {
-        try
-        {
-            return await call();
-        }
-        catch (Exception exception) when (EngineRpc.IsRejectedByEngine(exception))
-        {
-            // A reload that fails too only gets logged, so the refusal still reaches OnCallFailed.
-            try
-            {
-                var effects = await connection.Api.GetCustomEffectsAsync();
-                _session.WhenCurrent(connection, () =>
-                {
-                    _customEffects = effects;
-                    ShowEffects();
-                });
-            }
-            catch (Exception reloadException)
-            {
-                Trace.TraceWarning(reloadException.ToString());
-            }
-
-            throw;
-        }
-    }
-
-    // Another settings app saved or deleted an effect, or this one did. In the queue, behind the
-    // changes of this app that wait, and only shown when no change was sent meanwhile.
-    private void OnCustomEffectsChanged(object? sender, EventArgs e) => _ui.Run(() =>
-    {
-        if (!_session.HasConnection)
-        {
-            return;
-        }
-
-        var changes = _customEffectChanges;
-        _session.Read(CustomEffectsReloadCall, api => api.GetCustomEffectsAsync(), effects =>
-        {
-            if (changes == _customEffectChanges)
-            {
-                _customEffects = effects;
-                ShowEffects();
-            }
-        });
-
-        // An own effect that runs may have new steps: a preview that stands still shows them.
-        _stills.RequestStill();
-    });
-
-    // An engine that cannot read effects.json yet, as another program holds it, refuses the
-    // question; the app connects without own effects then, and shows them at the
-    // CustomEffectsChanged the engine sends once it has read the file.
-    private static async Task<IReadOnlyList<CustomEffect>> GetCustomEffectsOrNoneAsync(IEngineApi api)
-    {
-        try
-        {
-            return await api.GetCustomEffectsAsync();
-        }
-        catch (Exception exception) when (EngineRpc.IsRejectedByEngine(exception))
-        {
-            Trace.TraceWarning(exception.ToString());
-            return [];
-        }
-    }
-
+    private bool CanCreateCustomEffect() => _customEffects.CanCreate;
     private async Task LoadAsync(IEngineApi api)
     {
         var devices = await api.GetDevicesAsync();
-        _engineEffects = await api.GetEffectsAsync();
-        _customEffects = await GetCustomEffectsOrNoneAsync(api);
-        ShowEffects();
+        await _customEffects.LoadAsync(api);
 
         ShowDevices(devices);
         await ShowSelectionAsync();
@@ -1581,6 +1409,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _stills.RequestStill();
     });
 
+    // The same for the own effects (CustomEffectsCoordinator.Reload).
+    private void OnCustomEffectsChanged(object? sender, EventArgs e) => _ui.Run(() =>
+    {
+        if (!_session.HasConnection)
+        {
+            return;
+        }
+
+        _customEffects.Reload();
+
+        // An own effect that runs may have new steps: a preview that stands still shows them.
+        _stills.RequestStill();
+    });
+
     private void OnLightingChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
         _ = _lampSync.RefreshAsync();
@@ -1691,7 +1533,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         // A flash that went through holds the stills before the image of this call is asked.
         _stills.OnCallSucceeded(key);
-        if (key is not (StillPreviewCoordinator.FramesWantedCall or StillPreviewCoordinator.FrameDevicesCall or FollowLightingCall or SceneCoordinator.ProfilesReloadCall or EngineOptionsCoordinator.OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall)
+        if (key is not (StillPreviewCoordinator.FramesWantedCall or StillPreviewCoordinator.FrameDevicesCall or FollowLightingCall or SceneCoordinator.ProfilesReloadCall or EngineOptionsCoordinator.OptionsReloadCall or CustomEffectsCoordinator.CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall)
             and not ValueTuple<string, string> { Item1: DismissOtherRgbSoftwareCall })
         {
             _stills.RequestStill();
