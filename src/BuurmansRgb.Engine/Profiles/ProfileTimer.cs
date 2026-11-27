@@ -156,15 +156,11 @@ internal sealed class ProfileTimer : IProfileTrigger
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
             _next = null;
-            foreach (var profile in _profiles.TryGetTimed())
+            foreach (var occurrence in Occurrences(_profiles.TryGetTimed(), time => DailyTime.Next(time.At, now, zone, time.Days)))
             {
-                foreach (var time in profile.Times)
+                if (_next is null || occurrence.At < _next.Value.At)
                 {
-                    var at = DailyTime.Next(time.At, now, zone, time.Days);
-                    if (_next is null || at < _next.Value.At)
-                    {
-                        _next = (at, profile);
-                    }
+                    _next = occurrence;
                 }
             }
 
@@ -218,15 +214,11 @@ internal sealed class ProfileTimer : IProfileTrigger
 
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
-            foreach (var profile in _profiles.TryGetTimed())
+            foreach (var occurrence in Occurrences(_profiles.TryGetTimed(), time => DailyTime.Previous(time.At, now, zone, time.Days)))
             {
-                foreach (var time in profile.Times)
+                if (latest is null || occurrence.At > latest.Value.At)
                 {
-                    var at = DailyTime.Previous(time.At, now, zone, time.Days);
-                    if (latest is null || at > latest.Value.At)
-                    {
-                        latest = (at, profile);
-                    }
+                    latest = occurrence;
                 }
             }
         }
@@ -235,6 +227,21 @@ internal sealed class ProfileTimer : IProfileTrigger
             && (last.Profile.IsInternal || !ProfileNames.Comparer.Equals(last.Profile.Name, _profiles.ActiveName)))
         {
             Load(last.Profile);
+        }
+    }
+
+    // Every time of every profile, at the moment at gives it (the next or the one that passed last),
+    // in the order of TryGetTimed. Schedule and LoadLatest replace the best so far only by one that is
+    // strictly earlier or later, so of two at the same moment the first in that order wins: the first
+    // in alphabetical order.
+    private static IEnumerable<(DateTimeOffset At, TimedProfile Profile)> Occurrences(IReadOnlyList<TimedProfile> profiles, Func<LoadTime, DateTimeOffset> at)
+    {
+        foreach (var profile in profiles)
+        {
+            foreach (var time in profile.Times)
+            {
+                yield return (at(time), profile);
+            }
         }
     }
 
