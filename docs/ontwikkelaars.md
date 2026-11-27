@@ -511,13 +511,15 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `Changed`, dus `CustomEffectsChanged` naar de apps. Een app die bij het verbinden een
   geweigerde `GetCustomEffectsAsync` krijgt, verbindt zonder eigen effecten
   (`CustomEffectsCoordinator.GetCustomEffectsOrNoneAsync`) en haalt ze bij die
-  `CustomEffectsChanged` op. `LightingSettings` laat een `custom:`-id staan (`EffectCatalog.IsValidId`), zodat een effect
+  `CustomEffectsChanged` op. `LightingSettings` laat een `custom:`-id staan
+  (`EffectCatalog.IsValidId`), zodat een effect
   dat even niet te lezen is de verlichting niet meteen kwijtraakt. `StepEffect` zoekt per frame
   zijn stap in een array van begintijden (hooguit 32) en rekt een patroon uit met dezelfde
   formule als "Zones gelijk"; de snelheid komt, zoals bij elk effect, van `EffectClock`.
   `IEngineApi`: `GetCustomEffectsAsync`, `SaveCustomEffectAsync` (een lege `Id` is een nieuw
   effect), `DeleteCustomEffectAsync` en `CustomEffectsChanged`; `GetEffectsAsync` geeft alleen de
-  effecten van de engine. In de app maakt `CustomEffectsCoordinator` de effecten (`Options`) uit beide;
+  effecten van de engine. In de app maakt `CustomEffectsCoordinator` de effecten (`Options`) uit
+  beide;
   `EffectTilesViewModel` maakt daar de effecttegels van (een per effect van de engine en één
   "Eigen effect") en de keuzelijst van de eigen effecten in kaart 4 ("Jouw effect"), en
   `CustomEffectEditorViewModel` is de editor; elke wijziging gaat als het hele effect, in de
@@ -609,7 +611,8 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `LedEditCoordinator.LedsSent`, waarop het effect naar per LED gaat). De commando's van de
   XAML (zoals `FillGradientCommand` en `NewCustomEffectCommand`) blijven op `MainViewModel` en
   sturen door. De publieke eigenschappen van `MainViewModel` bleven gelijk; waar nodig sturen
-  ze door (zoals `WantsFrames`). De sleutels van een coördinator in de wachtrij die `OnCallSucceeded` moet kennen
+  ze door (zoals `WantsFrames`). De sleutels van een coördinator in de wachtrij die
+  `OnCallSucceeded` moet kennen
   zijn `internal const` (zoals `SceneCoordinator.ProfilesReloadCall`). Elke coördinator heeft
   eigen tests (`<Naam>Tests`) op een `EngineSession` met een `FakeEngineConnection`, zonder
   `MainViewModel`; de `MainViewModel*Tests` testen het geheel.
