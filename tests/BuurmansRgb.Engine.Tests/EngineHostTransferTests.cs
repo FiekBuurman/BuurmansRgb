@@ -17,7 +17,7 @@ namespace BuurmansRgb.Engine.Tests;
 public sealed class EngineHostTransferTests : IDisposable
 {
     private readonly TempDirectory _directory = new();
-    private readonly SettingsFiles _files;
+    private readonly SettingsFolder _files;
     private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly ZoneLengthKeeper _zoneLengths;
@@ -29,7 +29,7 @@ public sealed class EngineHostTransferTests : IDisposable
 
     public EngineHostTransferTests()
     {
-        _files = new SettingsFiles(_directory.Path);
+        _files = new SettingsFolder(_directory.Path);
         _simulatedDevices = new SimulatedDevicesSwitch(SwitchableDeviceProvider.For(new SimulatedDeviceProvider()), _lighting);
         _zoneLengths = new ZoneLengthKeeper(_lighting);
         _store = new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName));
@@ -218,7 +218,7 @@ public sealed class EngineHostTransferTests : IDisposable
     public async Task Restore_KeepsTheNewestCopies()
     {
         Directory.CreateDirectory(_files.BackupsFolder);
-        for (var i = 0; i < SettingsFiles.BackupsKept + 2; i++)
+        for (var i = 0; i < SettingsFolder.BackupsKept + 2; i++)
         {
             File.WriteAllBytes(Path.Combine(_files.BackupsFolder, $"before-restore-2020010{i}-000000.zip"), []);
         }
@@ -230,7 +230,7 @@ public sealed class EngineHostTransferTests : IDisposable
         host.Restore(SettingsArchiveTests.Zip((SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [] }"""))));
 
         var left = Directory.GetFiles(_files.BackupsFolder).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
-        Assert.Equal(SettingsFiles.BackupsKept + 1, left.Count);
+        Assert.Equal(SettingsFolder.BackupsKept + 1, left.Count);
         Assert.DoesNotContain("before-restore-20200100-000000.zip", left);
         Assert.Contains("mijn-eigen.zip", left);
     }

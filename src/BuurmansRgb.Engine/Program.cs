@@ -143,7 +143,7 @@ internal static class Program
         // Disposed after the host, which stops listening to it first.
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
         // The host disposes them, before it saves for the last time.
-        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, foregroundWindow, TimeProvider.System);
+        var programWatcher = new ProgramWatcher(profiles, lighting, new RunningPrograms(), autoPause, foregroundWindow, TimeProvider.System);
         // Looks for other RGB software at the start, after waking up and at "Verversen" only.
         using var otherRgbSoftware = new OtherRgbSoftwareCheck(new SystemProcessSnapshot(), resumeRestorer);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
@@ -175,7 +175,7 @@ internal static class Program
             autoStart: autoStart,
             firstRun: options.FirstRun,
             otherRgbSoftware: otherRgbSoftware,
-            files: SettingsFiles.Default);
+            files: SettingsFolder.Default);
         services = new EngineServices
         {
             Lighting = lighting,

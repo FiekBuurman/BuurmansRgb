@@ -31,7 +31,7 @@ public sealed partial class ProcessImageName
     // The whole path of the exe, or null when it cannot be read, for whatever reason.
     public string? ReadPath(uint processId) => TryReadPath(processId, out var path) && !path.IsEmpty ? new string(path) : null;
 
-    // A handle to the process with access, for the engine's ProcessList too, so there is one
+    // A handle to the process with access, for the engine's RunningPrograms too, so there is one
     // declaration; invalid when Windows does not open it (Marshal.GetLastPInvokeError says why).
     public static SafeProcessHandle Open(uint access, uint processId) => OpenProcess(access, inheritHandle: false, processId);
 

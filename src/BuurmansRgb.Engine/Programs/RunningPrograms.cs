@@ -17,7 +17,7 @@ namespace BuurmansRgb.Engine.Programs;
 // counts as running until that handle says it ended. The other way round stays a known risk: a
 // process that ends and whose id goes to a watched program between two calls keeps the old name,
 // so that program is missed until it starts again.
-internal sealed partial class ProcessList : IRunningPrograms
+internal sealed partial class RunningPrograms : IRunningPrograms
 {
     private const uint Synchronize = 0x0010_0000;
     private const uint WaitObject0 = 0;

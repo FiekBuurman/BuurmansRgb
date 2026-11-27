@@ -31,11 +31,11 @@ internal sealed class EngineHost(
     AutoStartSwitch? autoStart = null,
     bool firstRun = false,
     OtherRgbSoftwareCheck? otherRgbSoftware = null,
-    SettingsFiles? files = null) : IEngineHost, ISettingsTransfer, IDisposable
+    SettingsFolder? files = null) : IEngineHost, ISettingsTransfer, IDisposable
 {
     private readonly SettingsTransfer _transfer = new(settingsStore, lighting, files, simulatedDevices, profiles, customEffects);
 
-    private LightingSettingsSaver? _saver;
+    private EngineSettingsSaver? _saver;
     private SettingsReloader? _reloader;
 
     // The options the saver keeps besides the lighting (CreateOptions), made at their first use in
@@ -78,7 +78,7 @@ internal sealed class EngineHost(
             settings = settings with { ActiveScene = profiles.ActiveName };
         }
 
-        _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
+        _saver = new EngineSettingsSaver(settingsStore, lighting, settings, saveDelay ?? EngineSettingsSaver.DefaultDelay, saveEvents: saveEvents);
         if (startScenes == StartScenesOutcome.Written)
         {
             // The saver has startScenesCreated already (StartScenesOnce put it in settings); this

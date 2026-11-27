@@ -7,7 +7,7 @@ namespace BuurmansRgb.Engine.Settings;
 
 // Where the files of a backup are (SettingsBackup), and the folder where the engine puts a copy of
 // them before it restores a backup over them.
-internal sealed record SettingsFiles(string Folder)
+internal sealed record SettingsFolder(string Folder)
 {
     // How many copies the engine keeps of the files a restored backup replaced.
     internal const int BackupsKept = 5;
@@ -18,7 +18,7 @@ internal sealed record SettingsFiles(string Folder)
     // The start of the name of a copy, for BackupName and for clearing out the old ones.
     private const string BackupPrefix = "before-restore-";
 
-    public static SettingsFiles Default { get; } = new(DataFolder.Path);
+    public static SettingsFolder Default { get; } = new(DataFolder.Path);
 
     public string BackupsFolder => Path.Combine(Folder, "backups");
 

@@ -5,13 +5,13 @@ using Microsoft.Win32.SafeHandles;
 
 namespace BuurmansRgb.Engine.Tests;
 
-public sealed class ProcessListTests
+public sealed class RunningProgramsTests
 {
     private const string NotRunning = "buurmansrgb-not-running-3f9c.exe";
 
     private static readonly string ThisProgram = Path.GetFileName(Environment.ProcessPath!);
 
-    private readonly ProcessList _processes = new();
+    private readonly RunningPrograms _processes = new();
 
     [Fact]
     public void Find_ReturnsTheRunningProgramsOnly()

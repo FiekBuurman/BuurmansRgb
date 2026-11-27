@@ -20,7 +20,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     // Whether the file was there at the last LoadOrCreate but did not read.
     private bool _loadDidNotRead;
 
-    public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.SettingsFileName);
+    public static string DefaultFilePath { get; } = SettingsFolder.Default.PathOf(SettingsBackup.SettingsFileName);
 
     // Where a file that does not read goes, so the next save does not overwrite the user's settings.
     public string BrokenFilePath => JsonFile.BrokenPathOf(filePath);

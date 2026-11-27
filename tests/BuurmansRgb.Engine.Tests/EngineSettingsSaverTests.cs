@@ -6,7 +6,7 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Engine.Tests;
 
-public sealed class LightingSettingsSaverTests
+public sealed class EngineSettingsSaverTests
 {
     private static readonly TimeSpan Delay = TimeSpan.FromMilliseconds(200);
 
@@ -100,7 +100,7 @@ public sealed class LightingSettingsSaverTests
     public async Task Save_KeepsTheStartupOptions()
     {
         await _lighting.DiscoverAsync(Ct);
-        var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = SimulatedDevicesMode.Never }, Delay, _time);
+        var saver = new EngineSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = SimulatedDevicesMode.Never }, Delay, _time);
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
         saver.Dispose();
@@ -157,7 +157,7 @@ public sealed class LightingSettingsSaverTests
     public async Task DefaultTimeProvider_SavesOnItsOwn()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var saver = new LightingSettingsSaver(_store, _lighting, EngineSettings.CreateDefault(), TimeSpan.FromMilliseconds(1));
+        using var saver = new EngineSettingsSaver(_store, _lighting, EngineSettings.CreateDefault(), TimeSpan.FromMilliseconds(1));
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
@@ -233,7 +233,7 @@ public sealed class LightingSettingsSaverTests
         var path = directory.File("settings.json");
         var store = new JsonSettingsStore(path);
         await _lighting.DiscoverAsync(Ct);
-        using var saver = new LightingSettingsSaver(store, _lighting, store.LoadOrCreate(), Delay, _time, _saveEvents);
+        using var saver = new EngineSettingsSaver(store, _lighting, store.LoadOrCreate(), Delay, _time, _saveEvents);
 
         using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
@@ -315,7 +315,7 @@ public sealed class LightingSettingsSaverTests
     public async Task Adopt_SceneThatWentOff_IsSaved()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { ActiveScene = "Nacht" }, Delay, _time);
+        using var saver = new EngineSettingsSaver(_store, _lighting, new EngineSettings { ActiveScene = "Nacht" }, Delay, _time);
         var fromFile = new EngineSettings { Color = Orange, ActiveScene = "Nacht" };
 
         ApplyByHand(saver, fromFile, () =>
@@ -512,12 +512,12 @@ public sealed class LightingSettingsSaverTests
 
     // As SettingsReloader does: apply within HoldSaves, then Adopt. Single-threaded, the lighting
     // as the apply left it is the one the engine holds.
-    private void ApplyByHand(LightingSettingsSaver saver, EngineSettings fromFile, Action apply) =>
+    private void ApplyByHand(EngineSettingsSaver saver, EngineSettings fromFile, Action apply) =>
         saver.HoldSaves(() =>
         {
             apply();
             saver.Adopt(fromFile, _lighting.State);
         });
 
-    private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);
+    private EngineSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);
 }

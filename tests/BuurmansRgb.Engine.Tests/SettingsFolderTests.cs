@@ -4,14 +4,14 @@ using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Tests;
 
-public sealed class SettingsFilesTests
+public sealed class SettingsFolderTests
 {
     [Fact]
     public void DefaultFilePaths_AreTheFilesOfABackup()
     {
-        Assert.Equal(SettingsFiles.Default.PathOf(SettingsBackup.SettingsFileName), JsonSettingsStore.DefaultFilePath);
-        Assert.Equal(SettingsFiles.Default.PathOf(SettingsBackup.ProfilesFileName), JsonProfileStore.DefaultFilePath);
-        Assert.Equal(SettingsFiles.Default.PathOf(SettingsBackup.EffectsFileName), JsonCustomEffectStore.DefaultFilePath);
+        Assert.Equal(SettingsFolder.Default.PathOf(SettingsBackup.SettingsFileName), JsonSettingsStore.DefaultFilePath);
+        Assert.Equal(SettingsFolder.Default.PathOf(SettingsBackup.ProfilesFileName), JsonProfileStore.DefaultFilePath);
+        Assert.Equal(SettingsFolder.Default.PathOf(SettingsBackup.EffectsFileName), JsonCustomEffectStore.DefaultFilePath);
     }
 
     // Spelled out, so a renamed constant shows up here and not only on the user's disk.
@@ -27,5 +27,5 @@ public sealed class SettingsFilesTests
     // In UTC with milliseconds, so the names sort as they came.
     [Fact]
     public void BackupName_IsUtcWithMilliseconds() =>
-        Assert.Equal("before-restore-20261103-221500-007.zip", SettingsFiles.BackupName(new DateTime(2026, 11, 3, 22, 15, 0, 7, DateTimeKind.Utc)));
+        Assert.Equal("before-restore-20261103-221500-007.zip", SettingsFolder.BackupName(new DateTime(2026, 11, 3, 22, 15, 0, 7, DateTimeKind.Utc)));
 }

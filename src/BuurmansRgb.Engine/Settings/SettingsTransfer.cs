@@ -12,7 +12,7 @@ namespace BuurmansRgb.Engine.Settings;
 internal sealed class SettingsTransfer(
     ISettingsStore settingsStore,
     LightingController lighting,
-    SettingsFiles? files = null,
+    SettingsFolder? files = null,
     SimulatedDevicesSwitch? simulatedDevices = null,
     ProfileLibrary? profiles = null,
     CustomEffectLibrary? customEffects = null) : ISettingsTransfer
@@ -20,13 +20,13 @@ internal sealed class SettingsTransfer(
     // One backup or restore at a time, also from two settings apps.
     private readonly Lock _gate = new();
 
-    private LightingSettingsSaver? _saver;
+    private EngineSettingsSaver? _saver;
     private SettingsReloader? _reloader;
     private Action<EngineSettings>? _applyChangedByHand;
 
     // In StartAsync, before the IPC server runs, so a settings app that asks finds them.
     // applyChangedByHand is EngineHost.ApplyChangedByHand, which the reloader runs as well.
-    public void Start(LightingSettingsSaver saver, SettingsReloader? reloader, Action<EngineSettings> applyChangedByHand)
+    public void Start(EngineSettingsSaver saver, SettingsReloader? reloader, Action<EngineSettings> applyChangedByHand)
     {
         _saver = saver;
         _reloader = reloader;
@@ -107,7 +107,7 @@ internal sealed class SettingsTransfer(
         }
     }
 
-    private SettingsFiles FilesOrThrow() =>
+    private SettingsFolder FilesOrThrow() =>
         files ?? throw new InvalidOperationException("This engine has no settings files to back up.");
 
     // Between reloads: a save during one waits for it, and would not be in the file yet.
@@ -128,7 +128,7 @@ internal sealed class SettingsTransfer(
         customEffects?.Flush();
     }
 
-    private void Replace(SettingsFiles known, string name, byte[] json)
+    private void Replace(SettingsFolder known, string name, byte[] json)
     {
         switch (name)
         {
@@ -151,7 +151,7 @@ internal sealed class SettingsTransfer(
     // keeps it; a file without its part of the engine (settings.json, or any in tests) is just
     // deleted. For settings.json only the file goes, the engine keeps its settings; hardly ever
     // reached, as LoadOrCreate writes it at the start and it is restored last.
-    private void Remove(SettingsFiles known, string name)
+    private void Remove(SettingsFolder known, string name)
     {
         switch (name)
         {
@@ -198,7 +198,7 @@ internal sealed class SettingsTransfer(
     // the files of before have the own effects and the scene again. One that could not be put
     // back has not, and the lighting then shows static instead (LightingController.Apply), or no
     // scene is on.
-    private void PutBack(SettingsFiles known, List<string> replaced, Dictionary<string, byte[]> before, LightingState lightingBefore, string? activeBefore)
+    private void PutBack(SettingsFolder known, List<string> replaced, Dictionary<string, byte[]> before, LightingState lightingBefore, string? activeBefore)
     {
         foreach (var name in replaced)
         {

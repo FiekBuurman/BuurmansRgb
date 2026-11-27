@@ -5,7 +5,7 @@ namespace BuurmansRgb.Engine.Programs;
 // The process list from Process.GetProcesses, which reads it in one call from Windows
 // (NtQuerySystemInformation) with the exe name and the session of every process, without opening
 // any of them. So it also names the services, which run as LocalSystem in session 0: the engine
-// runs without admin rights and may not open those, so ProcessList (EnumProcesses with
+// runs without admin rights and may not open those, so RunningPrograms (EnumProcesses with
 // QueryFullProcessImageName per process) gets no name for them, and that is where most RGB
 // software runs (Corsair.Service.exe, LightingService.exe, the service OpenRGB). As it opens no
 // process, it also names elevated and protected ones, such as Gigabyte Control Center (GCC.exe),
