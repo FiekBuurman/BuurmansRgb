@@ -22,7 +22,7 @@ public sealed class AppInfoViewModelTests
     {
         var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0");
         var failures = new List<string>();
-        appInfo.Failed += (_, message) => failures.Add(message);
+        appInfo.Message += (_, message) => failures.Add(message);
 
         appInfo.OpenLogCommand.Execute(null);
 
@@ -37,7 +37,7 @@ public sealed class AppInfoViewModelTests
     {
         var appInfo = new AppInfoViewModel(_ => throw error, LogPath, "1.2.0");
         var failures = new List<string>();
-        appInfo.Failed += (_, message) => failures.Add(message);
+        appInfo.Message += (_, message) => failures.Add(message);
 
         appInfo.OpenLogCommand.Execute(null);
 
@@ -61,7 +61,7 @@ public sealed class AppInfoViewModelTests
     {
         var appInfo = new AppInfoViewModel(_ => throw error, LogPath, "1.2.0", dataFolder: DataFolderPath);
         var failures = new List<string>();
-        appInfo.Failed += (_, message) => failures.Add(message);
+        appInfo.Message += (_, message) => failures.Add(message);
 
         appInfo.OpenDataFolderCommand.Execute(null);
 
@@ -148,7 +148,7 @@ public sealed class AppInfoViewModelTests
     {
         var appInfo = new AppInfoViewModel(_ => throw error, LogPath, "1.2.0", GuideAddress);
         var failures = new List<string>();
-        appInfo.Failed += (_, message) => failures.Add(message);
+        appInfo.Message += (_, message) => failures.Add(message);
 
         appInfo.OpenGuideCommand.Execute(null);
 

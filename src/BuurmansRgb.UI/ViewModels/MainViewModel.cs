@@ -133,7 +133,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ui = new UiThread();
         _session = new EngineSession(_ui, OnCallFailed, OnCallSucceeded);
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
-        AppInfo.Failed += (_, message) => StatusMessage = message;
+        AppInfo.Message += (_, message) => StatusMessage = message;
         Backup = new SettingsBackupViewModel(_session, time);
         Backup.Message += (_, message) => StatusMessage = message;
         Sharing = new SharingViewModel(_session, clipboard ?? new AppClipboard());
