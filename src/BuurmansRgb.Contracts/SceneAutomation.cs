@@ -8,7 +8,7 @@ namespace BuurmansRgb.Contracts;
 // their windows is in the foreground, such as valorant.exe, cs2.exe and r5apex.exe for "Gamen".
 // ForegroundOnly counts for all of them. No times and no programs leave that way off. Two
 // automations are equal when they have the same times and programs in the same order.
-public sealed record ProfileAutomation
+public sealed record SceneAutomation
 {
     // As many times as a profile can have; more is a mistake rather than a plan for the week.
     public const int MaxTimes = 8;
@@ -17,7 +17,7 @@ public sealed record ProfileAutomation
     public const int MaxPrograms = 20;
 
     [JsonConstructor]
-    public ProfileAutomation(IReadOnlyList<LoadTime>? Times = null, IReadOnlyList<string>? Programs = null, bool ForegroundOnly = false)
+    public SceneAutomation(IReadOnlyList<LoadTime>? Times = null, IReadOnlyList<string>? Programs = null, bool ForegroundOnly = false)
     {
         this.Times = Times is null ? [] : [.. Times];
         this.Programs = Programs is null ? [] : [.. Programs];
@@ -25,18 +25,18 @@ public sealed record ProfileAutomation
     }
 
     // One program, or none for null.
-    public ProfileAutomation(string? Program, bool ForegroundOnly = false)
+    public SceneAutomation(string? Program, bool ForegroundOnly = false)
         : this(null, OneProgram(Program), ForegroundOnly)
     {
     }
 
     // One time, on Days.
-    public ProfileAutomation(TimeOnly LoadAt, string? Program = null, WeekDays Days = WeekDays.Every)
+    public SceneAutomation(TimeOnly LoadAt, string? Program = null, WeekDays Days = WeekDays.Every)
         : this([new LoadTime(LoadAt, Days)], OneProgram(Program))
     {
     }
 
-    public static ProfileAutomation None { get; } = new();
+    public static SceneAutomation None { get; } = new();
 
     public IReadOnlyList<LoadTime> Times { get; init; }
 
@@ -52,7 +52,7 @@ public sealed record ProfileAutomation
     // ones and the same name again (in any case, also "cs2" after "cs2.exe"); ForegroundOnly only
     // with a program. Throws ArgumentException for a missing time, more than MaxTimes times or
     // MaxPrograms programs, or a program that is not a valid name.
-    public ProfileAutomation Normalize()
+    public SceneAutomation Normalize()
     {
         if (Times.Any(time => time is null))
         {
@@ -86,7 +86,7 @@ public sealed record ProfileAutomation
 
     private static string[]? OneProgram(string? program) => program is null ? null : [program];
 
-    public bool Equals(ProfileAutomation? other) =>
+    public bool Equals(SceneAutomation? other) =>
         other is not null && Times.SequenceEqual(other.Times) && Programs.SequenceEqual(other.Programs, StringComparer.Ordinal) && ForegroundOnly == other.ForegroundOnly;
 
     public override int GetHashCode()

@@ -74,7 +74,7 @@ public sealed class MainViewModelProfileTests
         var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Gamen", "Nacht"]));
         viewModel.Profiles.SelectedName = "Gamen";
         Api.Profiles.Remove("Gamen");
-        Api.SetException = new RemoteInvocationException("There is no profile 'Gamen'.", 0, errorData: null);
+        Api.SetException = new RemoteInvocationException("There is no scene 'Gamen'.", 0, errorData: null);
 
         viewModel.Profiles.DeleteCommand.Execute(null);
 
@@ -115,7 +115,7 @@ public sealed class MainViewModelProfileTests
         var viewModel = await ConnectAsync(api =>
         {
             api.Profiles.AddRange(["Gamen", "Nacht"]);
-            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe");
+            api.ProfileAutomations["Nacht"] = new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe");
         });
 
         viewModel.Profiles.SelectedName = "Nacht";
@@ -161,7 +161,7 @@ public sealed class MainViewModelProfileTests
         var viewModel = await ConnectAsync(api =>
         {
             api.Profiles.Add("Ochtend");
-            api.ProfileAutomations["Ochtend"] = new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend);
+            api.ProfileAutomations["Ochtend"] = new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend);
         });
         viewModel.Profiles.SelectedName = "Ochtend";
 
@@ -182,7 +182,7 @@ public sealed class MainViewModelProfileTests
         var viewModel = await ConnectAsync(api =>
         {
             api.Profiles.Add("Nacht");
-            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+            api.ProfileAutomations["Nacht"] = new SceneAutomation(new TimeOnly(23, 0));
         });
         viewModel.Profiles.SelectedName = "Nacht";
 

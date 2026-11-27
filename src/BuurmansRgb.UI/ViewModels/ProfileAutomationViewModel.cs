@@ -22,7 +22,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     private readonly IFileDialogs _files;
 
     // What the engine has, so Apply only runs for a change.
-    private ProfileAutomation _saved = ProfileAutomation.None;
+    private SceneAutomation _saved = SceneAutomation.None;
 
     // While Display fills in the fields.
     private readonly ReentrancyGuard _displaying = new();
@@ -98,7 +98,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
         if (name.Contains(ProgramSeparator))
         {
-            Error = UiText.Format(Strings.ProfileProgramCommaPicked, name);
+            Error = UiText.Format(Strings.SceneProgramCommaPicked, name);
             return;
         }
 
@@ -113,11 +113,11 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         }
     }
 
-    // An empty row at the end, on every day, up to ProfileAutomation.MaxTimes.
+    // An empty row at the end, on every day, up to SceneAutomation.MaxTimes.
     [RelayCommand(CanExecute = nameof(CanAddTime))]
     private void AddTime() => Times.Add(new LoadTimeRow());
 
-    private bool CanAddTime() => ProfileName is not null && Times.Count < ProfileAutomation.MaxTimes;
+    private bool CanAddTime() => ProfileName is not null && Times.Count < SceneAutomation.MaxTimes;
 
     // The only row is emptied instead, so the field stays.
     [RelayCommand(CanExecute = nameof(CanRemoveTime))]
@@ -166,9 +166,9 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // Whether the saved profile loads by itself, for the heading that stays when folded up; without
     // a profile there is nothing to tell.
     public string Header =>
-        ProfileName is null ? Strings.ProfileAutomationHeader
-        : _saved == ProfileAutomation.None ? Strings.ProfileAutomationOff
-        : Strings.ProfileAutomationOn;
+        ProfileName is null ? Strings.SceneAutomationHeader
+        : _saved == SceneAutomation.None ? Strings.SceneAutomationOff
+        : Strings.SceneAutomationOn;
 
     // What is wrong with the fields, or null. Only raised when it really changes, so a screen
     // reader hears it once and not on every key.
@@ -230,14 +230,14 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     }
 
     // Shows what the engine saved for the profile.
-    public void Show(string profileName, ProfileAutomation automation) => Display(profileName, automation);
+    public void Show(string profileName, SceneAutomation automation) => Display(profileName, automation);
 
-    public void Clear() => Display(null, ProfileAutomation.None);
+    public void Clear() => Display(null, SceneAutomation.None);
 
     // The rows there are show the saved times and only the difference is added or taken away, so
     // the field that has the focus keeps it, also after "Toepassen" with Enter. The error is worked
     // out once at the end, not for each field on the way.
-    private void Display(string? profileName, ProfileAutomation automation)
+    private void Display(string? profileName, SceneAutomation automation)
     {
         _displaying.Run(() =>
         {
@@ -274,7 +274,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     private bool CanApply() => ProfileName is not null && Read() is { } automation && automation != _saved;
 
     // The fields as the engine saves them, or null when one is not valid.
-    private ProfileAutomation? Read()
+    private SceneAutomation? Read()
     {
         if (HasError)
         {
@@ -295,7 +295,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             }
         }
 
-        return new ProfileAutomation(times, SplitPrograms(ProgramText), ForegroundOnly).Normalize();
+        return new SceneAutomation(times, SplitPrograms(ProgramText), ForegroundOnly).Normalize();
     }
 
     // The names in the field, without the empty ones between two commas.
@@ -307,17 +307,17 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // the name that is wrong; the last one only by its name once a comma comes after it, so the
     // error does not change on each key while that name is typed.
     private string? FindError() =>
-        Times.FirstOrDefault(row => !row.TryRead(out _)) is { } invalid ? ForRow(invalid, Strings.ProfileLoadAtInvalid, Strings.ProfileTimeInvalid)
-        : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.ProfileDaysNone, Strings.ProfileTimeDaysNone)
+        Times.FirstOrDefault(row => !row.TryRead(out _)) is { } invalid ? ForRow(invalid, Strings.SceneLoadAtInvalid, Strings.SceneTimeInvalid)
+        : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.SceneDaysNone, Strings.SceneTimeDaysNone)
         : FindProgramError(SplitPrograms(ProgramText));
 
     // A name with a comma, which an earlier version let a scene have ("a,b.exe"), shows as it was
     // saved, but would come back as two names; as long as it is in the field, nothing is applied.
     private string? FindProgramError(List<string> programs) =>
-        _saved.Programs.FirstOrDefault(program => program.Contains(ProgramSeparator) && HasPiece(ProgramText, program)) is { } withComma ? UiText.Format(Strings.ProfileProgramCommaSaved, withComma)
-        : programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed, Strings.ProfileProgramShortcutLast)
-        : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.ProfileProgramInvalid, Strings.ProfileProgramInvalidNamed, Strings.ProfileProgramInvalidLast)
-        : programs.Select(program => ProgramNames.Normalize(program)!).Distinct(ProgramNames.Comparer).Count() > ProfileAutomation.MaxPrograms ? UiText.Format(Strings.ProfileProgramsTooMany, ProfileAutomation.MaxPrograms)
+        _saved.Programs.FirstOrDefault(program => program.Contains(ProgramSeparator) && HasPiece(ProgramText, program)) is { } withComma ? UiText.Format(Strings.SceneProgramCommaSaved, withComma)
+        : programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.SceneProgramShortcut, Strings.SceneProgramShortcutNamed, Strings.SceneProgramShortcutLast)
+        : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.SceneProgramInvalid, Strings.SceneProgramInvalidNamed, Strings.SceneProgramInvalidLast)
+        : programs.Select(program => ProgramNames.Normalize(program)!).Distinct(ProgramNames.Comparer).Count() > SceneAutomation.MaxPrograms ? UiText.Format(Strings.SceneProgramsTooMany, SceneAutomation.MaxPrograms)
         : null;
 
     // Whether the name is a piece of its own in the field: at the start or after a comma, and at the

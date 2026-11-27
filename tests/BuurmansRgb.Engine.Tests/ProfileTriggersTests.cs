@@ -35,9 +35,9 @@ public sealed class ProfileTriggersTests : IDisposable
     {
         _store.Profiles =
         [
-            new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: Game) },
-            new Profile("Film", Uniform(StaticLighting(Blue))) { Automation = new ProfileAutomation(Program: Film, ForegroundOnly: true) },
-            new Profile("Nacht", Uniform(StaticLighting(Orange))) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) },
+            new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(Program: Game) },
+            new Profile("Film", Uniform(StaticLighting(Blue))) { Automation = new SceneAutomation(Program: Film, ForegroundOnly: true) },
+            new Profile("Nacht", Uniform(StaticLighting(Orange))) { Automation = new SceneAutomation(new TimeOnly(23, 0)) },
             new Profile("Alles uit", StartScenes.AllOff) { Role = ProfileRole.AllOff },
         ];
         _profiles = new ProfileLibrary(_store, _lighting);
@@ -178,7 +178,7 @@ public sealed class ProfileTriggersTests : IDisposable
     [Fact]
     public void UitOmAndAanOmDuringAGame_TheEveningLightingComesBackOnOnceItStops()
     {
-        _profiles.SetAutomation("Nacht", new ProfileAutomation());
+        _profiles.SetAutomation("Nacht", new SceneAutomation());
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm], [SevenAm]));
         Assert.Equal("Alles uit", _profiles.GetWholeHouseTimes().OffScene);
         StartGame();
@@ -199,7 +199,7 @@ public sealed class ProfileTriggersTests : IDisposable
     public void InternalUitOmAndAanOmDuringAGame_TheEveningLightingComesBackOnOnceItStops()
     {
         _profiles.Delete("Alles uit");
-        _profiles.SetAutomation("Nacht", new ProfileAutomation());
+        _profiles.SetAutomation("Nacht", new SceneAutomation());
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm], [SevenAm]));
         Assert.Null(_profiles.GetWholeHouseTimes().OffScene);
         StartGame();
@@ -220,7 +220,7 @@ public sealed class ProfileTriggersTests : IDisposable
     public void InternalUitOmDuringAGame_EveryDeviceGoesOffOnceItStops()
     {
         _profiles.Delete("Alles uit");
-        _profiles.SetAutomation("Nacht", new ProfileAutomation());
+        _profiles.SetAutomation("Nacht", new SceneAutomation());
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
         StartGame();
 

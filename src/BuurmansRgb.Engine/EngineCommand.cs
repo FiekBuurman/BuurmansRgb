@@ -165,7 +165,7 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
     }
 
     // As the tray menu and the settings app: without regard to case or surrounding spaces.
-    public bool Matches(string sceneName) => ProfileNames.Comparer.Equals(sceneName, Scene.Trim());
+    public bool Matches(string sceneName) => SceneNames.Comparer.Equals(sceneName, Scene.Trim());
 
     // For engine.log; the scene as ForLog shows it.
     public override string ToString() => Kind switch

@@ -312,7 +312,7 @@ public sealed class TrayPresenterTests : IDisposable
         _profileStore.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red))), new Profile("Nacht", Uniform(StaticLighting(Green)))];
         var presenter = await StartedPresenterAsync();
 
-        presenter.LoadProfile("Nacht");
+        presenter.LoadScene("Nacht");
         presenter.RefreshProfiles();
         Assert.Equal("Nacht", _view.ActiveProfile);
 
@@ -353,7 +353,7 @@ public sealed class TrayPresenterTests : IDisposable
         (await StartedPresenterAsync()).RefreshProfiles();
 
         Assert.Null(_view.Profiles);
-        Assert.Equal([(Strings.ProfilesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
+        Assert.Equal([(Strings.ScenesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public sealed class TrayPresenterTests : IDisposable
         var changes = 0;
         _lighting.LightingChanged += (_, _) => changes++;
 
-        CreatePresenter().LoadProfile("Nacht");
+        CreatePresenter().LoadScene("Nacht");
 
         Assert.Equal(StaticLighting(Red, 0.1), _lighting.GetLighting(null));
         Assert.Equal(1, changes);
@@ -393,7 +393,7 @@ public sealed class TrayPresenterTests : IDisposable
         presenter.RefreshProfiles();
         _profiles.Delete("Nacht");
 
-        presenter.LoadProfile("Nacht");
+        presenter.LoadScene("Nacht");
 
         Assert.Equal([("Scène 'Nacht' kon niet worden aangezet.", TrayNotificationKind.Warning)], _view.Notifications);
     }
@@ -520,7 +520,7 @@ public sealed class TrayPresenterTests : IDisposable
         var result = presenter.Run(new EngineCommand(EngineCommandKind.Scene, "Nacht"));
 
         Assert.Equal(EngineCommandResult.Failed, result);
-        Assert.Equal([(Strings.ProfilesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
+        Assert.Equal([(Strings.ScenesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
     // As "Alles aan" and "Alles uit" in the menu.

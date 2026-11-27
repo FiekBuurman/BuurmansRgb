@@ -9,7 +9,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // it is in no list of names, the tray menu or --scene, and Name is no more than its role.
 internal sealed record Profile(string Name, LightingState Lighting)
 {
-    public ProfileAutomation Automation { get; init; } = ProfileAutomation.None;
+    public SceneAutomation Automation { get; init; } = SceneAutomation.None;
 
     public ProfileRole Role { get; init; }
 
@@ -22,7 +22,7 @@ internal sealed record Profile(string Name, LightingState Lighting)
     public IReadOnlyList<string>? DeviceIds { get; init; }
 
     // An internal profile for role, which has no name of the user.
-    public static Profile Internal(ProfileRole role, LightingState lighting, ProfileAutomation automation) =>
+    public static Profile Internal(ProfileRole role, LightingState lighting, SceneAutomation automation) =>
         new(ProfileRoles.Write(role)!, lighting) { Role = role, IsInternal = true, Automation = automation };
 
     // What burns once the scene is on over now: its whole lighting, or for a scene of some devices

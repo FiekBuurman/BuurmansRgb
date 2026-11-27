@@ -143,7 +143,7 @@ internal static class SharedFileReader
 
     private static SharedScene ReadScene(SharedFile file)
     {
-        var name = ReadName(file.Name, ProfileNames.MaxLength, "scene");
+        var name = ReadName(file.Name, SceneNames.MaxLength, "scene");
         var lighting = file.Lighting ?? throw new InvalidShareException("a scene without \"lighting\"");
         var effects = ReadEffects(file.Effects ?? []);
         var effectIds = effects.Select(effect => effect.Id).ToHashSet(StringComparer.Ordinal);

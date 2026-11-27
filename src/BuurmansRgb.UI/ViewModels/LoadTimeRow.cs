@@ -35,13 +35,13 @@ public sealed partial class LoadTimeRow : ObservableObject
     public partial int Number { get; set; } = 1;
 
     // "Tijd 2": the row around the field, the days and "−".
-    public string Name => UiText.Format(Strings.ProfileTimeName, Number);
+    public string Name => UiText.Format(Strings.SceneTimeName, Number);
 
-    public string TimeAccessibleName => UiText.Format(Strings.ProfileTimeAccessibleName, Number);
+    public string TimeAccessibleName => UiText.Format(Strings.SceneTimeAccessibleName, Number);
 
-    public string DaysAccessibleName => UiText.Format(Strings.ProfileTimeDaysAccessibleName, Number);
+    public string DaysAccessibleName => UiText.Format(Strings.SceneTimeDaysAccessibleName, Number);
 
-    public string RemoveAccessibleName => UiText.Format(Strings.ProfileTimeRemoveAccessibleName, Number);
+    public string RemoveAccessibleName => UiText.Format(Strings.SceneTimeRemoveAccessibleName, Number);
 
     public WeekDays CheckedDays => _days.CheckedDays;
 

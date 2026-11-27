@@ -169,7 +169,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_WritesTheTimeAsHoursAndMinutes()
     {
-        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(7, 5)) }]);
+        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(new TimeOnly(7, 5)) }]);
 
         Assert.Contains("\"loadAt\": \"07:05\"", File.ReadAllText(_directory.File("profiles.json")));
         Assert.Equal(new TimeOnly(7, 5), Assert.Single(_store.Load()).Automation.Times[0].At);
@@ -178,7 +178,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_TimeOnSomeDays_WritesThemAndReadsThemBack()
     {
-        var automation = new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays);
+        var automation = new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays);
         _store.Save([new Profile("Werk", Uniform(StaticLighting(Red))) { Automation = automation }]);
 
         Assert.Contains("\"loadOn\": \"mon,tue,wed,thu,fri\"", File.ReadAllText(_directory.File("profiles.json")));
@@ -189,7 +189,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_TimeOnEveryDay_WritesNoDays()
     {
-        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) }]);
+        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(new TimeOnly(23, 0)) }]);
 
         Assert.DoesNotContain("loadOn", File.ReadAllText(_directory.File("profiles.json")));
     }
@@ -198,7 +198,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_OneTime_WritesNoLoadTimes()
     {
-        _store.Save([new Profile("Werk", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays) }]);
+        _store.Save([new Profile("Werk", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays) }]);
 
         Assert.DoesNotContain("loadTimes", File.ReadAllText(_directory.File("profiles.json")));
     }
@@ -206,7 +206,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_MoreTimes_WritesThemAsLoadTimesAndReadsThemBack()
     {
-        var automation = new ProfileAutomation([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(23, 0))]);
+        var automation = new SceneAutomation([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(23, 0))]);
         _store.Save([new Profile("Ochtend", Uniform(StaticLighting(Red))) { Automation = automation }]);
 
         var json = File.ReadAllText(_directory.File("profiles.json"));
@@ -288,19 +288,19 @@ public sealed class JsonProfileStoreTests : IDisposable
         var profile = Assert.Single(_store.Load());
 
         Assert.Equal(Red, profile.Lighting.Global.Color);
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profile.Automation);
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0)), profile.Automation);
     }
 
     [Fact]
     public void Load_MoreThanTheMostTimes_KeepsTheFirst()
     {
-        var times = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxTimes + 2).Select(hour => $$"""{ "at": "{{hour + 10}}:00" }"""));
+        var times = string.Join(", ", Enumerable.Range(0, SceneAutomation.MaxTimes + 2).Select(hour => $$"""{ "at": "{{hour + 10}}:00" }"""));
         File.WriteAllText(_directory.File("profiles.json"), $$"""{ "profiles": [ { "name": "Uur", "loadTimes": [ {{times}} ] } ] }""");
         using var trace = new TraceCapture();
 
         var automation = Assert.Single(_store.Load()).Automation;
 
-        Assert.Equal(Enumerable.Range(10, ProfileAutomation.MaxTimes).Select(hour => new LoadTime(new TimeOnly(hour, 0))), automation.Times);
+        Assert.Equal(Enumerable.Range(10, SceneAutomation.MaxTimes).Select(hour => new LoadTime(new TimeOnly(hour, 0))), automation.Times);
         Assert.Contains(trace.Messages, message => message.Contains("'Uur' has 10 times", StringComparison.Ordinal));
     }
 
@@ -324,7 +324,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_WritesTheProgram()
     {
-        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(Program: "eldenring.exe") }]);
 
         Assert.Contains("\"program\": \"eldenring.exe\"", File.ReadAllText(_directory.File("profiles.json")));
         Assert.Equal(["eldenring.exe"], Assert.Single(_store.Load()).Automation.Programs);
@@ -334,7 +334,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_MorePrograms_WritesThemAsAListWithoutProgram()
     {
-        var automation = new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], ForegroundOnly: true);
+        var automation = new SceneAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], ForegroundOnly: true);
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = automation }]);
 
         var json = File.ReadAllText(_directory.File("profiles.json"));
@@ -362,8 +362,8 @@ public sealed class JsonProfileStoreTests : IDisposable
         var profiles = _store.Load();
 
         Assert.Equal(["valorant.exe", "cs2.exe", "r5apex.exe"], profiles[0].Automation.Programs);
-        Assert.Equal(new ProfileAutomation(Program: "cs2.exe", ForegroundOnly: true), profiles[1].Automation);
-        Assert.Equal(new ProfileAutomation(Program: "valorant.exe"), profiles[2].Automation);
+        Assert.Equal(new SceneAutomation(Program: "cs2.exe", ForegroundOnly: true), profiles[1].Automation);
+        Assert.Equal(new SceneAutomation(Program: "valorant.exe"), profiles[2].Automation);
         var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
         Assert.Contains(messages, message => message.Contains("'Gamen' has programs[3] 42", StringComparison.Ordinal));
         Assert.Contains(messages, message => message.Contains("'Gamen' has programs[4] game?.exe", StringComparison.Ordinal));
@@ -372,31 +372,31 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Load_MoreProgramsThanTheMost_LeavesTheRestOut()
     {
-        var names = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxPrograms + 2).Select(i => $"\"game{i}.exe\""));
+        var names = string.Join(", ", Enumerable.Range(0, SceneAutomation.MaxPrograms + 2).Select(i => $"\"game{i}.exe\""));
         File.WriteAllText(_directory.File("profiles.json"), $$"""
             { "profiles": [ { "name": "Gamen", "programs": [ {{names}} ] } ] }
             """);
 
         var programs = Assert.Single(_store.Load()).Automation.Programs;
 
-        Assert.Equal(ProfileAutomation.MaxPrograms, programs.Count);
+        Assert.Equal(SceneAutomation.MaxPrograms, programs.Count);
         Assert.Equal("game0.exe", programs[0]);
     }
 
     [Fact]
     public void Save_ForegroundOnly_WritesItNextToTheProgram()
     {
-        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true) }]);
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(Program: "eldenring.exe", ForegroundOnly: true) }]);
 
         Assert.Contains("\"foregroundOnly\": true", File.ReadAllText(_directory.File("profiles.json")));
-        Assert.Equal(new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true), Assert.Single(_store.Load()).Automation);
+        Assert.Equal(new SceneAutomation(Program: "eldenring.exe", ForegroundOnly: true), Assert.Single(_store.Load()).Automation);
     }
 
     // Off is what an older file means without it, so it is not written.
     [Fact]
     public void Save_ProgramWithoutForegroundOnly_WritesNoForegroundOnly()
     {
-        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new SceneAutomation(Program: "eldenring.exe") }]);
 
         Assert.DoesNotContain("foregroundOnly", File.ReadAllText(_directory.File("profiles.json")));
     }
@@ -429,12 +429,12 @@ public sealed class JsonProfileStoreTests : IDisposable
 
         var profiles = _store.Load();
 
-        Assert.Equal(new ProfileAutomation(Program: "a.exe", ForegroundOnly: true), profiles[0].Automation);
-        Assert.Equal(new ProfileAutomation(Program: "b.exe"), profiles[1].Automation);
-        Assert.Equal(new ProfileAutomation(Program: "c.exe"), profiles[2].Automation);
-        Assert.Equal(new ProfileAutomation(Program: "d.exe"), profiles[3].Automation);
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profiles[4].Automation);
-        Assert.Equal(ProfileAutomation.None, profiles[5].Automation);
+        Assert.Equal(new SceneAutomation(Program: "a.exe", ForegroundOnly: true), profiles[0].Automation);
+        Assert.Equal(new SceneAutomation(Program: "b.exe"), profiles[1].Automation);
+        Assert.Equal(new SceneAutomation(Program: "c.exe"), profiles[2].Automation);
+        Assert.Equal(new SceneAutomation(Program: "d.exe"), profiles[3].Automation);
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0)), profiles[4].Automation);
+        Assert.Equal(SceneAutomation.None, profiles[5].Automation);
     }
 
     // The next save writes the profile without them, so the trace says what went.
@@ -474,9 +474,9 @@ public sealed class JsonProfileStoreTests : IDisposable
 
         var profiles = _store.Load();
 
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profiles[0].Automation);
-        Assert.Equal(ProfileAutomation.None, profiles[1].Automation);
-        Assert.Equal(ProfileAutomation.None, profiles[2].Automation);
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0)), profiles[0].Automation);
+        Assert.Equal(SceneAutomation.None, profiles[1].Automation);
+        Assert.Equal(SceneAutomation.None, profiles[2].Automation);
         Assert.Equal(["eldenring.exe"], profiles[3].Automation.Programs);
     }
 
@@ -500,7 +500,7 @@ public sealed class JsonProfileStoreTests : IDisposable
 
         Assert.Equal(["A", "B", "C", "D", "E", "F"], profiles.Select(profile => profile.Name));
         Assert.Equal(Red, profiles[0].Lighting.Global.Color);
-        Assert.All(profiles.Take(5), profile => Assert.Equal(ProfileAutomation.None, profile.Automation));
+        Assert.All(profiles.Take(5), profile => Assert.Equal(SceneAutomation.None, profile.Automation));
         Assert.Equal(new TimeOnly(7, 30), profiles[5].Automation.Times[0].At);
     }
 
@@ -579,9 +579,9 @@ public sealed class JsonProfileStoreTests : IDisposable
         var on = new LoadTime(new TimeOnly(7, 0), WeekDays.Monday | WeekDays.Friday);
         _store.Save(
         [
-            new Profile("Bedtijd", Uniform(StaticLighting(Red) with { On = false })) { Role = ProfileRole.AllOff, Automation = new ProfileAutomation([off]) },
+            new Profile("Bedtijd", Uniform(StaticLighting(Red) with { On = false })) { Role = ProfileRole.AllOff, Automation = new SceneAutomation([off]) },
             new Profile("Gamen", Uniform(StaticLighting(Green))),
-            Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Orange)), new ProfileAutomation([on])),
+            Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Orange)), new SceneAutomation([on])),
         ]);
 
         var loaded = _store.Load();
@@ -597,7 +597,7 @@ public sealed class JsonProfileStoreTests : IDisposable
     [Fact]
     public void Save_PutsTheInternalProfilesApart_WithoutAName()
     {
-        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Green))), Profile.Internal(ProfileRole.AllOff, Uniform(StaticLighting(Red)), ProfileAutomation.None)]);
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Green))), Profile.Internal(ProfileRole.AllOff, Uniform(StaticLighting(Red)), SceneAutomation.None)]);
 
         var json = File.ReadAllText(_directory.File("profiles.json"));
 

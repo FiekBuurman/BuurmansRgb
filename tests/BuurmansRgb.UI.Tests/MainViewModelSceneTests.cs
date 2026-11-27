@@ -16,7 +16,7 @@ public sealed class MainViewModelSceneTests
         {
             api.Profiles.AddRange(["Filmavond", "Nacht"]);
             api.ProfileLighting["Filmavond"] = new LightingInfo(Orange, 0.4, EffectIds.Breathing);
-            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+            api.ProfileAutomations["Nacht"] = new SceneAutomation(new TimeOnly(23, 0));
         });
 
         Assert.Equal(["Ademen · 40%", "Elke dag om 23:00"], viewModel.Profiles.Cards.Select(card => card.Description));
@@ -30,7 +30,7 @@ public sealed class MainViewModelSceneTests
         {
             api.Profiles.AddRange(["Filmavond", "Nacht"]);
             api.GoneProfiles.Add("Filmavond");
-            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+            api.ProfileAutomations["Nacht"] = new SceneAutomation(new TimeOnly(23, 0));
         });
 
         Assert.Equal(["", "Elke dag om 23:00"], viewModel.Profiles.Cards.Select(card => card.Description));

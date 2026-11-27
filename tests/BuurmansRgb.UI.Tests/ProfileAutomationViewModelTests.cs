@@ -23,7 +23,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Show_FillsInTheFieldsAndTheHeader()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(7, 5), "eldenring.exe"));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(7, 5), "eldenring.exe"));
 
         Assert.True(_automation.HasProfile);
         Assert.Equal("07:05", _automation.Times[0].Text);
@@ -35,7 +35,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Show_ProfileWithoutAutomation_SaysOff()
     {
-        _automation.Show("Werk", ProfileAutomation.None);
+        _automation.Show("Werk", SceneAutomation.None);
 
         Assert.Equal("Vanzelf aanzetten: uit", _automation.Header);
     }
@@ -44,7 +44,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Error_IsOnlyRaisedWhenItChanges()
     {
-        _automation.Show("Nacht", ProfileAutomation.None);
+        _automation.Show("Nacht", SceneAutomation.None);
         var raised = 0;
         _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
 
@@ -65,12 +65,12 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("0930", 9, 30)]
     public void Apply_ValidTime_AsksWithIt(string text, int hour, int minute)
     {
-        _automation.Show("Nacht", ProfileAutomation.None);
+        _automation.Show("Nacht", SceneAutomation.None);
 
         _automation.Times[0].Text = text;
         _automation.ApplyCommand.Execute(null);
 
-        Assert.Equal([new ProfileAutomationChange("Nacht", new ProfileAutomation(new TimeOnly(hour, minute)))], _requests);
+        Assert.Equal([new ProfileAutomationChange("Nacht", new SceneAutomation(new TimeOnly(hour, minute)))], _requests);
     }
 
     [Theory]
@@ -81,7 +81,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("half elf")]
     public void InvalidTime_SaysHowAndCannotApply(string text)
     {
-        _automation.Show("Nacht", ProfileAutomation.None);
+        _automation.Show("Nacht", SceneAutomation.None);
 
         _automation.Times[0].Text = text;
 
@@ -93,12 +93,12 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Apply_ProgramWithoutExe_AsksWithTheFileName()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.ProgramText = "eldenring";
         _automation.ApplyCommand.Execute(null);
 
-        Assert.Equal([new ProfileAutomationChange("Gamen", new ProfileAutomation(Program: "eldenring.exe"))], _requests);
+        Assert.Equal([new ProfileAutomationChange("Gamen", new SceneAutomation(Program: "eldenring.exe"))], _requests);
     }
 
     // Valorant, CS2 and Apex for one scene: a comma between the names, empty ones and doubles left
@@ -106,20 +106,20 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Apply_MorePrograms_AsksWithAllOfThem()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.ProgramText = " valorant, cs2.exe,, R5Apex.exe , VALORANT.exe,";
         _automation.ForegroundOnly = true;
         Assert.Null(_automation.Error);
         _automation.ApplyCommand.Execute(null);
 
-        Assert.Equal([new ProfileAutomationChange("Gamen", new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "R5Apex.exe"], ForegroundOnly: true))], _requests);
+        Assert.Equal([new ProfileAutomationChange("Gamen", new SceneAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "R5Apex.exe"], ForegroundOnly: true))], _requests);
     }
 
     [Fact]
     public void Show_MorePrograms_PutsACommaBetweenThem()
     {
-        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe"]));
+        _automation.Show("Gamen", new SceneAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe"]));
 
         Assert.Equal("valorant.exe, cs2.exe", _automation.ProgramText);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
@@ -129,7 +129,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void OnlyCommas_IsNoProgram()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.ProgramText = " , ,";
 
@@ -147,7 +147,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("cs2.exe, x|y", "De laatste naam is geen naam van een programma.")]
     public void MoreProgramsWithAWrongOne_NamesItAndCannotApply(string text, string error)
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.ProgramText = text;
 
@@ -160,7 +160,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void TypingAWrongLastProgram_RaisesTheErrorOnce()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
         _automation.ProgramText = "cs2.exe, ";
         var raised = 0;
         _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
@@ -181,11 +181,11 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void MoreProgramsThanTheMost_SaysSoAndCannotApply()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
-        _automation.ProgramText = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxPrograms + 1).Select(i => $"game{i}"));
+        _automation.ProgramText = string.Join(", ", Enumerable.Range(0, SceneAutomation.MaxPrograms + 1).Select(i => $"game{i}"));
 
-        Assert.Equal($"Een scène kan hooguit {ProfileAutomation.MaxPrograms} programma's hebben.", _automation.Error);
+        Assert.Equal($"Een scène kan hooguit {SceneAutomation.MaxPrograms} programma's hebben.", _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
     }
 
@@ -193,9 +193,9 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void TheSameProgramMoreTimes_CountsOnce()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
-        _automation.ProgramText = string.Join(", ", Enumerable.Repeat("cs2", ProfileAutomation.MaxPrograms + 1));
+        _automation.ProgramText = string.Join(", ", Enumerable.Repeat("cs2", SceneAutomation.MaxPrograms + 1));
 
         Assert.Null(_automation.Error);
         Assert.True(_automation.ApplyCommand.CanExecute(null));
@@ -209,7 +209,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("valorant.exe, CS2.EXE", "valorant.exe, CS2.EXE")]
     public void PickProgram_AddsItAfterTheOthers(string before, string after)
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
         _automation.ProgramText = before;
 
         _automation.PickProgramCommand.Execute(@"C:\Games\Counter-Strike\cs2.exe");
@@ -222,7 +222,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Show_SavedProgramWithAComma_SaysSoAndCannotApply()
     {
-        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
+        _automation.Show("Gamen", new SceneAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
 
         Assert.Equal("a,b.exe, cs2.exe", _automation.ProgramText);
         Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
@@ -249,7 +249,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("cs2.exe, a,b.exe.exe", false)]
     public void SavedProgramWithAComma_CountsOnlyAsAPieceOfItsOwn(string text, bool error)
     {
-        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
+        _automation.Show("Gamen", new SceneAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
 
         _automation.ProgramText = text;
 
@@ -261,7 +261,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void PickProgram_WithAComma_IsRefusedWithAnError()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
         _automation.ProgramText = "cs2.exe";
 
         _automation.PickProgramCommand.Execute(@"C:\Games\a,b.exe");
@@ -279,7 +279,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void PickRunningProgram_WithAComma_IsRefusedWithAnError()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.PickRunningProgramCommand.Execute(new RunningProgramItem(new RunningProgram("a,b.exe", "A, B")));
 
@@ -291,7 +291,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void PickProgram_WithAComma_ErrorGoesWithForegroundOnly()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
         _automation.ProgramText = "cs2.exe";
         _automation.PickProgramCommand.Execute(@"C:\Games\a,b.exe");
         Assert.NotNull(_automation.Error);
@@ -305,32 +305,32 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Show_ForegroundOnly_TicksIt()
     {
-        _automation.Show("Film", new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true));
+        _automation.Show("Film", new SceneAutomation(Program: "vlc.exe", ForegroundOnly: true));
         Assert.True(_automation.ForegroundOnly);
         Assert.True(_automation.HasProgramText);
 
-        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+        _automation.Show("Gamen", new SceneAutomation(Program: "eldenring.exe"));
         Assert.False(_automation.ForegroundOnly);
     }
 
     [Fact]
     public void Apply_ForegroundOnlyTicked_AsksWithIt()
     {
-        _automation.Show("Film", new ProfileAutomation(Program: "vlc.exe"));
+        _automation.Show("Film", new SceneAutomation(Program: "vlc.exe"));
         Assert.False(_automation.ApplyCommand.CanExecute(null));
 
         _automation.ForegroundOnly = true;
         Assert.True(_automation.ApplyCommand.CanExecute(null));
         _automation.ApplyCommand.Execute(null);
 
-        Assert.Equal([new ProfileAutomationChange("Film", new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true))], _requests);
+        Assert.Equal([new ProfileAutomationChange("Film", new SceneAutomation(Program: "vlc.exe", ForegroundOnly: true))], _requests);
     }
 
     // Without a program the choice means nothing: it is grey, and ticking it is no change.
     [Fact]
     public void ForegroundOnlyWithoutAProgram_IsGreyAndNoChange()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
         Assert.False(_automation.HasProgramText);
 
         _automation.ForegroundOnly = true;
@@ -344,7 +344,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void InvalidProgram_SaysHowAndCannotApply()
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.ProgramText = "game?.exe";
 
@@ -357,7 +357,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("start-game.bat")]
     public void ShortcutOrScript_SaysToPickTheExeAndCannotApply(string program)
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.ProgramText = program;
 
@@ -368,7 +368,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Show_TicksTheDaysOfTheTime()
     {
-        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays));
+        _automation.Show("Werk", new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays));
 
         Assert.Equal([true, true, true, true, true, false, false], _automation.Times[0].Days.Select(day => day.IsChecked));
         Assert.Equal(["ma", "di", "wo", "do", "vr", "za", "zo"], _automation.Times[0].Days.Select(day => day.ShortName));
@@ -379,20 +379,20 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Apply_OtherDays_AsksWithThem()
     {
-        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0)));
+        _automation.Show("Werk", new SceneAutomation(new TimeOnly(9, 0)));
 
         _automation.Times[0].Days[5].IsChecked = false;
         _automation.Times[0].Days[6].IsChecked = false;
         _automation.ApplyCommand.Execute(null);
 
-        Assert.Equal([new ProfileAutomationChange("Werk", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays))], _requests);
+        Assert.Equal([new ProfileAutomationChange("Werk", new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays))], _requests);
     }
 
     // A time on no day would never come.
     [Fact]
     public void NoDayTicked_SaysSoAndCannotApply()
     {
-        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0)));
+        _automation.Show("Werk", new SceneAutomation(new TimeOnly(9, 0)));
 
         foreach (var day in _automation.Times[0].Days)
         {
@@ -407,7 +407,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void NoTime_DaysDoNotMatter()
     {
-        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+        _automation.Show("Gamen", new SceneAutomation(Program: "eldenring.exe"));
 
         _automation.Times[0].Days[0].IsChecked = false;
 
@@ -484,7 +484,7 @@ public sealed class ProfileAutomationViewModelTests
     public void PickRunningProgram_FillsInTheExeName()
     {
         var automation = new ProfileAutomationViewModel(Found(new RunningProgram("olk.exe", "Outlook")));
-        automation.Show("Mail", ProfileAutomation.None);
+        automation.Show("Mail", SceneAutomation.None);
         automation.FindProgramsCommand.Execute(null);
 
         automation.PickRunningProgramCommand.Execute(automation.RunningPrograms[0]);
@@ -500,7 +500,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData(@"C:\Games\ELDEN RING\Game\eldenring.exe", "eldenring.exe")]
     public void PickProgram_FillsInTheExeName(string picked, string expected)
     {
-        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.Show("Gamen", SceneAutomation.None);
 
         _automation.PickProgramCommand.Execute(picked);
 
@@ -515,7 +515,7 @@ public sealed class ProfileAutomationViewModelTests
     {
         var dialogs = new FakeDialogs { ChooseProgram = () => @"C:\Games\ELDEN RING\Game\eldenring.exe" };
         var automation = new ProfileAutomationViewModel(Found(), dialogs);
-        automation.Show("Gamen", ProfileAutomation.None);
+        automation.Show("Gamen", SceneAutomation.None);
         automation.ProgramText = "cs2.exe";
 
         automation.BrowseProgramCommand.Execute(null);
@@ -529,7 +529,7 @@ public sealed class ProfileAutomationViewModelTests
         var asked = 0;
         var dialogs = new FakeDialogs { ChooseProgram = () => { asked++; return null; } };
         var automation = new ProfileAutomationViewModel(Found(), dialogs);
-        automation.Show("Gamen", ProfileAutomation.None);
+        automation.Show("Gamen", SceneAutomation.None);
         automation.ProgramText = "cs2.exe";
 
         automation.BrowseProgramCommand.Execute(null);
@@ -544,7 +544,7 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData(@"C:\Users\me\Desktop\Spel.lnk")]
     public void PickProgram_NothingOrNoProgram_LeavesTheField(string? picked)
     {
-        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+        _automation.Show("Gamen", new SceneAutomation(Program: "eldenring.exe"));
 
         _automation.PickProgramCommand.Execute(picked);
 
@@ -554,20 +554,20 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Apply_EmptyFields_TurnsItOff()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe"));
 
         _automation.Times[0].Text = "";
         _automation.ProgramText = "  ";
         _automation.ApplyCommand.Execute(null);
 
-        Assert.Equal([new ProfileAutomationChange("Nacht", ProfileAutomation.None)], _requests);
+        Assert.Equal([new ProfileAutomationChange("Nacht", SceneAutomation.None)], _requests);
     }
 
     // The same as saved, only written another way, is no change.
     [Fact]
     public void SameAsSavedInOtherWords_CannotApply()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(7, 0), "eldenring.exe"));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(7, 0), "eldenring.exe"));
 
         _automation.Times[0].Text = "7:00";
         _automation.ProgramText = "EldenRing";
@@ -580,7 +580,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Clear_EmptiesTheFieldsAndHasNoProfile()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
 
         _automation.Clear();
 
@@ -610,7 +610,7 @@ public sealed class ProfileAutomationViewModelTests
     {
         _automation.Show("Ochtend", MorningAndWeekend);
 
-        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+        _automation.Show("Gamen", new SceneAutomation(Program: "eldenring.exe"));
 
         var row = Assert.Single(_automation.Times);
         Assert.Equal("", row.Text);
@@ -620,7 +620,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void AddTime_ThenApply_AsksWithAllTimesFromEarlyToLate()
     {
-        _automation.Show("Ochtend", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend));
+        _automation.Show("Ochtend", new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend));
 
         _automation.AddTimeCommand.Execute(null);
         Assert.Equal(2, _automation.Times.Count);
@@ -637,14 +637,14 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void AddTime_UpToTheMost()
     {
-        _automation.Show("Uur", ProfileAutomation.None);
+        _automation.Show("Uur", SceneAutomation.None);
 
         while (_automation.AddTimeCommand.CanExecute(null))
         {
             _automation.AddTimeCommand.Execute(null);
         }
 
-        Assert.Equal(ProfileAutomation.MaxTimes, _automation.Times.Count);
+        Assert.Equal(SceneAutomation.MaxTimes, _automation.Times.Count);
         _automation.RemoveTimeCommand.Execute(_automation.Times[^1]);
         Assert.True(_automation.AddTimeCommand.CanExecute(null));
     }
@@ -663,13 +663,13 @@ public sealed class ProfileAutomationViewModelTests
         var row = Assert.Single(_automation.Times);
         Assert.Equal(1, row.Number);
         Assert.Equal("Tijd 1", row.ToString());
-        Assert.Equal([new ProfileAutomationChange("Ochtend", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend))], _requests);
+        Assert.Equal([new ProfileAutomationChange("Ochtend", new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend))], _requests);
     }
 
     [Fact]
     public void RemoveTime_TheOnlyOne_EmptiesItsField()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0), Days: WeekDays.Weekend));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0), Days: WeekDays.Weekend));
 
         _automation.RemoveTimeCommand.Execute(_automation.Times[0]);
 
@@ -684,7 +684,7 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void EmptyRowAdded_CannotApply()
     {
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
 
         _automation.AddTimeCommand.Execute(null);
 
@@ -754,7 +754,7 @@ public sealed class ProfileAutomationViewModelTests
         _automation.Show("Ochtend", MorningAndWeekend);
         var first = _automation.Times[0];
 
-        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
         Assert.Same(first, Assert.Single(_automation.Times));
         Assert.All(first.Days, day => Assert.True(day.IsChecked));
 
@@ -771,11 +771,11 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void Show_OtherDays_RaisesNoErrorOnTheWay()
     {
-        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays));
+        _automation.Show("Werk", new SceneAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays));
         var raised = 0;
         _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
 
-        _automation.Show("Weekend", new ProfileAutomation(new TimeOnly(10, 0), Days: WeekDays.Weekend));
+        _automation.Show("Weekend", new SceneAutomation(new TimeOnly(10, 0), Days: WeekDays.Weekend));
 
         Assert.Equal(0, raised);
         Assert.Null(_automation.Error);
@@ -786,6 +786,6 @@ public sealed class ProfileAutomationViewModelTests
         () => Task.FromResult<IReadOnlyList<RunningProgram>>(programs);
 
     // 07:00 on workdays and 09:00 in the weekend, as the engine saves it.
-    private static ProfileAutomation MorningAndWeekend { get; } =
+    private static SceneAutomation MorningAndWeekend { get; } =
         new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)]);
 }

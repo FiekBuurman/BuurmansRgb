@@ -220,7 +220,7 @@ public sealed class SharedFileReaderTests
         { "kind in capitals", root => root["kind"] = "Scene" },
         { "no name", root => root.Remove("name") },
         { "empty name", root => root["name"] = " " },
-        { "name too long", root => root["name"] = new string('a', ProfileNames.MaxLength + 1) },
+        { "name too long", root => root["name"] = new string('a', SceneNames.MaxLength + 1) },
         { "name with a line break", root => root["name"] = "Ga\nmen" },
         { "name like a path", root => root["name"] = @"..\..\Gamen" },
         { "name with a drive", root => root["name"] = "C:Gamen" },

@@ -188,7 +188,7 @@ public sealed class AccessibleNamesViewTests
         {
             api.Profiles.Add("Avond");
             api.ProfileLighting["Avond"] = new LightingInfo(Orange, 0.8, EffectIds.Static);
-            api.ProfileAutomations["Avond"] = new ProfileAutomation(
+            api.ProfileAutomations["Avond"] = new SceneAutomation(
                 [new LoadTime(new TimeOnly(19, 0)), new LoadTime(new TimeOnly(21, 30), WeekDays.Monday)]);
         });
 

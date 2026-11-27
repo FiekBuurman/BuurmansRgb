@@ -799,8 +799,8 @@ public sealed class EngineHostTests : IDisposable
         {
             Profiles =
             [
-                new Profile("Gamen", LightingStates.Uniform(LightingStates.StaticLighting(Green))) { Automation = new ProfileAutomation(Program: "game.exe") },
-                new Profile("Ochtend", LightingStates.Uniform(LightingStates.StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(7, 0)) },
+                new Profile("Gamen", LightingStates.Uniform(LightingStates.StaticLighting(Green))) { Automation = new SceneAutomation(Program: "game.exe") },
+                new Profile("Ochtend", LightingStates.Uniform(LightingStates.StaticLighting(Blue))) { Automation = new SceneAutomation(new TimeOnly(7, 0)) },
             ],
         }, lighting);
         var programs = new FakeRunningPrograms();
@@ -894,8 +894,8 @@ public sealed class EngineHostTests : IDisposable
         {
             Profiles =
             [
-                new Profile("Nacht", night) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) },
-                new Profile("Ochtend", LightingStates.Uniform(LightingStates.StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(7, 0)) },
+                new Profile("Nacht", night) { Automation = new SceneAutomation(new TimeOnly(23, 0)) },
+                new Profile("Ochtend", LightingStates.Uniform(LightingStates.StaticLighting(Blue))) { Automation = new SceneAutomation(new TimeOnly(7, 0)) },
             ],
         }, lighting);
         var time = new ClockTimeProvider(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero), DailyTimeTests.Amsterdam);

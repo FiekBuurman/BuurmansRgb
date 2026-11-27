@@ -73,12 +73,12 @@ public sealed class SceneNameCardViewTests
             var box = NameBox(page);
             Assert.True(box.IsKeyboardFocused);
             Assert.False(button.IsVisible);
-            Assert.True(SaveButton(page, Strings.ProfileSave).IsVisible);
+            Assert.True(SaveButton(page, Strings.SceneSave).IsVisible);
             var overwrites = UiText.Format(Strings.SceneNameOverwrites, "Avond");
             Assert.DoesNotContain(AppTheme.Descendants<TextBlock>(page), block => block.IsVisible && block.Text == overwrites);
             box.Text = "Avond";
             OffscreenWindow.WaitUntilIdle();
-            Assert.True(SaveButton(page, Strings.ProfileOverwrite).IsVisible);
+            Assert.True(SaveButton(page, Strings.SceneOverwrite).IsVisible);
             var line = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == overwrites);
             Assert.True(line.IsVisible);
             Assert.True(line.TranslatePoint(default, box).Y >= box.ActualHeight);
@@ -89,7 +89,7 @@ public sealed class SceneNameCardViewTests
             Assert.Equal(["profile save Avond"], engine!.Calls.TakeLast(1));
             Assert.Equal("Avond", viewModel.Profiles.ActiveName);
             Assert.Equal([true, false], viewModel.Profiles.Cards.Select(card => card.IsActive));
-            Assert.Equal(UiText.Format(Strings.ProfileSaved, "Avond"), viewModel.StatusMessage);
+            Assert.Equal(UiText.Format(Strings.SceneSaved, "Avond"), viewModel.StatusMessage);
             Assert.True(button.IsVisible);
             Assert.True(button.IsKeyboardFocused);
 
@@ -158,7 +158,7 @@ public sealed class SceneNameCardViewTests
 
     private static Button SaveAsScene(DependencyObject page) => SaveButton(page, Strings.SaveAsScene);
 
-    private static TextBox NameBox(DependencyObject page) => PageViews.Named<TextBox>(page, Strings.ProfileNameLabel);
+    private static TextBox NameBox(DependencyObject page) => PageViews.Named<TextBox>(page, Strings.SceneNameLabel);
 
     private static Button SaveButton(DependencyObject page, string label) =>
         AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, label));

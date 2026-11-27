@@ -6,7 +6,7 @@ namespace BuurmansRgb.Contracts.Tests;
 public sealed class EngineRpcTests : IDisposable
 {
     // 07:00 on workdays and 09:00 in the weekend.
-    private static readonly ProfileAutomation MoreTimes = new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], ["eldenring.exe"]);
+    private static readonly SceneAutomation MoreTimes = new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], ["eldenring.exe"]);
 
     // A device with zones that resize, one with a location and a matrix with LED names, each with
     // its own source.
@@ -64,7 +64,7 @@ public sealed class EngineRpcTests : IDisposable
         _api.ActiveProfile = "Nacht";
         _api.ProfileLighting["Nacht"] = FullLighting;
         _api.GoneProfiles.Add("Gamen");
-        _api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe");
+        _api.ProfileAutomations["Nacht"] = new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe");
         _api.ProfileAutomations["Ochtend"] = MoreTimes;
         _api.ProfileDevices["Nacht"] = ["openrgb-strip-1a2b", "fan"];
         _api.WholeHouseTimes = new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)], "Alles uit");
@@ -210,20 +210,20 @@ public sealed class EngineRpcTests : IDisposable
 
         var automation = await client.Api.GetProfileAutomationAsync("Nacht", Ct);
         var moreTimes = await client.Api.GetProfileAutomationAsync("Ochtend", Ct);
-        await client.Api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays), Ct);
-        await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "eldenring.exe"), Ct);
-        await client.Api.SetProfileAutomationAsync("Race", new ProfileAutomation(Program: "forza.exe", ForegroundOnly: true), Ct);
-        await client.Api.SetProfileAutomationAsync("Werk", ProfileAutomation.None, Ct);
+        await client.Api.SetProfileAutomationAsync("Nacht", new SceneAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays), Ct);
+        await client.Api.SetProfileAutomationAsync("Gamen", new SceneAutomation(Program: "eldenring.exe"), Ct);
+        await client.Api.SetProfileAutomationAsync("Race", new SceneAutomation(Program: "forza.exe", ForegroundOnly: true), Ct);
+        await client.Api.SetProfileAutomationAsync("Werk", SceneAutomation.None, Ct);
         await client.Api.SetProfileAutomationAsync("Ochtend", MoreTimes, Ct);
 
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), automation);
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe"), automation);
         Assert.Equal(MoreTimes, moreTimes);
         Assert.Equal(
             [
-                ("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays)),
-                ("Gamen", new ProfileAutomation(Program: "eldenring.exe")),
-                ("Race", new ProfileAutomation(Program: "forza.exe", ForegroundOnly: true)),
-                ("Werk", ProfileAutomation.None),
+                ("Nacht", new SceneAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays)),
+                ("Gamen", new SceneAutomation(Program: "eldenring.exe")),
+                ("Race", new SceneAutomation(Program: "forza.exe", ForegroundOnly: true)),
+                ("Werk", SceneAutomation.None),
                 ("Ochtend", MoreTimes),
             ],
             _api.ProfileAutomationCalls);

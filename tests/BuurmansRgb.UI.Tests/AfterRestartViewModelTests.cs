@@ -97,11 +97,11 @@ public sealed class AfterRestartViewModelTests
     public void CatchUpWithASceneTime_SaysTheSceneComesOn()
     {
         _profiles.Show(["Nacht", "Gamen"]);
-        _profiles.ShowCard("Gamen", Lighting, ProfileAutomation.None);
+        _profiles.ShowCard("Gamen", Lighting, SceneAutomation.None);
         _sceneTimes.Show(true);
         Assert.False(_afterRestart.CatchesUpSceneTimes);
 
-        _profiles.ShowCard("Nacht", Lighting, new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.ShowCard("Nacht", Lighting, new SceneAutomation(new TimeOnly(23, 0)));
         Assert.True(_afterRestart.CatchesUpSceneTimes);
         Assert.Contains(nameof(AfterRestartViewModel.CatchesUpSceneTimes), _changed);
 
@@ -117,7 +117,7 @@ public sealed class AfterRestartViewModelTests
     {
         _sceneTimes.Show(true);
         _profiles.Show(["Nacht"]);
-        _profiles.ShowCard("Nacht", Lighting, new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.ShowCard("Nacht", Lighting, new SceneAutomation(new TimeOnly(23, 0)));
         Assert.True(_afterRestart.CatchesUpSceneTimes);
 
         _profiles.Show([]);

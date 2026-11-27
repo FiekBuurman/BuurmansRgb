@@ -348,7 +348,7 @@ public partial interface IEngineApi
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);
 
-    // Saves all the lighting as it is now under name, which follows ProfileNames. A profile with
+    // Saves all the lighting as it is now under name, which follows SceneNames. A profile with
     // that name is replaced.
     Task SaveProfileAsync(string name, CancellationToken ct = default);
 
@@ -377,13 +377,13 @@ public partial interface IEngineApi
     // switches every device off. ProfilesChanged follows.
     Task SetProfileDevicesAsync(string name, IReadOnlyList<string>? deviceIds, CancellationToken ct = default);
 
-    // When the engine loads the profile by itself; ProfileAutomation.None when it never does.
-    Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default);
+    // When the engine loads the profile by itself; SceneAutomation.None when it never does.
+    Task<SceneAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default);
 
-    // Saved with the profile as ProfileAutomation.Normalize gives it: the times count in whole
-    // minutes and the program follows ProgramNames. More than ProfileAutomation.MaxTimes times or
+    // Saved with the profile as SceneAutomation.Normalize gives it: the times count in whole
+    // minutes and the program follows ProgramNames. More than SceneAutomation.MaxTimes times or
     // an invalid program throws.
-    Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default);
+    Task SetProfileAutomationAsync(string name, SceneAutomation automation, CancellationToken ct = default);
 
     // "Uit om" and "Aan om" of Hele huis (WholeHouseTimes). The times go where the engine keeps the
     // times of scenes: "Uit om" on the scene "Alles uit" while there is one, so Scènes shows the same
@@ -391,7 +391,7 @@ public partial interface IEngineApi
     // internal one. ProfilesChanged follows, as after SetProfileAutomationAsync.
     Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default);
 
-    // OffScene is not read. Saved as ProfileAutomation.Normalize gives the times; more than
-    // ProfileAutomation.MaxTimes of either throws.
+    // OffScene is not read. Saved as SceneAutomation.Normalize gives the times; more than
+    // SceneAutomation.MaxTimes of either throws.
     Task SetWholeHouseTimesAsync(WholeHouseTimes times, CancellationToken ct = default);
 }

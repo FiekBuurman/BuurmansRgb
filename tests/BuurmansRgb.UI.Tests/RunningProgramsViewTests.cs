@@ -73,13 +73,13 @@ public sealed class RunningProgramsViewTests
 
             Assert.Equal("Outlook (olk.exe)", list.Items[0].ToString());
             Assert.Equal("olk.exe", viewModel.Profiles.Automation.ProgramText);
-            Assert.Equal("olk.exe", PageViews.Named<TextBox>(page, Strings.ProfileProgramLabel).Text);
+            Assert.Equal("olk.exe", PageViews.Named<TextBox>(page, Strings.SceneProgramLabel).Text);
             Assert.Null(list.SelectedItem);
 
             list.SelectedItem = list.Items[1];
             OffscreenWindow.WaitUntilIdle();
 
-            Assert.Equal("olk.exe, game.exe", PageViews.Named<TextBox>(page, Strings.ProfileProgramLabel).Text);
+            Assert.Equal("olk.exe, game.exe", PageViews.Named<TextBox>(page, Strings.SceneProgramLabel).Text);
             Assert.Null(list.SelectedItem);
         });
     }
@@ -103,7 +103,7 @@ public sealed class RunningProgramsViewTests
             PageViews.Click(browse);
             OffscreenWindow.WaitUntilIdle();
 
-            Assert.Equal("eldenring.exe", PageViews.Named<TextBox>(page, Strings.ProfileProgramLabel).Text);
+            Assert.Equal("eldenring.exe", PageViews.Named<TextBox>(page, Strings.SceneProgramLabel).Text);
             Assert.True(browse.IsKeyboardFocused);
         });
     }

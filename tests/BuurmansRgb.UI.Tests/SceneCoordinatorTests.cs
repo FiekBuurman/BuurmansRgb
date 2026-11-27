@@ -55,7 +55,7 @@ public sealed class SceneCoordinatorTests
         Assert.Equal(["profile save Werk"], Api.Calls);
         Assert.Equal(["Gamen", "Nacht", "Werk"], _profiles.Names);
         Assert.Equal("Werk", _profiles.SelectedName);
-        Assert.Equal([UiText.Format(Strings.ProfileSaved, "Werk")], _messages);
+        Assert.Equal([UiText.Format(Strings.SceneSaved, "Werk")], _messages);
         Assert.Equal(-1, _messagesWhenLoaded);
     }
 
@@ -69,7 +69,7 @@ public sealed class SceneCoordinatorTests
         _profiles.LoadCommand.Execute(null);
 
         Assert.Equal(["profile load Nacht"], Api.Calls);
-        Assert.Equal([UiText.Format(Strings.ProfileLoaded, "Nacht")], _messages);
+        Assert.Equal([UiText.Format(Strings.SceneLoaded, "Nacht")], _messages);
         Assert.Equal(1, _messagesWhenLoaded);
     }
 
@@ -80,12 +80,12 @@ public sealed class SceneCoordinatorTests
         await _scenes.LoadAsync(Api);
         _profiles.SelectedName = "Gamen";
         Api.Profiles.Remove("Gamen");
-        Api.SetException = new RemoteInvocationException("There is no profile 'Gamen'.", 0, errorData: null);
+        Api.SetException = new RemoteInvocationException("There is no scene 'Gamen'.", 0, errorData: null);
 
         _profiles.DeleteCommand.Execute(null);
 
         Assert.Equal(["Nacht"], _profiles.Names);
-        Assert.Equal([UiText.Format(Strings.ProfileGone, "Gamen")], _messages);
+        Assert.Equal([UiText.Format(Strings.SceneGone, "Gamen")], _messages);
     }
 
     // Another settings app saved a scene: the list follows and the selection stays.

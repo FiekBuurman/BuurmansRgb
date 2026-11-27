@@ -19,14 +19,14 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
-            <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" AutomationProperties.HeadingLevel="Level1" />
-            <TextBlock Margin="0,2,0,20" FontSize="{DynamicResource SmallBodySize}" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
+            <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ScenesHeader}" AutomationProperties.HeadingLevel="Level1" />
+            <TextBlock Margin="0,2,0,20" FontSize="{DynamicResource SmallBodySize}" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ScenesHint}" />
 
             <TextBlock Margin="0,0,0,14" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoScenes}"
                        Visibility="{Binding Profiles.HasScenes, Converter={StaticResource InverseBoolToVisibility}}" />
 
             <ItemsControl ItemsSource="{Binding Profiles.Cards}" Focusable="False" IsTabStop="False"
-                          AutomationProperties.Name="{x:Static res:Strings.ProfilesHeader}">
+                          AutomationProperties.Name="{x:Static res:Strings.ScenesHeader}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <views:CardGrid MinColumnWidth="220" MaxColumns="4" Gap="12" />
@@ -39,7 +39,7 @@
                              1 px less padding keeps its content in place. -->
                         <Grid>
                             <Button x:Name="Card" Style="{StaticResource CardButton}" Padding="16" MinHeight="132" VerticalContentAlignment="Top" Command="{Binding DataContext.Profiles.LoadSceneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
+                                    CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.SceneLoadToolTip}"
                                     AutomationProperties.Name="{Binding LoadAccessibleName}" AutomationProperties.HelpText="{Binding Description}">
                                 <StackPanel Background="Transparent">
                                     <views:DecorativeItemsControl Margin="0,0,52,0" ItemsSource="{Binding Dots}" Focusable="False" IsTabStop="False"
@@ -116,12 +116,12 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.EditTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <WrapPanel Margin="0,12,0,0">
-                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileLoad}"
-                                ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SceneLoad}"
+                                ToolTip="{x:Static res:Strings.SceneLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SceneUpdate}"
                                 ToolTip="{x:Static res:Strings.SceneUpdateToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.SceneUpdateToolTip}"
                                 Command="{Binding Profiles.UpdateCommand}" />
-                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileDelete}"
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SceneDelete}"
                                 Command="{Binding Profiles.DeleteCommand}" />
                         <!-- Sharing the scene, as a file or as a code to paste (SharingViewModel); its times and programs stay here. -->
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareExport}"
@@ -175,17 +175,17 @@
                     <StackPanel IsEnabled="{Binding Profiles.Automation.HasProfile}">
                         <!-- The times, each with its days; the days are grey without a time, as they only
                              count with one. "−" takes a time away, "+ Nog een tijd" adds one. -->
-                        <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileLoadAtLabel}" />
+                        <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.SceneLoadAtLabel}" />
                         <ItemsControl x:Name="TimesList" ItemsSource="{Binding Profiles.Automation.Times}" Focusable="False" IsTabStop="False"
-                                      AutomationProperties.Name="{x:Static res:Strings.ProfileLoadAtLabel}">
+                                      AutomationProperties.Name="{x:Static res:Strings.SceneLoadAtLabel}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:LoadTimeRow}">
                                     <WrapPanel Margin="0,0,0,6">
                                         <TextBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource TimeBoxWidth}}" Margin="0,0,12,6" VerticalAlignment="Center" MaxLength="5" FontFamily="{StaticResource MonoFont}"
                                                  Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
+                                                 ToolTip="{x:Static res:Strings.SceneLoadAtHint}"
                                                  AutomationProperties.Name="{Binding TimeAccessibleName}"
-                                                 AutomationProperties.HelpText="{x:Static res:Strings.ProfileLoadAtHint}">
+                                                 AutomationProperties.HelpText="{x:Static res:Strings.SceneLoadAtHint}">
                                             <TextBox.InputBindings>
                                                 <KeyBinding Key="Enter" Command="{Binding DataContext.Profiles.Automation.ApplyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                             </TextBox.InputBindings>
@@ -206,15 +206,15 @@
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                         <Button Margin="6,0,0,6" Style="{StaticResource IconButton}" Content="−"
-                                                ToolTip="{x:Static res:Strings.ProfileTimeRemoveToolTip}" AutomationProperties.Name="{Binding RemoveAccessibleName}"
+                                                ToolTip="{x:Static res:Strings.SceneTimeRemoveToolTip}" AutomationProperties.Name="{Binding RemoveAccessibleName}"
                                                 Command="{Binding DataContext.Profiles.Automation.RemoveTimeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}" Click="OnRemoveTimeClick" />
                                     </WrapPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <views:LinkButton x:Name="AddTime" HorizontalAlignment="Left" Content="{x:Static res:Strings.ProfileTimeAdd}"
-                                ToolTip="{x:Static res:Strings.ProfileTimeAddToolTip}" Command="{Binding Profiles.Automation.AddTimeCommand}" Click="OnAddTimeClick" />
+                        <views:LinkButton x:Name="AddTime" HorizontalAlignment="Left" Content="{x:Static res:Strings.SceneTimeAdd}"
+                                ToolTip="{x:Static res:Strings.SceneTimeAddToolTip}" Command="{Binding Profiles.Automation.AddTimeCommand}" Click="OnAddTimeClick" />
 
                         <Grid Margin="0,12,0,0">
                             <Grid.RowDefinitions>
@@ -227,12 +227,12 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel>
-                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileProgramLabel}" />
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.SceneProgramLabel}" />
                                 <!-- One or more programs, with a comma between the names; it wraps so all of them show. -->
                                 <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"
-                                         ToolTip="{x:Static res:Strings.ProfileProgramHint}"
-                                         AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
-                                         AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">
+                                         ToolTip="{x:Static res:Strings.SceneProgramHint}"
+                                         AutomationProperties.Name="{x:Static res:Strings.SceneProgramLabel}"
+                                         AutomationProperties.HelpText="{x:Static res:Strings.SceneProgramHint}">
                                     <TextBox.InputBindings>
                                         <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
                                     </TextBox.InputBindings>
@@ -253,17 +253,17 @@
                             <!-- Whether the program counts only while it is in the foreground; grey without a program, as it only counts with one. -->
                             <CheckBox Grid.Row="2" Margin="0,8,0,0" HorizontalAlignment="Left"
                                       IsChecked="{Binding Profiles.Automation.ForegroundOnly}" IsEnabled="{Binding Profiles.Automation.HasProgramText}"
-                                      Content="{x:Static res:Strings.ProfileForegroundOnlyLabel}" ToolTip="{x:Static res:Strings.ProfileForegroundOnlyHint}"
-                                      AutomationProperties.HelpText="{x:Static res:Strings.ProfileForegroundOnlyHint}" />
+                                      Content="{x:Static res:Strings.SceneForegroundOnlyLabel}" ToolTip="{x:Static res:Strings.SceneForegroundOnlyHint}"
+                                      AutomationProperties.HelpText="{x:Static res:Strings.SceneForegroundOnlyHint}" />
                             <Button Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Bottom" Style="{StaticResource SecondaryButton}"
-                                    Content="{x:Static res:Strings.ProfileAutomationApply}" ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}"
+                                    Content="{x:Static res:Strings.SceneAutomationApply}" ToolTip="{x:Static res:Strings.SceneAutomationApplyToolTip}"
                                     Command="{Binding Profiles.Automation.ApplyCommand}"
-                                    AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
+                                    AutomationProperties.Name="{x:Static res:Strings.SceneAutomationApplyAccessibleName}" />
                         </Grid>
                     </StackPanel>
-                    <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileLoadAtHint}" />
-                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileProgramHint}" />
-                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileForegroundOnlyHint}" />
+                    <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SceneLoadAtHint}" />
+                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SceneProgramHint}" />
+                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SceneForegroundOnlyHint}" />
                     <DockPanel Margin="0,8,0,0" Visibility="{Binding Profiles.Automation.HasError, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
                         <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.Automation.Error, NotifyOnTargetUpdated=True}"

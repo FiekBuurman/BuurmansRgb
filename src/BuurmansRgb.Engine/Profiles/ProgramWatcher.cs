@@ -21,7 +21,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // Right after, it looks once at once, so what started or stopped in the meantime counts then;
 // a time that comes meanwhile looks once too (HoldUntilProgramsStop).
 //
-// A profile with more programs (ProfileAutomation.Programs) gives each its own rule, so each counts
+// A profile with more programs (SceneAutomation.Programs) gives each its own rule, so each counts
 // as a program of its own: two of them that run stack as above, and its lighting from before comes
 // back once the last of them stops. All names are in the same set the look goes through once, so
 // more names cost no extra look.

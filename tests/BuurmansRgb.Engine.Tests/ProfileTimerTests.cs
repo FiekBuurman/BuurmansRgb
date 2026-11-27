@@ -176,7 +176,7 @@ public sealed class ProfileTimerTests : IDisposable
         _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
         StartTimer();
 
-        _profiles.SetAutomation("Nacht", new ProfileAutomation([new LoadTime(new TimeOnly(23, 0)), new LoadTime(new TimeOnly(15, 0))]));
+        _profiles.SetAutomation("Nacht", new SceneAutomation([new LoadTime(new TimeOnly(23, 0)), new LoadTime(new TimeOnly(15, 0))]));
         _time.Advance(TimeSpan.FromHours(1));
 
         Assert.Equal(Red, ShownColor());
@@ -188,10 +188,10 @@ public sealed class ProfileTimerTests : IDisposable
         _store.Profiles = [Profile("Nacht", Red)];
         StartTimer();
 
-        _profiles.SetAutomation("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.SetAutomation("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
         Assert.True(_time.HasPendingTimer);
 
-        _profiles.SetAutomation("Nacht", ProfileAutomation.None);
+        _profiles.SetAutomation("Nacht", SceneAutomation.None);
         Assert.False(_time.HasPendingTimer);
         _time.Advance(TimeSpan.FromDays(1));
         Assert.Equal(StartColor, ShownColor());
@@ -214,7 +214,7 @@ public sealed class ProfileTimerTests : IDisposable
         _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
         StartTimer();
 
-        _profiles.SetAutomation("Nacht", new ProfileAutomation(new TimeOnly(15, 0)));
+        _profiles.SetAutomation("Nacht", new SceneAutomation(new TimeOnly(15, 0)));
         _time.Advance(TimeSpan.FromHours(1));
 
         Assert.Equal(Red, ShownColor());
@@ -786,10 +786,10 @@ public sealed class ProfileTimerTests : IDisposable
     }
 
     private static Profile Profile(string name, RgbColor color, TimeOnly? loadAt = null, WeekDays days = WeekDays.Every) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = loadAt is { } time ? new ProfileAutomation(time, Days: days) : ProfileAutomation.None };
+        new(name, Uniform(StaticLighting(color))) { Automation = loadAt is { } time ? new SceneAutomation(time, Days: days) : SceneAutomation.None };
 
     private static Profile ProfileAt(string name, RgbColor color, params LoadTime[] times) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(times).Normalize() };
+        new(name, Uniform(StaticLighting(color))) { Automation = new SceneAutomation(times).Normalize() };
 
     // With the restorer of the engine, so a wake-up restores the lights before the timer catches up.
     private void StartTimer(bool catchUp = false, Func<string, bool>? hold = null)

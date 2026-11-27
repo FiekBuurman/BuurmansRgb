@@ -1,7 +1,7 @@
 namespace BuurmansRgb.Contracts;
 
 // The rules for the name of a saved profile, shared so the UI can check a name before it asks.
-public static class ProfileNames
+public static class SceneNames
 {
     public const int MaxLength = 40;
 

@@ -224,7 +224,7 @@ internal sealed class ProfileTimer : IProfileTrigger
         }
 
         if (latest is { } last && (since is null || last.At > since)
-            && (last.Profile.IsInternal || !ProfileNames.Comparer.Equals(last.Profile.Name, _profiles.ActiveName)))
+            && (last.Profile.IsInternal || !SceneNames.Comparer.Equals(last.Profile.Name, _profiles.ActiveName)))
         {
             Load(last.Profile);
         }

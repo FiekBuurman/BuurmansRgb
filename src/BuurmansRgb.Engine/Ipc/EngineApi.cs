@@ -464,7 +464,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
+    public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.SceneNames);
 
     public Task SaveProfileAsync(string name, CancellationToken ct = default)
     {
@@ -498,10 +498,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
-    public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
+    public Task<SceneAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
         Task.FromResult(_profiles.GetAutomation(name));
 
-    public Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
+    public Task SetProfileAutomationAsync(string name, SceneAutomation automation, CancellationToken ct = default)
     {
         _profiles.SetAutomation(name, automation);
         return Task.CompletedTask;

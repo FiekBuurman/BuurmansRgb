@@ -18,10 +18,10 @@
              Visibility="{Binding Profiles.IsNaming, Converter={StaticResource BoolToVisibility}}">
     <Border Style="{StaticResource LargeCard}">
         <StackPanel>
-            <TextBlock Margin="0,0,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.ProfileNameLabel}" />
+            <TextBlock Margin="0,0,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.SceneNameLabel}" />
             <TextBlock Margin="0,0,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NewSceneHint}" />
-            <TextBox x:Name="NameBox" MaxLength="{x:Static contracts:ProfileNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
+            <TextBox x:Name="NameBox" MaxLength="{x:Static contracts:SceneNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.Name="{x:Static res:Strings.SceneNameLabel}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
                     <KeyBinding Key="Escape" Command="{Binding Profiles.CancelNewCommand}" />
@@ -35,7 +35,7 @@
             <!-- Under the name, so it keeps its width in the column of Kleur too. -->
             <StackPanel Margin="0,10,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Style="{StaticResource SecondaryButton}" Content="{Binding Profiles.SaveLabel}"
-                        ToolTip="{x:Static res:Strings.ProfileSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
+                        ToolTip="{x:Static res:Strings.SceneSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
                 <Button Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.Cancel}"
                         Command="{Binding Profiles.CancelNewCommand}" />
             </StackPanel>

@@ -115,7 +115,7 @@ public sealed class UnderscoreNamesViewTests
                 api.Devices = [Board, Strip];
                 api.Profiles.Add("Avond_licht");
                 api.ProfileLighting["Avond_licht"] = new LightingInfo(Orange, 0.8, EffectIds.Static);
-                api.ProfileAutomations["Avond_licht"] = new ProfileAutomation([new LoadTime(new TimeOnly(19, 0))], ["my_game.exe"]);
+                api.ProfileAutomations["Avond_licht"] = new SceneAutomation([new LoadTime(new TimeOnly(19, 0))], ["my_game.exe"]);
             },
             programs: [new RunningProgram("my_game.exe", "My_Game")]);
 

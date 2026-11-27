@@ -89,7 +89,7 @@ internal sealed record ProfileSettings : LightingStateSettings
         var role = ReadRole() is ProfileRole.AllOff ? ProfileRole.AllOff : ProfileRole.None;
         return new(name, ToLightingState())
         {
-            Automation = new ProfileAutomation(ReadTimes(name), ReadPrograms(name), ForegroundOnly == true).Normalize(),
+            Automation = new SceneAutomation(ReadTimes(name), ReadPrograms(name), ForegroundOnly == true).Normalize(),
             Role = role,
             DeviceIds = ReadDeviceIds(name, role),
         };
@@ -106,7 +106,7 @@ internal sealed record ProfileSettings : LightingStateSettings
             return null;
         }
 
-        return Profile.Internal(role, ToLightingState(), new ProfileAutomation(ReadTimes(ProfileRoles.Write(role)!)).Normalize());
+        return Profile.Internal(role, ToLightingState(), new SceneAutomation(ReadTimes(ProfileRoles.Write(role)!)).Normalize());
     }
 
     // Null, every device, without the list, and also for "Alles uit" or a list without an id that
@@ -173,10 +173,10 @@ internal sealed record ProfileSettings : LightingStateSettings
             }
         }
 
-        if (times.Count > ProfileAutomation.MaxTimes)
+        if (times.Count > SceneAutomation.MaxTimes)
         {
-            Trace.TraceWarning($"profiles.json: profile '{name}' has {times.Count} times, more than {ProfileAutomation.MaxTimes}; the rest is left out.");
-            times.RemoveRange(ProfileAutomation.MaxTimes, times.Count - ProfileAutomation.MaxTimes);
+            Trace.TraceWarning($"profiles.json: profile '{name}' has {times.Count} times, more than {SceneAutomation.MaxTimes}; the rest is left out.");
+            times.RemoveRange(SceneAutomation.MaxTimes, times.Count - SceneAutomation.MaxTimes);
         }
 
         return times;
@@ -249,10 +249,10 @@ internal sealed record ProfileSettings : LightingStateSettings
             AddProgram(programs, name, $"programs[{i}]", more[i]);
         }
 
-        if (programs.Count > ProfileAutomation.MaxPrograms)
+        if (programs.Count > SceneAutomation.MaxPrograms)
         {
-            Trace.TraceWarning($"profiles.json: profile '{name}' has {programs.Count} programs, more than {ProfileAutomation.MaxPrograms}; the rest is left out.");
-            programs.RemoveRange(ProfileAutomation.MaxPrograms, programs.Count - ProfileAutomation.MaxPrograms);
+            Trace.TraceWarning($"profiles.json: profile '{name}' has {programs.Count} programs, more than {SceneAutomation.MaxPrograms}; the rest is left out.");
+            programs.RemoveRange(SceneAutomation.MaxPrograms, programs.Count - SceneAutomation.MaxPrograms);
         }
 
         return programs;

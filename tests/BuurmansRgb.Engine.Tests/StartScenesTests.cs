@@ -42,8 +42,8 @@ public sealed class StartScenesTests : IDisposable
     {
         Assert.All(StartScenes.Create(), scene =>
         {
-            Assert.Equal(scene.Name, DisplayNames.Normalize(scene.Name, ProfileNames.MaxLength));
-            Assert.Equal(ProfileAutomation.None, scene.Automation);
+            Assert.Equal(scene.Name, DisplayNames.Normalize(scene.Name, SceneNames.MaxLength));
+            Assert.Equal(SceneAutomation.None, scene.Automation);
             Assert.Empty(scene.Lighting.Devices);
             Assert.Empty(scene.Lighting.LedColors);
             Assert.True(scene.Lighting.Global.Loop.IsValid);
@@ -110,8 +110,8 @@ public sealed class StartScenesTests : IDisposable
 
         Assert.Equal(StartScenesOutcome.Written, library.AddStartScenes(StartScenes.Create()));
 
-        Assert.Equal(StartScenes.Create().Select(scene => scene.Name).Order(ProfileNames.Comparer), library.Names);
-        Assert.Equal(library.Names, store.Profiles.Select(profile => profile.Name));
+        Assert.Equal(StartScenes.Create().Select(scene => scene.Name).Order(SceneNames.Comparer), library.SceneNames);
+        Assert.Equal(library.SceneNames, store.Profiles.Select(profile => profile.Name));
         Assert.Equal(1, changed);
         Assert.Null(library.ActiveName);
     }
@@ -128,7 +128,7 @@ public sealed class StartScenesTests : IDisposable
 
         Assert.Equal(StartScenesOutcome.FileThere, library.AddStartScenes(StartScenes.Create()));
 
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
         Assert.Equal(0, store.SaveCount);
         Assert.Equal(0, changed);
     }
@@ -142,12 +142,12 @@ public sealed class StartScenesTests : IDisposable
         File.WriteAllText(path, "{ not json");
         var store = new JsonProfileStore(path);
         var library = new ProfileLibrary(store, _lighting);
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
         Assert.False(File.Exists(path));
 
         Assert.Equal(StartScenesOutcome.FileThere, library.AddStartScenes(StartScenes.Create()));
 
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
         Assert.False(File.Exists(path));
         Assert.Equal("{ not json", File.ReadAllText(store.BrokenFilePath));
     }
@@ -160,7 +160,7 @@ public sealed class StartScenesTests : IDisposable
 
         Assert.Equal(StartScenesOutcome.NotWritten, library.AddStartScenes(StartScenes.Create()));
 
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
     }
 
     // A new installation: the scenes come at the first start, none of them is on, and the flag
@@ -175,7 +175,7 @@ public sealed class StartScenesTests : IDisposable
 
         await host.StartAsync(Ct);
 
-        Assert.Equal(5, library.Names.Count);
+        Assert.Equal(5, library.SceneNames.Count);
         Assert.Null(library.ActiveName);
         Assert.Equal(0, store.SaveCount);
         host.Dispose();
@@ -194,7 +194,7 @@ public sealed class StartScenesTests : IDisposable
 
         await host.StartAsync(Ct);
 
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
         Assert.Equal(0, profileStore.SaveCount);
         host.Dispose();
         Assert.Equal(0, store.SaveCount);
@@ -213,7 +213,7 @@ public sealed class StartScenesTests : IDisposable
 
         await host.StartAsync(Ct);
 
-        Assert.Equal(["Nacht"], library.Names);
+        Assert.Equal(["Nacht"], library.SceneNames);
         Assert.Equal(0, profileStore.SaveCount);
         _lighting.SetLighting(null, current => current with { Brightness = 0.3 });
         host.Dispose();
@@ -233,7 +233,7 @@ public sealed class StartScenesTests : IDisposable
 
         await host.StartAsync(Ct);
 
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
 
         // Not with a later save either.
         _lighting.SetLighting(null, current => current with { Brightness = 0.3 });
@@ -254,7 +254,7 @@ public sealed class StartScenesTests : IDisposable
 
         await host.StartAsync(Ct);
 
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
         Assert.Equal(0, profileStore.SaveCount);
         host.Dispose();
         Assert.Equal(0, store.SaveCount);
@@ -269,7 +269,7 @@ public sealed class StartScenesTests : IDisposable
         Assert.Equal(5, (await StartWithTheFilesAsync(library => library.Delete(Strings.StartSceneRainbow))).Count);
         Assert.Equal(4, (await StartWithTheFilesAsync(library =>
         {
-            foreach (var name in library.Names)
+            foreach (var name in library.SceneNames)
             {
                 library.Delete(name);
             }
@@ -285,7 +285,7 @@ public sealed class StartScenesTests : IDisposable
     {
         Assert.Equal(5, (await StartWithTheFilesAsync(library =>
         {
-            foreach (var name in library.Names)
+            foreach (var name in library.SceneNames)
             {
                 library.Delete(name);
             }
@@ -305,7 +305,7 @@ public sealed class StartScenesTests : IDisposable
         using (var host = new EngineHost(new JsonSettingsStore(_directory.File("settings.json")), _lighting, saveDelay: TimeSpan.FromHours(1), profiles: library))
         {
             await host.StartAsync(Ct);
-            names = library.Names;
+            names = library.SceneNames;
             change(library);
         }
 

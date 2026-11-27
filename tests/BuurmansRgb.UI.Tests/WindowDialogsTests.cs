@@ -36,7 +36,7 @@ public sealed class WindowDialogsTests
 
                 Assert.Equal(4, asked.Count);
                 Assert.All(asked, dialog => Assert.Same(owner, dialog.Owner));
-                Assert.Equal(UiText.Format(Strings.ProfileDeleteConfirm, "Avond"), asked[0].Title);
+                Assert.Equal(UiText.Format(Strings.SceneDeleteConfirm, "Avond"), asked[0].Title);
                 Assert.Equal(UiText.Format(Strings.SceneUpdateConfirm, "Avond"), asked[1].Title);
                 Assert.Equal(UiText.Format(Strings.CustomEffectDeleteConfirm, "Disco"), asked[2].Title);
                 Assert.Equal(Strings.BackupRestoreConfirm, asked[3].Title);

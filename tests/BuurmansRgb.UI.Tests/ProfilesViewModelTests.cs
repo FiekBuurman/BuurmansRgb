@@ -156,7 +156,7 @@ public sealed class ProfilesViewModelTests
             }
         };
         _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
-        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.Automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
         _profiles.Automation.Times[0].Text = "7:";
 
         _profiles.Show(["Gamen", "Nacht", "Werk"]);
@@ -170,7 +170,7 @@ public sealed class ProfilesViewModelTests
     public void SelectAnotherName_EmptiesTheFieldsOfTheFirstRightAway()
     {
         _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
-        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.Automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
 
         _profiles.SelectedName = "Gamen";
 
@@ -182,7 +182,7 @@ public sealed class ProfilesViewModelTests
     public void SelectedProfileIsGone_EmptiesTheFieldsWithoutAsking()
     {
         _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
-        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.Automation.Show("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
 
         _profiles.Show(["Gamen"]);
 

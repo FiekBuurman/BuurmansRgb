@@ -58,7 +58,7 @@ public sealed class WholeHouseTimesTests : IDisposable
         Assert.Equal([ElevenPm], _profiles.GetAutomation("Alles uit").Times);
         Assert.DoesNotContain(_store.Profiles, profile => profile.IsInternal);
 
-        _profiles.SetAutomation("Alles uit", new ProfileAutomation([SevenAm, ElevenPm]));
+        _profiles.SetAutomation("Alles uit", new SceneAutomation([SevenAm, ElevenPm]));
 
         Assert.Equal(new WholeHouseTimes([SevenAm, ElevenPm], OffScene: "Alles uit"), _profiles.GetWholeHouseTimes());
     }
@@ -67,11 +67,11 @@ public sealed class WholeHouseTimesTests : IDisposable
     [Fact]
     public void UitOm_OnTheScene_KeepsItsProgram()
     {
-        _store.Profiles = [AllOffScene("Alles uit") with { Automation = new ProfileAutomation(Program: "slaap.exe") }];
+        _store.Profiles = [AllOffScene("Alles uit") with { Automation = new SceneAutomation(Program: "slaap.exe") }];
 
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
 
-        Assert.Equal(new ProfileAutomation([ElevenPm], ["slaap.exe"]), _profiles.GetAutomation("Alles uit"));
+        Assert.Equal(new SceneAutomation([ElevenPm], ["slaap.exe"]), _profiles.GetAutomation("Alles uit"));
     }
 
     // The role counts, not the name: renamed by hand, it is still "Alles uit"; a scene of that name
@@ -117,7 +117,7 @@ public sealed class WholeHouseTimesTests : IDisposable
         _time.Advance(UntilElevenPm);
 
         Assert.Equal(new WholeHouseTimes([ElevenPm]), _profiles.GetWholeHouseTimes());
-        Assert.Equal(["Gamen"], _profiles.Names);
+        Assert.Equal(["Gamen"], _profiles.SceneNames);
         Assert.False(_lighting.State.IsAnyOn);
         Assert.Equal(Red, _lighting.State.Global.Color);
     }
@@ -144,7 +144,7 @@ public sealed class WholeHouseTimesTests : IDisposable
 
         _profiles.Delete("Alles uit");
 
-        Assert.Empty(_profiles.Names);
+        Assert.Empty(_profiles.SceneNames);
         Assert.Equal(new WholeHouseTimes([ElevenPm], [SevenAm]), _profiles.GetWholeHouseTimes());
     }
 
@@ -251,7 +251,7 @@ public sealed class WholeHouseTimesTests : IDisposable
     {
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm], [SevenAm]));
         Assert.Equal(2, _store.Profiles.Count(profile => profile.IsInternal));
-        Assert.Empty(_profiles.Names);
+        Assert.Empty(_profiles.SceneNames);
 
         _profiles.SetWholeHouseTimes(WholeHouseTimes.None);
 
@@ -267,7 +267,7 @@ public sealed class WholeHouseTimesTests : IDisposable
 
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
         Assert.Throws<ArgumentException>(() => _profiles.SetWholeHouseTimes(
-            new WholeHouseTimes([.. Enumerable.Range(0, ProfileAutomation.MaxTimes + 1).Select(hour => new LoadTime(new TimeOnly(hour, 0)))])));
+            new WholeHouseTimes([.. Enumerable.Range(0, SceneAutomation.MaxTimes + 1).Select(hour => new LoadTime(new TimeOnly(hour, 0)))])));
 
         Assert.Equal(1, changed);
         Assert.Equal(new WholeHouseTimes([ElevenPm]), _profiles.GetWholeHouseTimes());
@@ -304,7 +304,7 @@ public sealed class WholeHouseTimesTests : IDisposable
     public void CatchUp_AtTheStart_ASceneAfterUitOm_PutsOnTheScene()
     {
         _time = new ClockTimeProvider(Start + UntilElevenPm + TimeSpan.FromMinutes(45), DailyTimeTests.Amsterdam);
-        _store.Profiles = [AllOffScene("Alles uit"), new Profile("Nacht", Uniform(StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(23, 30)) }];
+        _store.Profiles = [AllOffScene("Alles uit"), new Profile("Nacht", Uniform(StaticLighting(Blue))) { Automation = new SceneAutomation(new TimeOnly(23, 30)) }];
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
 
         StartTimer(catchUp: true);
@@ -319,7 +319,7 @@ public sealed class WholeHouseTimesTests : IDisposable
     public void CatchUp_AtTheStart_UitOmAfterAScene_SwitchesEverythingOff()
     {
         _time = new ClockTimeProvider(Start + UntilElevenPm + TimeSpan.FromMinutes(45), DailyTimeTests.Amsterdam);
-        _store.Profiles = [new Profile("Avond", Uniform(StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(22, 30)) }];
+        _store.Profiles = [new Profile("Avond", Uniform(StaticLighting(Blue))) { Automation = new SceneAutomation(new TimeOnly(22, 30)) }];
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
 
         StartTimer(catchUp: true);
