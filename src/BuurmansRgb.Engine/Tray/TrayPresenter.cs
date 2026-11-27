@@ -192,30 +192,19 @@ internal sealed class TrayPresenter(
             return;
         }
 
-        try
+        if (TryReadScenes(library => (library.Names, library.ActiveName), out var scenes))
         {
-            view.ShowProfiles(profiles.Names, profiles.ActiveName);
+            view.ShowProfiles(scenes.Names, scenes.ActiveName);
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        else
         {
             view.ShowProfiles(null, null);
-            ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
         }
     }
 
     // Any failure is reported, so a click in the menu never takes the engine down: the profile can
     // be gone since the menu opened, or a device can fail.
-    public void LoadProfile(string name)
-    {
-        try
-        {
-            profiles.Load(name);
-        }
-        catch (Exception exception)
-        {
-            ReportFailure(exception, string.Format(CultureInfo.CurrentCulture, Strings.ProfileLoadFailed, name), TrayNotificationKind.Warning);
-        }
-    }
+    public void LoadProfile(string name) => TryLoadScene(name);
 
     // Called when the menu opens. Everything is on when all lights are, also the ones with lighting
     // of their own; switched on again, each shows its own lighting.
@@ -242,7 +231,7 @@ internal sealed class TrayPresenter(
 
         try
         {
-            lighting.SetLighting(null, current => current with { On = on }, fade: true);
+            lighting.SetAllOn(on);
             return true;
         }
         catch (Exception exception)
@@ -341,14 +330,8 @@ internal sealed class TrayPresenter(
 
     private EngineCommandResult RunScene(EngineCommand command)
     {
-        string? name;
-        try
+        if (!TryReadScenes(library => library.Names.FirstOrDefault(command.Matches), out var name))
         {
-            name = profiles.Names.FirstOrDefault(command.Matches);
-        }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
-        {
-            ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
             return EngineCommandResult.Failed;
         }
 
@@ -358,15 +341,37 @@ internal sealed class TrayPresenter(
             return EngineCommandResult.UnknownScene;
         }
 
+        return TryLoadScene(name) ? EngineCommandResult.Done : EngineCommandResult.Failed;
+    }
+
+    // Reads from the scene library; an unreadable profiles.json is reported, and false returned.
+    private bool TryReadScenes<T>(Func<ProfileLibrary, T> read, out T result)
+    {
+        try
+        {
+            result = read(profiles);
+            return true;
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
+            result = default!;
+            return false;
+        }
+    }
+
+    // Loads a scene; any failure is reported and gives false.
+    private bool TryLoadScene(string name)
+    {
         try
         {
             profiles.Load(name);
-            return EngineCommandResult.Done;
+            return true;
         }
         catch (Exception exception)
         {
             ReportFailure(exception, string.Format(CultureInfo.CurrentCulture, Strings.ProfileLoadFailed, name), TrayNotificationKind.Warning);
-            return EngineCommandResult.Failed;
+            return false;
         }
     }
 
