@@ -16,16 +16,14 @@ internal sealed class LedOverlayStore
     // As many LEDs as a shared scene may color on one device; more in a hand-edited file are left out.
     public const int MaxLeds = SharedFiles.MaxLedsPerDevice;
 
-    private static readonly IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> None =
-        new Dictionary<string, IReadOnlyList<RgbColor?>>(StringComparer.Ordinal);
-
     private readonly Dictionary<string, RgbColor?[]> _entries = new(StringComparer.Ordinal);
 
-    public static IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> Empty => None;
+    public static IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> Empty { get; } =
+        new Dictionary<string, IReadOnlyList<RgbColor?>>(StringComparer.Ordinal);
 
     public IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> Snapshot() =>
         _entries.Count == 0
-            ? None
+            ? Empty
             : _entries.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<RgbColor?>)[.. pair.Value], StringComparer.Ordinal);
 
     // Each list as Normalize gives it; one without a color is left out.
@@ -75,17 +73,18 @@ internal sealed class LedOverlayStore
             stored[firstLed + i] = colors[i];
         }
 
-        var before = For(deviceId);
-        if (Normalize(stored) is { } normalized)
+        if (Normalize(stored) is not { } normalized)
         {
-            _entries[deviceId] = normalized;
-        }
-        else
-        {
-            _entries.Remove(deviceId);
+            return _entries.Remove(deviceId);
         }
 
-        return !For(deviceId).SequenceEqual(before);
+        if (For(deviceId).SequenceEqual(normalized))
+        {
+            return false;
+        }
+
+        _entries[deviceId] = normalized;
+        return true;
     }
 
     // Whether device has the same layer now as in before (a Snapshot), over the LEDs it has now: as

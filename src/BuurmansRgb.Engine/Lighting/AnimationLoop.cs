@@ -28,10 +28,9 @@ internal sealed class AnimationLoop : IDisposable
 
     public bool IsRunning => _timer is not null;
 
-    // A change also applies to a loop that runs.
+    // A change also applies to a loop that runs. Only set: nobody reads it back.
     public TimeSpan Period
     {
-        get => _period;
         set
         {
             ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(value, TimeSpan.Zero);

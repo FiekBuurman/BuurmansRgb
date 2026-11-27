@@ -121,6 +121,43 @@ public sealed class LightingControllerOverlayTests : IDisposable
         Assert.Equal([null, null, Blue], _controller.State.Overlays[Device]);
     }
 
+    // The same colors again, or a null where there is no layer, leave the layer as it was.
+    [Fact]
+    public async Task SetOverlay_ThatChangesNothing_RendersNothing_AndRaisesNoLightingChanged()
+    {
+        await StartAsync(Orange);
+        _controller.SetOverlay(Device, 2, [Blue]);
+        var changes = 0;
+        var renders = 0;
+        _controller.LightingChanged += (_, _) => changes++;
+        _controller.Rendered += (_, _) => renders++;
+
+        _controller.SetOverlay(Device, 2, [Blue]);
+        _controller.SetOverlay(Device, 0, [null]);
+
+        Assert.Equal(0, changes);
+        Assert.Equal(0, renders);
+        Assert.Equal([null, null, Blue], _controller.State.Overlays[Device]);
+    }
+
+    // Nothing changes, so a fade that runs is not ended: the device still shows colors in between.
+    [Fact]
+    public async Task SetOverlay_ThatChangesNothing_LetsAFadeGoOn()
+    {
+        await StartAsync(Orange);
+        _controller.SetOverlay(Device, 2, [Blue]);
+        _controller.Replace(Uniform(StaticLighting(Red)) with { Overlays = Overlays(Device, null, null, Blue) }, fade: true);
+
+        _controller.SetOverlay(Device, 2, [Blue]);
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+
+        Assert.True(_controller.IsAnimating);
+        Assert.True(_controller.IsFading);
+        Assert.Equal(RgbColor.Lerp(Orange, Red, 0.5), _provider.LastColors[0]);
+        Assert.Equal(Blue, _provider.LastColors[2]);
+    }
+
     [Theory]
     [InlineData(-1, 1)]
     [InlineData(3, 1)]

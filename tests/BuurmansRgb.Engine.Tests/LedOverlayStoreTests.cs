@@ -41,6 +41,18 @@ public sealed class LedOverlayStoreTests
     }
 
     [Fact]
+    public void Set_ThatChangesNothing_KeepsTheInstance()
+    {
+        _store.Set(Strip.Id, 0, [Red]);
+        var before = _store.For(Strip.Id);
+
+        _store.Set(Strip.Id, 0, [Red]);
+        _store.Set(Strip.Id, 2, [null]);
+
+        Assert.Same(before, _store.For(Strip.Id));
+    }
+
+    [Fact]
     public void Snapshot_IsACopy()
     {
         _store.Set(Strip.Id, 0, [Red]);

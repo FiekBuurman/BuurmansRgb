@@ -144,13 +144,7 @@ internal sealed class CustomEffectLibrary : IDisposable
                     throw new ArgumentException($"There are at most {CustomEffects.MaxEffects} own effects.", nameof(effect));
                 }
 
-                var id = CustomEffects.NewId();
-                while (effects.Exists(other => other.Id == id))
-                {
-                    id = CustomEffects.NewId();
-                }
-
-                effect = effect with { Id = id };
+                effect = effect with { Id = NewId(effects) };
             }
             else if (!effects.Exists(other => other.Id == effect.Id))
             {
@@ -251,13 +245,7 @@ internal sealed class CustomEffectLibrary : IDisposable
 
                 var name = SharedFiles.FreeName(effect.Name, CustomEffects.MaxNameLength, candidate =>
                     EffectNames.IsBuiltIn(candidate) || all.Exists(other => CustomEffects.NameComparer.Equals(other.Name, candidate)));
-                var id = CustomEffects.NewId();
-                while (all.Exists(other => other.Id == id))
-                {
-                    id = CustomEffects.NewId();
-                }
-
-                var saved = CustomEffects.Normalize(effect with { Id = id, Name = name });
+                var saved = CustomEffects.Normalize(effect with { Id = NewId(all), Name = name });
                 added.Add(saved);
                 imported.Add((saved, true));
             }
@@ -494,4 +482,16 @@ internal sealed class CustomEffectLibrary : IDisposable
     }
 
     private static List<CustomEffect> Sorted(IEnumerable<CustomEffect> effects) => [.. effects.OrderBy(effect => effect.Name, CustomEffects.NameComparer)];
+
+    // A new id that none of taken has yet.
+    private static string NewId(List<CustomEffect> taken)
+    {
+        var id = CustomEffects.NewId();
+        while (taken.Exists(other => other.Id == id))
+        {
+            id = CustomEffects.NewId();
+        }
+
+        return id;
+    }
 }

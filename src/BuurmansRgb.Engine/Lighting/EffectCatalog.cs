@@ -45,8 +45,8 @@ internal static class EffectCatalog
     public static StepEffect CreateCustom(CustomEffect effect) =>
         new([.. effect.Steps.Select(step => new EffectStep(step.Colors, TimeSpan.FromSeconds(step.HoldSeconds), TimeSpan.FromSeconds(step.FadeSeconds)))]);
 
-    // The same error as for an unknown effect of the catalog.
-    public static ArgumentException UnknownCustom(string effectId) => UnknownEffect(effectId);
+    // The error for an effect that does not exist: of the catalog, or an own effect that is gone.
+    public static ArgumentException UnknownEffect(string? effectId) => new($"Unknown effect '{effectId}'.", nameof(effectId));
 
     // Without effectColors every effect with a list has its default (EffectColors.For).
     public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors, ColorLoop? loop = null, uint seed = 0, EffectColors? effectColors = null) =>
@@ -67,8 +67,6 @@ internal static class EffectCatalog
 
         return hash;
     }
-
-    private static ArgumentException UnknownEffect(string? effectId) => new($"Unknown effect '{effectId}'.", nameof(effectId));
 
     // What an effect can take from the lighting of its device.
     private readonly record struct EffectInput(RgbColor Color, IReadOnlyList<RgbColor?> LedColors, ColorLoop Loop, EffectColors EffectColors, uint Seed)
