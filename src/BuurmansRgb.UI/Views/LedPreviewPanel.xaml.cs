@@ -15,8 +15,8 @@ public partial class LedPreviewPanel : UserControl
 
     // Where the keyboard focus goes when the last card goes while the focus was in it, such as the
     // choice "Welk apparaat?" at the top of Kleur.
-    public static readonly DependencyProperty FallbackFocusProperty = DependencyProperty.Register(
-        nameof(FallbackFocus), typeof(UIElement), typeof(LedPreviewPanel), new PropertyMetadata(null));
+    public static readonly DependencyProperty ReturnFocusToProperty = DependencyProperty.Register(
+        nameof(ReturnFocusTo), typeof(UIElement), typeof(LedPreviewPanel), new PropertyMetadata(null));
 
     private PreviewViewModel? _preview;
 
@@ -34,10 +34,10 @@ public partial class LedPreviewPanel : UserControl
         Cards.PreviewLostKeyboardFocus += OnCardsLostKeyboardFocus;
     }
 
-    public UIElement? FallbackFocus
+    public UIElement? ReturnFocusTo
     {
-        get => (UIElement?)GetValue(FallbackFocusProperty);
-        set => SetValue(FallbackFocusProperty, value);
+        get => (UIElement?)GetValue(ReturnFocusToProperty);
+        set => SetValue(ReturnFocusToProperty, value);
     }
 
     // A chip jumps to its device: the card opens if it was closed, comes at the top of the page and
@@ -123,7 +123,7 @@ public partial class LedPreviewPanel : UserControl
 
     // The preview is made anew when the engine reports the devices again. FocusKeeper gives the focus
     // back to the same place when the device is still there; a device that stayed away hands it to
-    // the head of the next card, or without one the card before it, or without cards FallbackFocus:
+    // the head of the next card, or without one the card before it, or without cards ReturnFocusTo:
     // never to the window.
     private void OnDevicesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
@@ -163,7 +163,7 @@ public partial class LedPreviewPanel : UserControl
             return;
         }
 
-        FallbackFocus?.Focus();
+        ReturnFocusTo?.Focus();
     }
 
     // The focus is on something of the window that is still there, other than the window itself,

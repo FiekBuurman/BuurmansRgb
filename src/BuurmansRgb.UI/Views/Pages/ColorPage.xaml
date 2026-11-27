@@ -616,7 +616,7 @@
                 </StackPanel>
             </views:CardGrid>
 
-            <views:LedPreviewPanel x:Name="DevicesPanel" Margin="0,28,0,0" FallbackFocus="{Binding ElementName=DeviceChoice}" />
+            <views:LedPreviewPanel x:Name="DevicesPanel" Margin="0,28,0,0" ReturnFocusTo="{Binding ElementName=DeviceChoice}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>
