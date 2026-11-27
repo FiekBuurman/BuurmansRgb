@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Reflection;
-using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 

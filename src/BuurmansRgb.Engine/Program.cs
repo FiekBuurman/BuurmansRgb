@@ -11,6 +11,7 @@ using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
+using BuurmansRgb.Platform;
 using BuurmansRgb.Providers.OpenRgb;
 using BuurmansRgb.Providers.Simulated;
 

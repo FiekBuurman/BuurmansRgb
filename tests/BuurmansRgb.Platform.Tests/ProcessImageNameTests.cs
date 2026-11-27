@@ -1,4 +1,4 @@
-namespace BuurmansRgb.Contracts.Tests;
+namespace BuurmansRgb.Platform.Tests;
 
 // Only this own process is read: what else runs differs per pc. The engine's tests of ProcessList,
 // SystemForegroundWindow and SystemScreenSaverEvents use it too.

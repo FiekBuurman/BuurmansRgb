@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 using Microsoft.Win32.SafeHandles;
 
 namespace BuurmansRgb.Engine.Programs;

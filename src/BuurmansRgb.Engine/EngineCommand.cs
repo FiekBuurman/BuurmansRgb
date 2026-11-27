@@ -2,11 +2,12 @@ using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
+using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.Engine;
 
 // What --scene "<name>", --all-on and --all-off ask, for a Stream Deck, Home Assistant or a
-// script. A second start hands it to the engine that runs (SingleInstance.SendCommand) and ends
+// script. A second start hands it to the engine that runs (CommandMailbox.Send) and ends
 // with the answer as its exit code; without an engine, this start becomes the engine and does it
 // once the saved lighting is on (TrayPresenter.Run).
 internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
@@ -132,7 +133,7 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
 
     // Hands the command to the engine that runs; its answer, or NoAnswer.
     public EngineCommandResult Send(string engineName) =>
-        SingleInstance.SendCommand(engineName, ToMessage(), AnswerTimeout) is { } answer
+        CommandMailbox.Send(engineName, ToMessage(), AnswerTimeout) is { } answer
             ? (EngineCommandResult)answer
             : EngineCommandResult.NoAnswer;
 

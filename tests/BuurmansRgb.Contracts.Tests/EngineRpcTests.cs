@@ -87,6 +87,15 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal($"BuurmansRgb.Engine.{process.SessionId}", EngineRpc.PipeName);
     }
 
+    // The names of the single-instance mutexes (SingleInstance, Local\<name>): an engine or a
+    // settings app of another version finds this one only by the same name.
+    [Fact]
+    public void InstanceNames_AreFixed()
+    {
+        Assert.Equal("BuurmansRgb.Engine", EngineRpc.EngineName);
+        Assert.Equal("BuurmansRgb.UI", EngineRpc.SettingsAppName);
+    }
+
     [Fact]
     public async Task GetDevicesAsync_ReturnsDevicesWithTheirZonesFromServer()
     {

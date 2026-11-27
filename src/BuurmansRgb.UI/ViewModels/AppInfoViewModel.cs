@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.Input;
 

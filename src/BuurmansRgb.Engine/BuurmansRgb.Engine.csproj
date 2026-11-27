@@ -33,6 +33,7 @@
     <ProjectReference Include="..\BuurmansRgb.Core\BuurmansRgb.Core.csproj" />
     <ProjectReference Include="..\BuurmansRgb.Effects\BuurmansRgb.Effects.csproj" />
     <ProjectReference Include="..\BuurmansRgb.Contracts\BuurmansRgb.Contracts.csproj" />
+    <ProjectReference Include="..\BuurmansRgb.Platform\BuurmansRgb.Platform.csproj" />
     <ProjectReference Include="..\BuurmansRgb.Providers.Simulated\BuurmansRgb.Providers.Simulated.csproj" />
     <ProjectReference Include="..\BuurmansRgb.Providers.OpenRgb\BuurmansRgb.Providers.OpenRgb.csproj" />
   </ItemGroup>
