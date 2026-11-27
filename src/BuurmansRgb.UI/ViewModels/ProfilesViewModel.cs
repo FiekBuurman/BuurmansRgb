@@ -170,10 +170,10 @@ public sealed partial class ProfilesViewModel : ObservableObject
     private void Save()
     {
         IsNaming = false;
-        SaveRequested?.Invoke(this, ProfileNames.Normalize(Name)!);
+        SaveRequested?.Invoke(this, DisplayNames.Normalize(Name, ProfileNames.MaxLength)!);
     }
 
-    private bool CanSave() => ProfileNames.Normalize(Name) is not null;
+    private bool CanSave() => DisplayNames.Normalize(Name, ProfileNames.MaxLength) is not null;
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void Load() => LoadRequested?.Invoke(this, SelectedName!);
@@ -220,7 +220,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     }
 
     private string? Find(string? name) =>
-        ProfileNames.Normalize(name) is { } normalized
+        DisplayNames.Normalize(name, ProfileNames.MaxLength) is { } normalized
             ? Names.FirstOrDefault(other => ProfileNames.Comparer.Equals(other, normalized))
             : null;
 }

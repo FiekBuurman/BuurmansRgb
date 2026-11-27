@@ -143,7 +143,7 @@ internal static class SharedFileReader
 
     private static SharedScene ReadScene(SharedFile file)
     {
-        var name = ReadName(file.Name, ProfileNames.Normalize, "scene");
+        var name = ReadName(file.Name, ProfileNames.MaxLength, "scene");
         var lighting = file.Lighting ?? throw new InvalidShareException("a scene without \"lighting\"");
         var effects = ReadEffects(file.Effects ?? []);
         var effectIds = effects.Select(effect => effect.Id).ToHashSet(StringComparer.Ordinal);
@@ -189,9 +189,9 @@ internal static class SharedFileReader
         return effects[0];
     }
 
-    private static string ReadName(string? name, Func<string?, string?> normalize, string what)
+    private static string ReadName(string? name, int maxLength, string what)
     {
-        var normalized = normalize(name) ?? throw new InvalidShareException($"the {what} name of {name?.Length ?? 0} characters is empty, too long or has a control character");
+        var normalized = DisplayNames.Normalize(name, maxLength) ?? throw new InvalidShareException($"the {what} name of {name?.Length ?? 0} characters is empty, too long or has a control character");
         Check(!SharedFiles.IsPathLike(normalized), $"the {what} name '{normalized}' is like a path");
         return normalized;
     }
@@ -204,7 +204,7 @@ internal static class SharedFileReader
         {
             Check(CustomEffects.IsCustom(effect.Id), $"an effect id of {effect.Id.Length} characters is not the id of an own effect");
             Check(!effects.Exists(other => other.Id == effect.Id), $"the own effect '{effect.Id}' twice");
-            var name = ReadName(effect.Name, CustomEffects.NormalizeName, "effect");
+            var name = ReadName(effect.Name, CustomEffects.MaxNameLength, "effect");
             try
             {
                 effects.Add(CustomEffects.Normalize(new CustomEffect(effect.Id, name, [.. effect.Steps.Select(step => new CustomEffectStep(step.Colors, step.Hold, step.Fade))])));

@@ -15,7 +15,7 @@ public sealed class BreathingEffectTests
     {
         var leds = new RgbColor[3];
 
-        new BreathingEffect(Orange, TimeSpan.FromSeconds(4)).Render(leds, TimeSpan.FromSeconds(seconds));
+        new BreathingEffect(Orange).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.All(leds, led => RgbAssert.Close(Orange.Scale(level), led));
     }
@@ -30,13 +30,5 @@ public sealed class BreathingEffectTests
     public void IsAnimated_IsTrue()
     {
         Assert.True(new BreathingEffect(Orange).IsAnimated);
-    }
-
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(-1.0)]
-    public void Constructor_PeriodNotPositive_Throws(double seconds)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new BreathingEffect(Orange, TimeSpan.FromSeconds(seconds)));
     }
 }

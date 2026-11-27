@@ -25,7 +25,7 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
         var profiles = new List<Profile>();
         foreach (var settings in file?.Profiles ?? [])
         {
-            if (ProfileNames.Normalize(settings?.Name) is { } name && !profiles.Exists(profile => ProfileNames.Comparer.Equals(profile.Name, name)))
+            if (DisplayNames.Normalize(settings?.Name, ProfileNames.MaxLength) is { } name && !profiles.Exists(profile => ProfileNames.Comparer.Equals(profile.Name, name)))
             {
                 profiles.Add(settings!.ToProfile(name));
             }

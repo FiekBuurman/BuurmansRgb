@@ -7,13 +7,11 @@ namespace BuurmansRgb.Effects;
 // chance, at a random moment and brightness. The chances come from EffectMath.Random of the LED and
 // its round, so a frame at the same time is always the same image. On a device of a few LEDs each
 // LED lights up every round, so a mouse still twinkles. The seed makes the chances of their own,
-// so each device twinkles in its own way. Twinkling has no way to run, so a negative speed twinkles
-// as the positive one: backwards in time each twinkle would rise slowly and go out at once. With
-// more colors each twinkle has one of them by chance.
+// so each device twinkles in its own way. With more colors each twinkle has one of them by chance.
 public sealed class TwinkleEffect : IEffect
 {
     // Rounds per LED per second.
-    public const double DefaultTwinklesPerSecond = 0.6;
+    public const double TwinklesPerSecond = 0.6;
 
     // The chance that an LED lights up in a round, so on a long device a few LEDs twinkle apart.
     // On a short one the chance is higher, so that per round at least about MinLitPerRound of its
@@ -41,16 +39,9 @@ public sealed class TwinkleEffect : IEffect
     private readonly uint _peakStream;
     private readonly uint _colorStream;
 
-    public TwinkleEffect(RgbColor color, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
-        : this([color], twinklesPerSecond, seed)
+    public TwinkleEffect(IReadOnlyList<RgbColor> colors, uint seed = 0)
     {
-    }
-
-    public TwinkleEffect(IReadOnlyList<RgbColor> colors, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
-    {
-        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
-        _colors = [.. colors];
-        TwinklesPerSecond = EffectMath.FiniteSpeed(twinklesPerSecond);
+        _colors = EffectMath.CopyColors(colors);
         Seed = seed;
         _shiftStream = EffectMath.Seeded(ShiftStream, seed);
         _chanceStream = EffectMath.Seeded(ChanceStream, seed);
@@ -61,15 +52,13 @@ public sealed class TwinkleEffect : IEffect
 
     public IReadOnlyList<RgbColor> Colors => _colors;
 
-    public double TwinklesPerSecond { get; }
-
     public uint Seed { get; }
 
     public bool IsAnimated => true;
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
-        var rounds = time.TotalSeconds * Math.Abs(TwinklesPerSecond);
+        var rounds = time.TotalSeconds * TwinklesPerSecond;
         var chance = Math.Clamp(MinLitPerRound / leds.Length, RoundChance, 1.0);
         for (var i = 0; i < leds.Length; i++)
         {

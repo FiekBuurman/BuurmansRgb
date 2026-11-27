@@ -9,6 +9,9 @@ public static class CustomEffects
     // The start of the effect id of every own effect, such as "custom:1a2b3c4d".
     public const string IdPrefix = "custom:";
 
+    // The most letters, digits and dashes after the prefix.
+    public const int MaxIdSuffixLength = 32;
+
     public const int MaxEffects = 32;
 
     public const int MinSteps = 1;
@@ -35,20 +38,12 @@ public static class CustomEffects
     public static bool IsCustom(string? effectId) =>
         effectId is not null
         && effectId.Length > IdPrefix.Length
-        && effectId.Length <= IdPrefix.Length + 32
+        && effectId.Length <= IdPrefix.Length + MaxIdSuffixLength
         && effectId.StartsWith(IdPrefix, StringComparison.Ordinal)
         && effectId.AsSpan(IdPrefix.Length).IndexOfAnyExcept("abcdefghijklmnopqrstuvwxyz0123456789-") < 0;
 
     // A new effect id: the prefix and eight random hex digits.
     public static string NewId() => IdPrefix + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)[..8];
-
-    // The name without surrounding spaces, or null when it is empty, too long or holds a control
-    // character such as a line break.
-    public static string? NormalizeName(string? name)
-    {
-        var trimmed = name?.Trim();
-        return string.IsNullOrEmpty(trimmed) || trimmed.Length > MaxNameLength || trimmed.Any(char.IsControl) ? null : trimmed;
-    }
 
     // The first of the names numbered 1, 2, ... that is not taken, such as "Eigen effect 3". There
     // are at most MaxEffects effects, so one of the first MaxEffects + 1 is free.
@@ -61,7 +56,7 @@ public static class CustomEffects
 
     public static bool IsValidSeconds(double seconds) => seconds is >= MinSeconds and <= MaxSeconds;
 
-    // The effect as the engine keeps it: a valid id and name (NormalizeName) and MinSteps to
+    // The effect as the engine keeps it: a valid id and name (DisplayNames.Normalize) and MinSteps to
     // MaxSteps valid steps. Throws ArgumentException with what is wrong.
     public static CustomEffect Normalize(CustomEffect effect)
     {
@@ -71,7 +66,7 @@ public static class CustomEffects
             throw new ArgumentException($"'{effect.Id}' is not the id of an own effect.", nameof(effect));
         }
 
-        var name = NormalizeName(effect.Name) ?? throw new ArgumentException($"'{effect.Name}' is not a valid name for an effect.", nameof(effect));
+        var name = DisplayNames.Normalize(effect.Name, MaxNameLength) ?? throw new ArgumentException($"'{effect.Name}' is not a valid name for an effect.", nameof(effect));
         if (effect.Steps.Count is < MinSteps or > MaxSteps)
         {
             throw new ArgumentException($"An own effect has {MinSteps} to {MaxSteps} steps, not {effect.Steps.Count}.", nameof(effect));

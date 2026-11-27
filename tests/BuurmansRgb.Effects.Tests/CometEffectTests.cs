@@ -12,36 +12,22 @@ public sealed class CometEffectTests
     {
         var leds = new RgbColor[10];
 
-        new CometEffect(Orange).Render(leds, TimeSpan.Zero);
+        new CometEffect([Orange]).Render(leds, TimeSpan.Zero);
 
         RgbAssert.Close([Orange, .. Dark(7), Orange.Scale(1.0 / 9.0), Orange.Scale(4.0 / 9.0)], leds);
     }
 
-    // A round per second: after a quarter second the head is halfway LED 2 and LED 3, with the
+    // A round in two seconds: after half a second the head is halfway LED 2 and LED 3, with the
     // tail behind it.
     [Fact]
     public void Render_MovesTheHeadTowardsTheLastLed()
     {
         var leds = new RgbColor[10];
 
-        new CometEffect(Orange, roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.25));
+        new CometEffect([Orange]).Render(leds, TimeSpan.FromSeconds(0.5));
 
         RgbAssert.Close(
             [Orange.Scale(1.0 / 36.0), Orange.Scale(0.25), Orange.Scale(25.0 / 36.0), Orange.Scale(0.5), .. Dark(6)],
-            leds);
-    }
-
-    // Backwards a round per second: after a quarter second the head is halfway LED 7 and LED 8, with
-    // the tail behind it on the side of the last LED and round to the first.
-    [Fact]
-    public void Render_NegativeSpeed_MovesTheHeadTowardsTheFirstLedWithTheTailBehind()
-    {
-        var leds = new RgbColor[10];
-
-        new CometEffect(Orange, roundsPerSecond: -1.0).Render(leds, TimeSpan.FromSeconds(0.25));
-
-        RgbAssert.Close(
-            [Orange.Scale(1.0 / 36.0), .. Dark(6), Orange.Scale(0.5), Orange.Scale(25.0 / 36.0), Orange.Scale(0.25)],
             leds);
     }
 
@@ -50,25 +36,12 @@ public sealed class CometEffectTests
     {
         var start = new RgbColor[12];
         var later = new RgbColor[12];
-        var effect = new CometEffect(Orange);
+        var effect = new CometEffect([Orange]);
 
         effect.Render(start, TimeSpan.Zero);
-        effect.Render(later, TimeSpan.FromSeconds(1.0 / CometEffect.DefaultRoundsPerSecond));
+        effect.Render(later, TimeSpan.FromSeconds(1.0 / CometEffect.RoundsPerSecond));
 
         Assert.Equal(start, later);
-    }
-
-    [Fact]
-    public void Render_TwiceAsFast_ShowsAtHalfTheTimeWhatTheNormalSpeedShowsLater()
-    {
-        var fast = new RgbColor[30];
-        var normal = new RgbColor[30];
-
-        new CometEffect(Orange, roundsPerSecond: 1.0).Render(fast, TimeSpan.FromSeconds(0.375));
-        new CometEffect(Orange, roundsPerSecond: 0.5).Render(normal, TimeSpan.FromSeconds(0.75));
-
-        Assert.Equal(normal, fast);
-        Assert.True(normal[11].R > 200);
     }
 
     // One LED is one place on a ring of four: brightest as the head passes, it fades out in the
@@ -76,7 +49,7 @@ public sealed class CometEffectTests
     [Fact]
     public void Render_OneLed_Pulses()
     {
-        var levels = EffectSamples.Levels(new CometEffect(Orange, roundsPerSecond: 1.0), 1, 0, TimeSpan.Zero, TimeSpan.FromSeconds(1), Step);
+        var levels = EffectSamples.Levels(new CometEffect([Orange]), 1, 0, TimeSpan.Zero, TimeSpan.FromSeconds(2), Step * 2);
 
         Assert.Equal(255, levels[0]);
         Assert.InRange(levels[50], 62, 66);
@@ -90,12 +63,12 @@ public sealed class CometEffectTests
     public void Render_TwoLeds_TakeTurns()
     {
         var leds = new RgbColor[2];
-        var effect = new CometEffect(Orange, roundsPerSecond: 1.0);
+        var effect = new CometEffect([Orange]);
 
         effect.Render(leds, TimeSpan.Zero);
         Assert.Equal([Orange, RgbColor.Black], leds);
 
-        effect.Render(leds, TimeSpan.FromSeconds(0.5));
+        effect.Render(leds, TimeSpan.FromSeconds(1.0));
         Assert.Equal([RgbColor.Black, Orange], leds);
     }
 
@@ -109,7 +82,7 @@ public sealed class CometEffectTests
     {
         var leds = new RgbColor[20];
 
-        new CometEffect(Orange, roundsPerSecond: 3.0).Render(leds, TimeSpan.FromSeconds(seconds));
+        new CometEffect([Orange]).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.Contains(leds, led => led.R > 200);
     }
@@ -117,7 +90,7 @@ public sealed class CometEffectTests
     [Fact]
     public void Render_NoLeds_DoesNothing()
     {
-        new CometEffect(Orange).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
+        new CometEffect([Orange]).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
     }
 
     // A list of one color is the comet of that color, as it was before the list: these are the LEDs
@@ -127,24 +100,24 @@ public sealed class CometEffectTests
     {
         var leds = new RgbColor[10];
 
-        new CometEffect([Orange], roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.6));
+        new CometEffect([Orange]).Render(leds, TimeSpan.FromSeconds(1.2));
 
         Assert.Equal(EffectSamples.Hex("#000000", "#000000", "#000000", "#000000", "#1C0F00", "#713C00", "#FF8800", "#000000", "#000000", "#000000"), leds);
     }
 
     [Theory]
-    [InlineData(0.25, 0)]
-    [InlineData(1.25, 1)]
-    [InlineData(2.25, 2)]
-    [InlineData(3.25, 0)]
+    [InlineData(0.5, 0)]
+    [InlineData(2.5, 1)]
+    [InlineData(4.5, 2)]
+    [InlineData(6.5, 0)]
     public void Render_MoreColors_HasTheNextColorEveryRound(double seconds, int color)
     {
         var colors = new[] { Red, Green, Blue };
         var leds = new RgbColor[10];
 
-        new CometEffect(colors, roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(seconds));
+        new CometEffect(colors).Render(leds, TimeSpan.FromSeconds(seconds));
 
-        Assert.Equal(new CometEffect(colors[color], roundsPerSecond: 1.0).RenderAt(10, seconds), leds);
+        Assert.Equal(new CometEffect([colors[color]]).RenderAt(10, seconds), leds);
     }
 
     // At the start of the second round the head is on the first LED in the second color, while the
@@ -154,7 +127,7 @@ public sealed class CometEffectTests
     {
         var leds = new RgbColor[10];
 
-        new CometEffect([Red, Green], roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(1.0));
+        new CometEffect([Red, Green]).Render(leds, TimeSpan.FromSeconds(2.0));
 
         RgbAssert.Close([Green, .. Dark(7), Red.Scale(1.0 / 9.0), Red.Scale(4.0 / 9.0)], leds);
     }
@@ -166,25 +139,10 @@ public sealed class CometEffectTests
     {
         var leds = new RgbColor[10];
 
-        new CometEffect([Red, Green], roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.95));
+        new CometEffect([Red, Green]).Render(leds, TimeSpan.FromSeconds(1.9));
 
         RgbAssert.Close(Green.Scale(0.5), leds[0]);
         RgbAssert.Close(Red.Scale(25.0 / 36.0), leds[9]);
-    }
-
-    // Backwards the head passes the start of the ring right after time zero, so the second color
-    // comes first; then every round the next one.
-    [Theory]
-    [InlineData(0.5, 1)]
-    [InlineData(1.5, 0)]
-    public void Render_MoreColorsNegativeSpeed_HasTheNextColorEveryRound(double seconds, int color)
-    {
-        var colors = new[] { Red, Green };
-        var leds = new RgbColor[10];
-
-        new CometEffect(colors, roundsPerSecond: -1.0).Render(leds, TimeSpan.FromSeconds(seconds));
-
-        Assert.Equal(new CometEffect(colors[color], roundsPerSecond: -1.0).RenderAt(10, seconds), leds);
     }
 
     [Fact]
@@ -205,19 +163,10 @@ public sealed class CometEffectTests
         Assert.Equal([Red, Green], effect.Colors);
     }
 
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
-    public void Constructor_SpeedNotFinite_Throws(double roundsPerSecond)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new CometEffect(Orange, roundsPerSecond));
-    }
-
     [Fact]
     public void IsAnimated_IsTrue()
     {
-        Assert.True(new CometEffect(Orange).IsAnimated);
+        Assert.True(new CometEffect([Orange]).IsAnimated);
     }
 
     private static RgbColor[] Dark(int count) => new RgbColor[count];

@@ -646,10 +646,10 @@ internal sealed class ProfileLibrary
         Store(profiles);
     }
 
-    // The name as a scene gets it (ProfileNames.Normalize); throws ArgumentException for one that
+    // The name as a scene gets it (DisplayNames.Normalize); throws ArgumentException for one that
     // is empty, too long or has a control character.
     private static string NormalizedName(string name) =>
-        ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
+        DisplayNames.Normalize(name, ProfileNames.MaxLength) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
 
     // The internal profile that switches every device off for "Uit om" while there is no scene
     // "Alles uit".

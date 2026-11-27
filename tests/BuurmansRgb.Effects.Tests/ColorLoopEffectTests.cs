@@ -36,8 +36,8 @@ public sealed class ColorLoopEffectTests
     {
         var leds = new RgbColor[3];
 
-        // One loop per second: after a third of a second every LED shows the next LED's color.
-        new ColorLoopEffect(YellowGreenBlue, loopsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(1.0 / 3.0));
+        // After a third of a loop every LED shows the next LED's color.
+        new ColorLoopEffect(YellowGreenBlue).Render(leds, TimeSpan.FromSeconds(1.0 / 3.0 / ColorLoopEffect.LoopsPerSecond));
 
         Assert.Equal([Green, Blue, Yellow], leds);
     }
@@ -47,7 +47,7 @@ public sealed class ColorLoopEffectTests
     {
         var leds = new RgbColor[4];
 
-        new ColorLoopEffect(YellowGreenBlue, spread: false, loopsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(1.0 / 3.0));
+        new ColorLoopEffect(YellowGreenBlue, spread: false).Render(leds, TimeSpan.FromSeconds(1.0 / 3.0 / ColorLoopEffect.LoopsPerSecond));
 
         Assert.All(leds, led => Assert.Equal(Green, led));
     }
@@ -55,13 +55,13 @@ public sealed class ColorLoopEffectTests
     [Fact]
     public void Render_Together_GoesThroughTheColorsAndBackToTheFirst()
     {
-        var effect = new ColorLoopEffect(YellowGreenBlue, spread: false, loopsPerSecond: 1.0);
+        var effect = new ColorLoopEffect(YellowGreenBlue, spread: false);
         var leds = new RgbColor[1];
 
-        effect.Render(leds, TimeSpan.FromSeconds(2.0 / 3.0));
+        effect.Render(leds, TimeSpan.FromSeconds(2.0 / 3.0 / ColorLoopEffect.LoopsPerSecond));
         Assert.Equal(Blue, leds[0]);
 
-        effect.Render(leds, TimeSpan.FromSeconds(1.0));
+        effect.Render(leds, TimeSpan.FromSeconds(1.0 / ColorLoopEffect.LoopsPerSecond));
         Assert.Equal(Yellow, leds[0]);
     }
 
@@ -73,7 +73,7 @@ public sealed class ColorLoopEffectTests
         var effect = new ColorLoopEffect(YellowGreenBlue);
 
         effect.Render(start, TimeSpan.Zero);
-        effect.Render(later, TimeSpan.FromSeconds(1.0 / ColorLoopEffect.DefaultLoopsPerSecond));
+        effect.Render(later, TimeSpan.FromSeconds(1.0 / ColorLoopEffect.LoopsPerSecond));
 
         Assert.Equal(start, later);
     }

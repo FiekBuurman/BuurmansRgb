@@ -28,24 +28,6 @@ public sealed class CustomEffectsTests
         Assert.NotEqual(first, CustomEffects.NewId());
     }
 
-    [Theory]
-    [InlineData("  Disco  ", "Disco")]
-    [InlineData("", null)]
-    [InlineData("   ", null)]
-    [InlineData("Twee\nregels", null)]
-    [InlineData(null, null)]
-    public void NormalizeName_TrimsOrRejects(string? name, string? expected)
-    {
-        Assert.Equal(expected, CustomEffects.NormalizeName(name));
-    }
-
-    [Fact]
-    public void NormalizeName_TooLong_IsRejected()
-    {
-        Assert.Null(CustomEffects.NormalizeName(new string('a', CustomEffects.MaxNameLength + 1)));
-        Assert.NotNull(CustomEffects.NormalizeName(new string('a', CustomEffects.MaxNameLength)));
-    }
-
     [Fact]
     public void FirstFreeName_SkipsTheTakenNames()
     {

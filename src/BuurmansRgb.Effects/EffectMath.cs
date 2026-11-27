@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Effects;
@@ -43,6 +42,14 @@ internal static class EffectMath
         return left * left;
     }
 
+    // The colors of an effect with a list, copied so the caller cannot change them later; there
+    // must be at least one.
+    public static RgbColor[] CopyColors(IReadOnlyList<RgbColor> colors)
+    {
+        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
+        return [.. colors];
+    }
+
     // An effect in a direction gets one place per LED (IDirectedEffect).
     public static void ThrowIfNotOnePerLed(Span<RgbColor> leds, ReadOnlySpan<double> positions)
     {
@@ -51,11 +58,6 @@ internal static class EffectMath
             throw new ArgumentException($"There are {leds.Length} LEDs but {positions.Length} places.", nameof(positions));
         }
     }
-
-    // A speed may be negative, which runs the effect the other way, but NaN or infinity would
-    // turn every LED black or random.
-    public static double FiniteSpeed(double speed, [CallerArgumentExpression(nameof(speed))] string? name = null) =>
-        double.IsFinite(speed) ? speed : throw new ArgumentOutOfRangeException(name, speed, "The speed must be a finite number.");
 
     // A random-looking number from 0 up to 1 that depends only on its inputs: an LED (or a column
     // of LEDs), a step in time and a stream that keeps the numbers of different uses apart. An
