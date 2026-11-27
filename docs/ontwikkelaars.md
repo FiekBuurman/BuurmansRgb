@@ -592,13 +592,26 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   de engine niet en vraagt alles met events (zoals `AppInfoViewModel.Message`,
   `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
   **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
-  meldingen (`SettingsBackupViewModel`, `SharingViewModel`, `LampSync`, `SceneCardLoader`).
-  Sinds `mainviewmodel-opsplitsen` zijn ook delen van `MainViewModel` zo'n coördinator (intern):
-  `StillPreviewCoordinator` houdt de frames, het beeld en de flits, en `EngineOptionsCoordinator`
-  leest, toont en stuurt de opties van Instellingen en de werkbalk op Kleur.
+  meldingen als het die heeft, via een event `Message` dat `MainViewModel` in de statusregel zet
+  (`SettingsBackupViewModel`, `SharingViewModel`, `EngineOptionsCoordinator`, `SceneCoordinator`);
+  `LampSync` en `StillPreviewCoordinator` hebben er geen en melden een fout via
+  `EngineSession.OnCallFailed`. Sinds `mainviewmodel-opsplitsen` hebben drie delen
+  van `MainViewModel` zo'n eigen coördinator (intern): `StillPreviewCoordinator` (de frames, het
+  stilstaande beeld van het voorbeeld en de flits), `EngineOptionsCoordinator` (de opties van
+  Instellingen en de werkbalk op Kleur) en `SceneCoordinator` (de scènes op Scènes, hun kaarten en
+  de tijden van "Alles uit"). Ze abonneren zich zelf op de events van de pure view models die ze
+  krijgen; wat ze van `MainViewModel` nodig hebben (zoals het gekozen apparaat) krijgen ze als
+  `Func<>`, en wat `MainViewModel` moet doen als event (zoals `SceneCoordinator.Loaded`). De
+  publieke eigenschappen van `MainViewModel` bleven gelijk; waar nodig sturen ze door (zoals
+  `WantsFrames`). De sleutels van een coördinator in de wachtrij die `OnCallSucceeded` moet kennen
+  zijn `internal const` (zoals `SceneCoordinator.ProfilesReloadCall`). Elke coördinator heeft
+  eigen tests (`<Naam>Tests`) op een `EngineSession` met een `FakeEngineConnection`, zonder
+  `MainViewModel`; de `MainViewModel*Tests` testen het geheel.
   `MainViewModel` maakt zijn kinderen in de constructor, in een vaste volgorde: eerst de
   sessie, dan de kinderen die niets nodig hebben, dan die er een paar krijgen. Scènes tonen gaat
-  overal via `ShowProfiles` (de lijst, de kaarten en zo nodig welke scène aan staat).
+  binnen `SceneCoordinator` via `ShowProfiles` (de lijst, de kaarten en zo nodig welke scène aan
+  staat), behalve bij het verbinden: `LoadAsync` leest eerst de namen, dan de tijden en dan pas de
+  kaarten.
 - **Verversen:** `IEngineApi.RescanDevicesAsync` laat elke `IRescannableDeviceProvider` tegelijk
   opnieuw zoeken (`LightingController.RescanDevicesAsync`) en neemt daarna hun lijsten over, zodat
   `DevicesChanged` vóór het antwoord over de pipe gaat. OpenRGB.NET kent geen rescan, dus
