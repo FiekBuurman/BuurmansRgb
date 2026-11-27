@@ -73,21 +73,10 @@ internal sealed class ProfileLibrary
 
     // The profiles that load by themselves, in alphabetical order. None when profiles.json cannot
     // be read, so whoever loads them keeps running; the next change reads the file again.
-    public IReadOnlyList<(string Name, ProfileAutomation Automation)> TryGetAutomated()
-    {
-        try
-        {
-            lock (_gate)
-            {
-                return [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))];
-            }
-        }
-        catch (Exception exception) when (FileErrors.IsAccessError(exception))
-        {
-            Trace.TraceError(exception.ToString());
-            return [];
-        }
-    }
+    public IReadOnlyList<(string Name, ProfileAutomation Automation)> TryGetAutomated() =>
+        ReadOrDefault<IReadOnlyList<(string Name, ProfileAutomation Automation)>>(
+            () => [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))],
+            []);
 
     // The scenes of a new installation (StartScenes), written only when there is no profiles.json
     // yet. A file, also one with an empty list, is from a pc that had scenes, or whose user
@@ -190,18 +179,8 @@ internal sealed class ProfileLibrary
             return null;
         }
 
-        try
-        {
-            lock (_gate)
-            {
-                return ScenesLocked().FirstOrDefault(profile => Matches(profile, name.Trim()))?.Name;
-            }
-        }
-        catch (Exception exception) when (FileErrors.IsAccessError(exception))
-        {
-            Trace.TraceError(exception.ToString());
-            return null;
-        }
+        var trimmed = name.Trim();
+        return ReadOrDefault(() => ScenesLocked().FirstOrDefault(profile => Matches(profile, trimmed))?.Name, null);
     }
 
     // Shows the lighting of the profile, of a scene of some devices only theirs (Profile.LightingOver),
@@ -227,11 +206,9 @@ internal sealed class ProfileLibrary
     // The scenes with times and then the internal profiles of "Uit om" and "Aan om" with times, for
     // ProfileTimer; the internal one of "Uit om" only while there is no scene "Alles uit", whose
     // times count instead. None when profiles.json cannot be read, as TryGetAutomated.
-    public IReadOnlyList<TimedProfile> TryGetTimed()
-    {
-        try
-        {
-            lock (_gate)
+    public IReadOnlyList<TimedProfile> TryGetTimed() =>
+        ReadOrDefault<IReadOnlyList<TimedProfile>>(
+            () =>
             {
                 var hasAllOffScene = AllOffSceneLocked() is not null;
                 return
@@ -242,14 +219,8 @@ internal sealed class ProfileLibrary
                         .OrderBy(profile => profile.Role)
                         .Select(profile => new TimedProfile(profile.Name, profile.Role, IsInternal: true, profile.Automation.Times)),
                 ];
-            }
-        }
-        catch (Exception exception) when (FileErrors.IsAccessError(exception))
-        {
-            Trace.TraceError(exception.ToString());
-            return [];
-        }
-    }
+            },
+            []);
 
     // What a time of timed does, unless hold keeps it for when the programs stop (ProgramHold):
     // - a scene comes on, as Load;
@@ -593,6 +564,25 @@ internal sealed class ProfileLibrary
         var changed = !string.Equals(_activeName, name, StringComparison.Ordinal);
         _activeName = name;
         return changed;
+    }
+
+    // What readLocked gives under the lock, or fallback when profiles.json cannot be read: for the
+    // callers that must keep running then (the triggers, the scene that was on). The error goes to
+    // the log; the next change reads the file again.
+    private T ReadOrDefault<T>(Func<T> readLocked, T fallback)
+    {
+        try
+        {
+            lock (_gate)
+            {
+                return readLocked();
+            }
+        }
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
+        {
+            Trace.TraceError(exception.ToString());
+            return fallback;
+        }
     }
 
     // All of them, the internal ones too (Profile.IsInternal).
