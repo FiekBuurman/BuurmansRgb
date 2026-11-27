@@ -430,10 +430,11 @@
         <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="views:Corners.Radius" Value="{StaticResource ButtonRadius}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ButtonBase">
-                    <Border x:Name="Face" CornerRadius="{DynamicResource ButtonRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
+                    <Border x:Name="Face" CornerRadius="{TemplateBinding views:Corners.Radius}" BorderThickness="1" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
@@ -456,13 +457,15 @@
         </Setter>
     </Style>
 
-    <!-- A round 44 px button with a line icon as its content, such as the wrench in the design. -->
-    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
-        <Style.Resources>
-            <!-- Half of 44: a circle, as the round buttons in the design. -->
-            <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
-        </Style.Resources>
+    <!-- The base of the round buttons, such as the wrench in the design: a SecondaryButton with the
+         corners of a circle at 44 px (RoundRadius), and a focus ring to match. -->
+    <Style x:Key="RoundButtonBase" TargetType="ButtonBase" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="views:Corners.Radius" Value="{StaticResource RoundRadius}" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
+    </Style>
+
+    <!-- A round 44 px button with a line icon as its content, such as the wrench in the design. -->
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource RoundButtonBase}">
         <Setter Property="Width" Value="{StaticResource MinClickSize}" />
         <Setter Property="Height" Value="{StaticResource MinClickSize}" />
         <Setter Property="Padding" Value="0" />
@@ -471,13 +474,7 @@
     <!-- A round toggle with a short text, such as a day of the week: on, text-colored like the primary
          button with bg text; off, a surface with a border like the secondary button. A larger text
          size of Windows makes it a pill, as wide as its text. -->
-    <Style x:Key="DayToggle" TargetType="ToggleButton" BasedOn="{StaticResource SecondaryButton}">
-        <Style.Resources>
-            <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
-        </Style.Resources>
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
-        <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
-        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+    <Style x:Key="DayToggle" TargetType="ToggleButton" BasedOn="{StaticResource RoundButtonBase}">
         <Setter Property="Padding" Value="8,0" />
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
@@ -504,11 +501,7 @@
     </Style>
 
     <!-- An IconButton that repeats while it is held down, such as − and + of a zone length. -->
-    <Style x:Key="IconRepeatButton" TargetType="RepeatButton" BasedOn="{StaticResource SecondaryButton}">
-        <Style.Resources>
-            <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
-        </Style.Resources>
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
+    <Style x:Key="IconRepeatButton" TargetType="RepeatButton" BasedOn="{StaticResource RoundButtonBase}">
         <Setter Property="Width" Value="{StaticResource MinClickSize}" />
         <Setter Property="Height" Value="{StaticResource MinClickSize}" />
         <Setter Property="Padding" Value="0" />
@@ -759,7 +752,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="Face" CornerRadius="12" BorderThickness="1" Background="{TemplateBinding Background}"
+                    <Border x:Name="Face" CornerRadius="{StaticResource ButtonRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
                         <DockPanel>
                             <Path x:Name="Chevron" DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Style="{StaticResource LineIcon}"
@@ -842,7 +835,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Face" CornerRadius="22" BorderThickness="1" Background="{TemplateBinding Background}"
+                    <Border x:Name="Face" CornerRadius="{StaticResource RoundRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center" />
                     </Border>
@@ -982,7 +975,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="Box" CornerRadius="12" BorderThickness="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}">
+                    <Border x:Name="Box" CornerRadius="{StaticResource FieldRadius}" BorderThickness="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}">
                         <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                       Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
                     </Border>
@@ -1100,7 +1093,7 @@
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
-                                    <Border x:Name="Field" CornerRadius="12" BorderThickness="1"
+                                    <Border x:Name="Field" CornerRadius="{StaticResource FieldRadius}" BorderThickness="1"
                                             Background="{Binding Background, RelativeSource={RelativeSource AncestorType=ComboBox}}"
                                             BorderBrush="{Binding BorderBrush, RelativeSource={RelativeSource AncestorType=ComboBox}}">
                                         <Path Style="{StaticResource LineIcon}" Data="{StaticResource IconChevronDown}" HorizontalAlignment="Right" Margin="0,0,12,0"
@@ -1123,7 +1116,7 @@
                                    Text="{TemplateBinding Tag}" Foreground="{DynamicResource TextMutedBrush}" Visibility="Collapsed" />
                         <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="4" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade"
                                IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}">
-                            <Border CornerRadius="12" BorderThickness="1" Padding="4" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}"
+                            <Border CornerRadius="{StaticResource FieldRadius}" BorderThickness="1" Padding="4" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderStrongBrush}"
                                     MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
                                     MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                 <ScrollViewer>
