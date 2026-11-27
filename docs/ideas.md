@@ -975,6 +975,15 @@ uitbreidingen in `docs/bouwplan.md`.
   (`LedColorStoreTests.SameAs_DifferencePastTheEndOfTheDevice_IsFalse`) aanpassen
   (refactorreview 23-11-2026; refactorplan 26-11-2026 liet dit bewust liggen bij taak 11, want
   het verandert wanneer een scène een overgang geeft en past dus een test aan)
+- De tijden voor het hele huis ("Uit om" en "Aan om": `LoadTimed`, `HeldScene`, `BackOnOver`,
+  `Get`/`SetWholeHouseTimes` en `RememberBeforeOffLocked`) uit `ProfileLibrary` naar een eigen
+  klasse. Bij `scenebibliotheek-opsplitsen` bleven ze staan: ze lezen en schrijven dezelfde lijst
+  onder dezelfde lock als de scènes (`Load` bewaart de verlichting van vóór "Alles uit" terwijl hij
+  de lock houdt), dus een eigen klasse zou bijna alle `…Locked`-methoden van de bibliotheek nodig
+  hebben en de bibliotheek zou haar toch weer aanroepen (`WholeHouseTimesTests` en `ProfileTimer`
+  roepen ze op `ProfileLibrary` aan). Eerst de lijst, het bestand en de lock zelf in een eigen
+  klasse (bijv. `ProfileList`) zetten, waar de scènes en de tijden van het hele huis allebei op
+  bouwen (refactorplan 26-11-2026)
 
 ## Integraties
 

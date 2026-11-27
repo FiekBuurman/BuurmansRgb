@@ -828,7 +828,11 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   knop van `StatusMessage` (`DismissCommand`). Het tray-icoon zegt er niets over.
 - **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show`
   (waarmee `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke
-  andere `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke
+  andere `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. De naam
+  staat in `ActiveSceneTracker`, met een eigen lock omdat `LightingChanged` uit de lock van de
+  controller komt terwijl een andere draad de lock van `ProfileLibrary` kan houden: de
+  bibliotheek neemt de lock van de tracker alleen onder de zijne, nooit andersom, en de tracker
+  vuurt zijn event buiten de lock af vanuit één methode (`Change`). Bij elke
   wissel (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en
   na het starten zet `RestoreActive` hem terug als die scène nog bestaat.
 - **Scènes op tijd:** een scène heeft een lijst tijden (`ProfileAutomation.Times`, elk een
