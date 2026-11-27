@@ -157,17 +157,9 @@ public sealed class ColorNamesTests
     [InlineData("#000000", "Zwart")]
     public void StandaloneNameOf_StartsWithACapital(string hex, string expected)
     {
-        var regionFormat = CultureInfo.CurrentCulture;
-        try
-        {
-            Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
-            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
-            Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = regionFormat;
-        }
+        Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
+        using var turkish = new UseCulture("tr-TR");
+        Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
     }
 
     // Pink and the pastels have their own name, from Strings.resx, and not the word of their tone.
@@ -186,19 +178,11 @@ public sealed class ColorNamesTests
     public void WithHex_ColorOfTheToolbox_UnderTurkishRegionFormat_GivesTheSameName()
     {
         var expected = ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)).ToList();
-        var regionFormat = CultureInfo.CurrentCulture;
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+        using var turkish = new UseCulture("tr-TR");
 
-            Assert.Equal(expected, ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)));
-            Assert.Equal("warm wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
-            Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = regionFormat;
-        }
+        Assert.Equal(expected, ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)));
+        Assert.Equal("warm wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+        Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
     }
 
     // Each tone has a word in Strings.resx, in lower case, as it stands in the middle of a sentence.

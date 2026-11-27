@@ -24,16 +24,15 @@ public sealed class StartScenesTests : IDisposable
     [Fact]
     public void Create_HasTheFiveScenesOfThePanel_InDutch()
     {
-        var culture = Strings.Culture;
-        Strings.Culture = CultureInfo.GetCultureInfo("nl-NL");
-        try
-        {
-            Assert.Equal(["Alles uit", "Rustig wit", "Regenboog", "Pastel", "Gamen"], StartScenes.Create().Select(scene => scene.Name));
-        }
-        finally
-        {
-            Strings.Culture = culture;
-        }
+        // The language of this test only, so it does not depend on the pc or CI runner.
+        using var language = new UseUICulture("nl-NL");
+        var dutch = CultureInfo.GetCultureInfo("nl-NL");
+        string[] names = ["StartSceneAllOff", "StartSceneCalmWhite", "StartSceneRainbow", "StartScenePastel", "StartSceneGaming"];
+
+        string[] expected = ["Alles uit", "Rustig wit", "Regenboog", "Pastel", "Gamen"];
+
+        Assert.Equal(expected, names.Select(name => Strings.ResourceManager.GetString(name, dutch)));
+        Assert.Equal(expected, StartScenes.Create().Select(scene => scene.Name));
     }
 
     // Valid names, no automation, and one lighting for all devices: a device that comes later

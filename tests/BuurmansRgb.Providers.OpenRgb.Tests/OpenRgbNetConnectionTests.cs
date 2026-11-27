@@ -186,6 +186,9 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         }
 
         var second = connection.GetDevicesAsync(Ct);
+
+        // No signal exists for "no second request": this pause can only let a broken wait stay
+        // green, never turn a good one red.
         await Task.Delay(100, Ct);
         Assert.Equal(1, _server.ControllerDataRequests);
         _server.Devices = [TestDevices.Create(index: 0, name: "Strip"), TestDevices.Create(index: 1, name: "Headset", ledCount: 2)];

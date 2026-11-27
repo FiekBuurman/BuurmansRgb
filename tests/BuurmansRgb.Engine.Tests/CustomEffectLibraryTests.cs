@@ -533,6 +533,9 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.True(inNextStep.Wait(TimeSpan.FromSeconds(10), Ct));
 
         var second = Task.Run(() => _library.Import([Effect("custom:abc", "Disco")]));
+
+        // No signal exists for "still waiting": this pause can only let a broken wait stay green,
+        // never turn a good one red.
         await Task.Delay(200, Ct);
         Assert.False(second.IsCompleted);
 

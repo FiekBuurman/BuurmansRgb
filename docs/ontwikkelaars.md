@@ -77,11 +77,20 @@ een oudere meebrengt. UI-teksten staan in `src/BuurmansRgb.UI/Resources/Strings.
 
 Tests gebruiken xUnit v3 op Microsoft.Testing.Platform (ingesteld in `global.json`) en draaien
 zonder hardware. Per project een testproject in `tests/`. Helpers die elk testproject gebruikt
-(`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`) staan in `tests/Shared`;
-`tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
+(`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`, `UseCulture`,
+`UseUICulture`) staan in `tests/Shared`; `tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
 (`FakeOpenRgbConnector`, `InMemoryOpenRgb`) staat in het hulpproject
 `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests; daarnaast is er een kleine
 SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Providers.OpenRgb.Tests`).
+
+Wacht in een test op een signaal, niet op een vaste pauze: `Eventually.TrueAsync` wacht tot iets
+waar is, `Eventually.StableAsync` tot een teller niet meer verandert. Een pauze gevolgd door
+`Assert.False(task.IsCompleted)` kan alleen ten onrechte groen blijven, nooit rood worden; zet
+daar een commentaar bij. Zet de regio-instelling (getal- en datumnotatie) van een test met
+`using var culture = new UseCulture("nl-NL")` en de taal van de resx-teksten met
+`using var language = new UseUICulture("nl-NL")`, nooit de static `Strings.Culture`: die geldt
+voor het hele proces, dus ook voor de tests die ernaast draaien.
+
 De viewtests van de instellingen-app draaien in een echt venster buiten beeld (`OffscreenWindow`,
 op `OffscreenWindow.Offset`); `PageViews.Press` drukt er een toets zoals het toetsenbord dat doet,
 en `LiveRegionCapture` vangt wat een schermlezer zou voorlezen en zet `LiveRegion` daarna terug.

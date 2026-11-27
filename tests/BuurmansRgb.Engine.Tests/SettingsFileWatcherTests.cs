@@ -52,11 +52,12 @@ public sealed class SettingsFileWatcherTests : IDisposable
         // other had its chance.
         // One write may bring more events, the last a moment later: let them all come in first.
         await Eventually.TrueAsync(() => Volatile.Read(ref changes) > 0);
-        await Task.Delay(TimeSpan.FromMilliseconds(300), Ct);
-        var afterSettings = Volatile.Read(ref changes);
+        var afterSettings = await Eventually.StableAsync(() => Volatile.Read(ref changes), TimeSpan.FromMilliseconds(300));
         await File.WriteAllTextAsync(_directory.File("profiles.json"), """{ "profiles": [] }""", Ct);
-        await Task.Delay(TimeSpan.FromMilliseconds(300), Ct);
-        Assert.Equal(afterSettings, Volatile.Read(ref changes));
+
+        // Nothing is to come, so the quiet time is all there is to wait for: a late event of
+        // profiles.json can only stay unseen (green wrongly), never turn the test red.
+        Assert.Equal(afterSettings, await Eventually.StableAsync(() => Volatile.Read(ref changes), TimeSpan.FromMilliseconds(300)));
     }
 
     // A directory that cannot be made: the engine runs on without picking up changes.
