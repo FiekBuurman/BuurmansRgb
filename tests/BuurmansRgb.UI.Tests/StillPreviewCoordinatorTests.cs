@@ -156,7 +156,11 @@ public sealed class StillPreviewCoordinatorTests : IDisposable
         _animations.IsOn = false;
 
         _stills.RequestStillAfterFade();
-        _time.Advance(SceneFade.Default + StillPreviewCoordinator.StillAfterFlash);
+        _time.Advance(SceneFade.Default + StillPreviewCoordinator.StillAfterFlash - TimeSpan.FromTicks(1));
+
+        Assert.Equal(0, Api.FrameCalls);
+
+        _time.Advance(TimeSpan.FromTicks(1));
 
         Assert.Equal(1, Api.FrameCalls);
     }
