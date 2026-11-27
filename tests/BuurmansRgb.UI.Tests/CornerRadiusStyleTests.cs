@@ -37,6 +37,16 @@ public sealed class CornerRadiusStyleTests
         Assert.Equal(new CornerRadius(12), AppTheme.Part<Border>(combo, "Field").CornerRadius);
     });
 
+    [Fact]
+    public void DeviceCardHeaderAndChip_HaveTheirTokenRadius() => AppTheme.Run(panel =>
+    {
+        var header = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DeviceCardHeader") });
+        var chip = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("DeviceChip") });
+
+        Assert.Equal(new CornerRadius(12), AppTheme.Part<Border>(header, "Face").CornerRadius);
+        Assert.Equal(new CornerRadius(22), AppTheme.Part<Border>(chip, "Face").CornerRadius);
+    });
+
     // The ring that the button draws when the keyboard has the focus, as the adorner layer shows it.
     private static Control AdornerRing(Control button)
     {

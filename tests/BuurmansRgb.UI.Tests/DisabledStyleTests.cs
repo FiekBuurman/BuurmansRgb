@@ -7,7 +7,7 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// A button that does nothing now and a switch that is off (Themes/Controls.xaml), in a window off
+// A button that does nothing now and a switch that is off (Themes/Controls*.xaml), in a window off
 // screen. The button keeps its opacity and takes the disabled grey for its text (4.5:1 on a card,
 // TokenContrastTests), a face that shows the card through and the border of a card; a day that
 // cannot be changed still shows whether it is on. The track of a switch that is off is

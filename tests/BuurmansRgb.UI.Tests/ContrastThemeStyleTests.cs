@@ -6,7 +6,7 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The controls of the theme (Themes/Controls.xaml) in a contrast theme, in a window off screen with
+// The controls of the theme (Themes/Controls*.xaml) in a contrast theme, in a window off screen with
 // a fake contrast theme on: they take the brushes of SystemColors that Windows gives such a control,
 // so a button looks like a button of Windows and what is on or primary takes the highlight.
 [Collection(AppThemeCollection.Name)]
