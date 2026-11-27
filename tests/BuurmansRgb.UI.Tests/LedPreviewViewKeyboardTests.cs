@@ -14,43 +14,6 @@ namespace BuurmansRgb.UI.Tests;
 // selection is in DevicePreviewViewModelKeyboardTests.
 public sealed class LedPreviewViewKeyboardTests
 {
-    public static TheoryData<Key, ModifierKeys, LedKey, bool> Keys => new()
-    {
-        { Key.Left, ModifierKeys.None, LedKey.Previous, false },
-        { Key.Right, ModifierKeys.Shift, LedKey.Next, true },
-        { Key.Up, ModifierKeys.None, LedKey.Up, false },
-        { Key.Down, ModifierKeys.Shift, LedKey.Down, true },
-        { Key.Home, ModifierKeys.None, LedKey.First, false },
-        { Key.End, ModifierKeys.Shift, LedKey.Last, true },
-        { Key.Space, ModifierKeys.None, LedKey.Select, false },
-        { Key.Enter, ModifierKeys.None, LedKey.Select, false },
-        { Key.Enter, ModifierKeys.Shift, LedKey.Select, true },
-        { Key.A, ModifierKeys.Control, LedKey.SelectAll, false },
-        { Key.Space, ModifierKeys.Control, LedKey.Toggle, false },
-        { Key.Right, ModifierKeys.Control, LedKey.Next, false },
-        { Key.Up, ModifierKeys.Control, LedKey.Up, false },
-        { Key.Home, ModifierKeys.Control, LedKey.First, false },
-        { Key.Escape, ModifierKeys.None, LedKey.ClearSelection, false },
-    };
-
-    [Theory]
-    [MemberData(nameof(Keys))]
-    public void KeyPressOf_KeysOfThePreview(Key key, ModifierKeys modifiers, LedKey expected, bool extend) =>
-        Assert.Equal(new LedKeyPress(expected, extend), LedPreviewView.KeyPressOf(key, modifiers));
-
-    // Tab, letters and keys with Ctrl or Alt stay with the window, such as Ctrl+Tab.
-    [Theory]
-    [InlineData(Key.Tab, ModifierKeys.None)]
-    [InlineData(Key.A, ModifierKeys.None)]
-    [InlineData(Key.Tab, ModifierKeys.Control)]
-    [InlineData(Key.Right, ModifierKeys.Control | ModifierKeys.Shift)]
-    [InlineData(Key.Space, ModifierKeys.Control | ModifierKeys.Shift)]
-    [InlineData(Key.Left, ModifierKeys.Alt)]
-    [InlineData(Key.A, ModifierKeys.Control | ModifierKeys.Shift)]
-    [InlineData(Key.Escape, ModifierKeys.Shift)]
-    public void KeyPressOf_OtherKeys_IsNull(Key key, ModifierKeys modifiers) =>
-        Assert.Null(LedPreviewView.KeyPressOf(key, modifiers));
-
     // Six dots in rows of three: LED 1 has LED 4 below it and no row above.
     [Fact]
     public void PressKey_UpAndDownInRows_GiveTheLedInTheNextRow() => Sta.Run(() =>

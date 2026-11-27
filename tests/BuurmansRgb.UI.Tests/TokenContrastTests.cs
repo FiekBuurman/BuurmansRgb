@@ -6,7 +6,8 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The contrasts of the colors in Themes/Tokens.xaml, by the formula of WCAG 2, so a change of a
+// The contrasts of the colors in Themes/Tokens.xaml, by the formula of WCAG 2 that the app uses
+// (ColorContrast, through Wcag; the formula itself is in ColorContrastTests), so a change of a
 // color that makes something hard to see fails here. Each pair names a token in front, as a Color
 // or a SolidColorBrush, and the token it stands on. A new pair goes in the list it belongs to.
 [Collection(AppThemeCollection.Name)]
@@ -131,24 +132,12 @@ public sealed partial class TokenContrastTests
     [GeneratedRegex("""<SolidColorBrush\b[^>]*\bColor\s*=\s*"#[^"]*"[^>]*>""")]
     private static partial Regex LooseBrushPattern();
 
-    // The formula itself, with ratios WCAG gives: black on white, a color on itself, and the grey
-    // that just misses 4.5:1 on white.
-    [Theory]
-    [InlineData("#000000", "#FFFFFF", 21.0)]
-    [InlineData("#FFFFFF", "#000000", 21.0)]
-    [InlineData("#212128", "#212128", 1.0)]
-    [InlineData("#777777", "#FFFFFF", 4.48)]
-    public void ContrastRatio_FollowsWcag(string first, string second, double ratio) =>
-        Assert.Equal(ratio, Wcag.ContrastRatio(Parse(first), Parse(second)), 2);
-
     private static void AssertContrast(string foreground, string background, double minimum)
     {
         var ratio = Wcag.ContrastRatio(Tokens.Value[foreground], Tokens.Value[background]);
 
         Assert.True(ratio >= minimum, $"{foreground} on {background} is {ratio:0.00}:1, less than {minimum}:1.");
     }
-
-    private static Color Parse(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 
     // Every Color and SolidColorBrush of Tokens.xaml by its key, read once on a thread WPF accepts.
     private static readonly Lazy<IReadOnlyDictionary<string, Color>> Tokens = new(() =>

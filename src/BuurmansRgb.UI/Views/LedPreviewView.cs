@@ -85,18 +85,18 @@ public sealed class LedPreviewView : FrameworkElement
     private static readonly Pen Outline = CreatePen(System.Windows.Media.Color.FromArgb(0x60, 0x80, 0x80, 0x80), 1.0);
 
     // In the system highlight color, so the ring also shows in dark and high-contrast themes. Read
-    // on every render, so the ring follows a theme change from the next redraw on.
-    private static Pen _selectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
+    // on every render, so the ring follows a theme change from the next redraw on. One per UI
+    // thread, as in ColorBrushes: the pens are frozen, but tests run windows on several threads at
+    // once, and each thread replaces its own pen.
+    [ThreadStatic]
+    private static Pen? _selectionRing;
 
     // 2 px in the text color, as the focus ring of the other controls (design/DESIGN.md § 6).
+    [ThreadStatic]
     private static Pen? _focusRing;
 
-    // The cells of a row or key map, holding only LEDs below Colors.Count, and the arrangement of
-    // the LEDs. Both are made again only when the number of LEDs, the width, the matrix or the LED
-    // names change, not on every frame.
-    private LedMatrix _layout = LedPlaces.Wrap(0, 1);
-    private (int LedCount, int Columns, LedMatrix? Matrix, IReadOnlyList<string>? Names) _layoutFor;
-    private ILedArrangement? _arrangement;
+    // The arrangement of the LEDs, made again only when what it depends on changes.
+    private readonly LedArrangementCache _arrangements = new();
 
     // Made on the first hover, so a preview nobody points at has no tooltip and no timer.
     private LedToolTip? _toolTip;
@@ -169,7 +169,7 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(ActiveLedProperty, value);
     }
 
-    // Runs with a LedKeyPress for each key of the preview; see KeyPressOf.
+    // Runs with a LedKeyPress for each key of the preview; see LedPreviewKeyboard.
     public ICommand? KeyCommand
     {
         get => (ICommand?)GetValue(KeyCommandProperty);
@@ -238,64 +238,13 @@ public sealed class LedPreviewView : FrameworkElement
     // The LED the tooltip names, LedMatrix.NoLed while it is hidden.
     internal int ToolTipLed => _toolTip?.Led ?? LedMatrix.NoLed;
 
-    // What a key does in the preview: the arrows, Home and End move the active LED, with Shift
-    // they extend the range, Space and Enter choose the active LED, Ctrl+Space puts it in the
-    // selection or takes it out, Ctrl+A chooses all and Escape none. With Ctrl the arrows, Home and
-    // End move the active LED as without it, leaving the selection, as in a list of Windows. null
-    // for any other key, which the window gets.
-    internal static LedKeyPress? KeyPressOf(Key key, ModifierKeys modifiers)
-    {
-        if (modifiers == ModifierKeys.Control)
-        {
-            return key switch
-            {
-                Key.A => new(LedKey.SelectAll),
-                Key.Space => new(LedKey.Toggle),
-                Key.Left => new(LedKey.Previous),
-                Key.Right => new(LedKey.Next),
-                Key.Up => new(LedKey.Up),
-                Key.Down => new(LedKey.Down),
-                Key.Home => new(LedKey.First),
-                Key.End => new(LedKey.Last),
-                _ => null,
-            };
-        }
-
-        if (modifiers is not (ModifierKeys.None or ModifierKeys.Shift))
-        {
-            return null;
-        }
-
-        var extend = modifiers == ModifierKeys.Shift;
-        return key switch
-        {
-            Key.Left => new(LedKey.Previous, extend),
-            Key.Right => new(LedKey.Next, extend),
-            Key.Up => new(LedKey.Up, extend),
-            Key.Down => new(LedKey.Down, extend),
-            Key.Home => new(LedKey.First, extend),
-            Key.End => new(LedKey.Last, extend),
-            Key.Space or Key.Enter => new(LedKey.Select, extend),
-            Key.Escape when !extend => new(LedKey.ClearSelection),
-            _ => null,
-        };
-    }
-
-    // Runs KeyCommand for a key, with the LED in the row above or below as drawn for Up and Down.
-    // False when it is no key of the preview or the command does not take it.
+    // Runs KeyCommand for a key (LedPreviewKeyboard), with the LED in the row above or below as
+    // drawn for Up and Down. False when it is no key of the preview or the command does not take it.
     internal bool PressKey(Key key, ModifierKeys modifiers)
     {
-        if (KeyCommand is not { } command || KeyPressOf(key, modifiers) is not { } press)
-        {
-            return false;
-        }
-
-        if (press.Key is LedKey.Up or LedKey.Down)
-        {
-            press = press with { Target = ArrangementFor(ActualWidth).LedInNextRow(ActiveLed, up: press.Key == LedKey.Up) };
-        }
-
-        if (!command.CanExecute(press))
+        if (KeyCommand is not { } command
+            || LedPreviewKeyboard.PressOf(key, modifiers, ActiveLed, () => ArrangementFor(ActualWidth)) is not { } press
+            || !command.CanExecute(press))
         {
             return false;
         }
@@ -613,21 +562,11 @@ public sealed class LedPreviewView : FrameworkElement
         }
     }
 
-    private static int ColumnsFor(double width, int count)
-    {
-        if (double.IsInfinity(width) || double.IsNaN(width))
-        {
-            return Math.Max(count, 1);
-        }
-
-        return Math.Clamp((int)((width + LedLayout.Spacing) / LedLayout.Pitch), 1, Math.Max(count, 1));
-    }
-
-    // Only made again when the highlight color changed. Rendering runs on the UI thread only.
+    // Only made again when the highlight color changed.
     private static Pen SelectionRing()
     {
         var color = SystemColors.HighlightColor;
-        if (((SolidColorBrush)_selectionRing.Brush).Color != color)
+        if (_selectionRing is not { Brush: SolidColorBrush current } || current.Color != color)
         {
             _selectionRing = CreatePen(color, 2.0);
         }
@@ -682,44 +621,6 @@ public sealed class LedPreviewView : FrameworkElement
     }
 
     // The arrangement of the LEDs in a width; the one of the last call when nothing changed.
-    private ILedArrangement ArrangementFor(double width)
-    {
-        var count = Colors.Count;
-        if (IsRing)
-        {
-            var scale = LedLayout.ScaleFor(RingLayout.Size(count), width);
-            if (_arrangement is not RingArrangement ring || ring.LedCount != count || ring.Scale != scale)
-            {
-                _arrangement = new RingArrangement(count, scale);
-            }
-
-            return _arrangement;
-        }
-
-        var layout = PlaceLeds(width);
-        var grow = Matrix is not null && KeyCaps is not null ? LedLayout.KeyCapGrowFor(KeyCapFontSize) : 1.0;
-        var pitch = LedLayout.PitchFor(layout, width, shrinks: Matrix is not null, grow);
-        if (_arrangement is not CellArrangement cells || !ReferenceEquals(cells.Layout, layout) || cells.Pitch != pitch)
-        {
-            _arrangement = new CellArrangement(layout, pitch, count, keys: Matrix is not null);
-        }
-
-        return _arrangement;
-    }
-
-    private LedMatrix PlaceLeds(double width)
-    {
-        var count = Colors.Count;
-        var matrix = Matrix;
-        var names = LedNames;
-        var columns = matrix is null ? ColumnsFor(width, count) : 0;
-        if (_layoutFor.LedCount != count || _layoutFor.Columns != columns || !ReferenceEquals(_layoutFor.Matrix, matrix)
-            || !ReferenceEquals(_layoutFor.Names, names))
-        {
-            _layout = matrix is null ? LedPlaces.Wrap(count, columns) : WideKeys.Widen(LedPlaces.Place(matrix, count), names);
-            _layoutFor = (count, columns, matrix, names);
-        }
-
-        return _layout;
-    }
+    private ILedArrangement ArrangementFor(double width) =>
+        _arrangements.For(Colors.Count, width, IsRing, Matrix, LedNames, KeyCaps is null ? null : KeyCapFontSize);
 }

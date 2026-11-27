@@ -631,6 +631,12 @@ uitbreidingen in `docs/bouwplan.md`.
   doorgeven. Bleef liggen bij `voorbeeld-zonetelling-apart`: het raakt elke aanmaak van die
   records in de view models en tientallen asserts in de `PreviewViewModel*Tests` en
   `ZoneCountViewModelTests`, voor alleen kortere code (refactorplan 26-11-2026)
+- Het tekenen van `LedPreviewView` (`OnRender` met de LED's, de toetsletters, de selectie- en de
+  focusring, nu ~630 regels in de view) naar een eigen klasse, zoals `LedPreviewKeyboard` en
+  `LedArrangementCache` al los staan. Bleef liggen bij `ledvoorbeeld-opsplitsen`: de taak noemde
+  alleen het toetsenbord, de schikking, de pennen per thread en `ColorContrast`, en het tekenen
+  leest veel afhankelijkheidseigenschappen van de view, die zo'n klasse allemaal mee moet krijgen
+  (refactorplan 26-11-2026)
 - `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
   `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of
@@ -1140,7 +1146,9 @@ uitbreidingen in `docs/bouwplan.md`.
   die gedeelde caches waren het niet. In die 40 runs faalde ook twee keer
   `DirectionViewTests.Slider_HomeWithoutDirection_ChoosesZeroDegrees` op `slider.Focus()`.
   Bij de refactor na de audit van 29-10 faalde `Render_WithTheFocus_DrawsARingAroundTheActiveLed`
-  weer 1 keer in 6 volledige testruns
+  weer 1 keer in 6 volledige testruns. Bij `ledvoorbeeld-opsplitsen`, met de pennen van de ringen
+  per thread, faalde hij niet in 3 volledige testruns en 10 losse runs van de
+  `LedPreview*Tests`
 - `ProcessListTests.Find_SeesAProgramStartAndStop` faalde af en toe; de oorzaak is niet gevonden
   (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
   `WaitUntilGone` het signaal van ping nu `TestTimeouts.Long`, en probeert `TempDirectory.Dispose`
