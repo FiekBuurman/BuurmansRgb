@@ -1295,8 +1295,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `Controls.Cards.xaml` (kaarten, apparaatkaart, chip, effecttegel). Een `StaticResource` kijkt niet
   in een bestand naast het zijne: elk bestand voegt zelf `Tokens.xaml` (en waar nodig de focusringen
   en iconen) samen, alleen als het ze met een `StaticResource` gebruikt (elke `Source=` laadt een
-  eigen kopie, dus een merge "voor de zekerheid" kost opstarttijd en geheugen), en `Controls.Cards.xaml` staat als laatste, zodat de stijl van `LedBulb` en een
-  opzoeking van een token dezelfde brush vinden. Hoeken komen uit de tokens (`ButtonRadius`,
+  eigen kopie, dus een merge "voor de zekerheid" kost opstarttijd en geheugen), behalve
+  `Controls.xaml`, dat alles samenvoegt voor de app. `Controls.Cards.xaml` staat als laatste, zodat
+  de stijl van `LedBulb` en een opzoeking van een token dezelfde brush vinden. Hoeken komen uit de tokens (`ButtonRadius`,
   `RoundRadius`, `FieldRadius`), niet uit getallen in een template.
   De gloed van een LED-bolletje is een radiale gradiënt (`LedBulb`) in plaats van een `DropShadowEffect`, zodat
   niet elk bolletje elk frame apart gerenderd wordt. Een LED die geen licht geeft (uit, of elk
