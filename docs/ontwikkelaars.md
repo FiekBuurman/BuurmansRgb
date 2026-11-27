@@ -452,7 +452,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   bewaard. IPC: `GetOverlayAsync` (een per LED van nu) en `SetOverlayAsync` (een `null` haalt de
   laag weg); het effect blijft, `LightingChanged` volgt. De app: `LedEditorViewModel.PaintsLayer`
   kiest waar een kleur heen gaat (`PaintLayer`, `FillLayerGradient`, `RemoveLayer` geven een
-  lijst `LayerEdit`s, één per aaneengesloten stuk gekozen LED's), `MainViewModel.SendLayer`
+  lijst `LayerEdit`s, één per aaneengesloten stuk gekozen LED's), `LedEditCoordinator.SendLayer`
   stuurt ze met `PostRuns` als één plek in de wachtrij (sleutel: soort, apparaat en de gekozen
   LED's).
 - **Effecten:** `EffectCatalog` maakt per apparaat een effect met de kleur, de per-LED-kleuren,
@@ -510,14 +510,16 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   een vraag (`Effects`, `Save`, `Delete`) leest het ook. De eerste lezing die lukt geeft
   `Changed`, dus `CustomEffectsChanged` naar de apps. Een app die bij het verbinden een
   geweigerde `GetCustomEffectsAsync` krijgt, verbindt zonder eigen effecten
-  (`MainViewModel.GetCustomEffectsOrNoneAsync`) en haalt ze bij die `CustomEffectsChanged` op.
-  `LightingSettings` laat een `custom:`-id staan (`EffectCatalog.IsValidId`), zodat een effect
+  (`CustomEffectsCoordinator.GetCustomEffectsOrNoneAsync`) en haalt ze bij die
+  `CustomEffectsChanged` op. `LightingSettings` laat een `custom:`-id staan
+  (`EffectCatalog.IsValidId`), zodat een effect
   dat even niet te lezen is de verlichting niet meteen kwijtraakt. `StepEffect` zoekt per frame
   zijn stap in een array van begintijden (hooguit 32) en rekt een patroon uit met dezelfde
   formule als "Zones gelijk"; de snelheid komt, zoals bij elk effect, van `EffectClock`.
   `IEngineApi`: `GetCustomEffectsAsync`, `SaveCustomEffectAsync` (een lege `Id` is een nieuw
   effect), `DeleteCustomEffectAsync` en `CustomEffectsChanged`; `GetEffectsAsync` geeft alleen de
-  effecten van de engine. In de app maakt `MainViewModel` de effecten (`Effects`) uit beide;
+  effecten van de engine. In de app maakt `CustomEffectsCoordinator` de effecten (`Options`) uit
+  beide;
   `EffectTilesViewModel` maakt daar de effecttegels van (een per effect van de engine en één
   "Eigen effect") en de keuzelijst van de eigen effecten in kaart 4 ("Jouw effect"), en
   `CustomEffectEditorViewModel` is de editor; elke wijziging gaat als het hele effect, in de
@@ -540,7 +542,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   effect dat al zo heet (van vóór deze controle), dan gooit de library het niet weg; hij noemt
   het "Regenboog (eigen)" (of met een nummer als die naam ook bezet is), en het bestand krijgt de
   nieuwe naam bij de volgende wijziging. De app kijkt vóór hij iets stuurt
-  (`MainViewModel.IsCustomEffectNameTaken`, met de namen van `GetEffectsAsync`) en zet de melding
+  (`CustomEffectsCoordinator.IsNameTaken`, met de namen van `GetEffectsAsync`) en zet de melding
   (`NameError`) onder het vak, een live region. Het vak schrijft de naam alleen bij Enter en als
   het de focus verliest (`UpdateSourceTrigger=Explicit`, `ColorPage.xaml.cs`): dan bewaart
   `CustomEffectEditorViewModel.EndNameEdit` een goede naam, of zet de echte naam terug met een
@@ -593,17 +595,24 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
   **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
   meldingen als het die heeft, via een event `Message` dat `MainViewModel` in de statusregel zet
-  (`SettingsBackupViewModel`, `SharingViewModel`, `EngineOptionsCoordinator`, `SceneCoordinator`);
-  `LampSync` en `StillPreviewCoordinator` hebben er geen en melden een fout via
-  `EngineSession.OnCallFailed`. Sinds `mainviewmodel-opsplitsen` hebben drie delen
-  van `MainViewModel` zo'n eigen coördinator (intern): `StillPreviewCoordinator` (de frames, het
+  (`SettingsBackupViewModel`, `SharingViewModel`, `EngineOptionsCoordinator`, `SceneCoordinator`,
+  `CustomEffectsCoordinator`); `LampSync`, `StillPreviewCoordinator` en `LedEditCoordinator`
+  hebben er geen en melden een fout via `EngineSession.OnCallFailed`. Sinds
+  `mainviewmodel-opsplitsen` en `mainviewmodel-effecten-en-leds` hebben vijf delen van
+  `MainViewModel` zo'n eigen coördinator (intern): `StillPreviewCoordinator` (de frames, het
   stilstaande beeld van het voorbeeld en de flits), `EngineOptionsCoordinator` (de opties van
-  Instellingen en de werkbalk op Kleur) en `SceneCoordinator` (de scènes op Scènes, hun kaarten en
-  de tijden van "Alles uit"). Ze abonneren zich zelf op de events van de pure view models die ze
+  Instellingen en de werkbalk op Kleur), `SceneCoordinator` (de scènes op Scènes, hun kaarten en
+  de tijden van "Alles uit"), `CustomEffectsCoordinator` (de effecten van de engine en de eigen
+  effecten in de effectkeuze, met de editor van kaart 4, die hij zelf maakt omdat die namen bij
+  hem controleert) en `LedEditCoordinator` (LED's kiezen in het voorbeeld en ze kleuren, per LED
+  of in de laag). Ze abonneren zich zelf op de events van de pure view models die ze
   krijgen; wat ze van `MainViewModel` nodig hebben (zoals het gekozen apparaat) krijgen ze als
-  `Func<>`, en wat `MainViewModel` moet doen als event (zoals `SceneCoordinator.Loaded`). De
-  publieke eigenschappen van `MainViewModel` bleven gelijk; waar nodig sturen ze door (zoals
-  `WantsFrames`). De sleutels van een coördinator in de wachtrij die `OnCallSucceeded` moet kennen
+  `Func<>`, en wat `MainViewModel` moet doen als event (zoals `SceneCoordinator.Loaded` of
+  `LedEditCoordinator.LedsSent`, waarop het effect naar per LED gaat). De commando's van de
+  XAML (zoals `FillGradientCommand` en `NewCustomEffectCommand`) blijven op `MainViewModel` en
+  sturen door. De publieke eigenschappen van `MainViewModel` bleven gelijk; waar nodig sturen
+  ze door (zoals `WantsFrames`). De sleutels van een coördinator in de wachtrij die
+  `OnCallSucceeded` moet kennen
   zijn `internal const` (zoals `SceneCoordinator.ProfilesReloadCall`). Elke coördinator heeft
   eigen tests (`<Naam>Tests`) op een `EngineSession` met een `FakeEngineConnection`, zonder
   `MainViewModel`; de `MainViewModel*Tests` testen het geheel.

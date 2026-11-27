@@ -617,9 +617,14 @@ uitbreidingen in `docs/bouwplan.md`.
   zo'n apparaat komt, maar eventueel vragen welk apparaat welk is ("instellingen-beheer")
 - De volgorde "gekozen LED's → kleurenloop → lijst van het effect → eigen effect → apparaat" staat
   vier keer in `MainViewModel` (`ColorCard`, `OnColorPicked`, `ShowPickerColor`,
-  `SetPickerMode`). Eén enum van "wat de kiezer kleurt" kan dat samenbrengen. Een herontwerp met
-  gedragsrisico, want `ShowsCustomCard` en Per LED wijken van die volgorde af, dus niet in een
-  refactor (refactorreview 23-11-2026)
+  `SetPickerMode`; bij `OnColorPicked` zit de eerste stap nu in `LedEditCoordinator.TryPaint`).
+  Eén enum van "wat de kiezer kleurt" kan dat samenbrengen. Een herontwerp met gedragsrisico,
+  want `ShowsCustomCard` en Per LED wijken van die volgorde af, dus niet in een refactor
+  (refactorreview 23-11-2026). Samen daarmee: de bediening van de kleur op Kleur (de kleurkiezer,
+  de kleurenloop, de kleuren van het effect, kaart 4 en die vier plekken) uit `MainViewModel`
+  naar een eigen `LightingControlsViewModel` (V1 stap 7 van het refactorplan). Bleef liggen bij
+  `mainviewmodel-effecten-en-leds`: zonder die enum moet zo'n klasse dezelfde volgorde opnieuw
+  vier keer kennen, en hij raakt bijna elke `MainViewModel*Tests` (refactorplan 26-11-2026)
 - `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
   `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of
@@ -1095,14 +1100,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - UI Automation (`InvokePattern.Invoke`) op een knop van de instellingen-app duurt op deze pc
   zo'n 2 seconden; uitzoeken of de app zelf dan bezig is (bijv. met het voorbeeld) of dat het aan
   UI Automation ligt
-- `MainViewModel` verder opsplitsen: het LED-bewerken (`EditLedsAsync`, `SendLeds`,
-  `ClearLedSelection`, `FillGradient`) naar een eigen `LedEditCoordinator`. Bij de refactor na
-  de review bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, het voorbeeld, de
-  kleurkiezer en de effectkeuze nodig, en de bewerk-logica zelf zit al in `LedEditorViewModel`.
-  Pas oppakken als het LED-bewerken groeit (bijv. per zone). Ook het deel voor de eigen effecten
-  (~250 regels: `_customEffects`, `ShowEffects`, `SendCustomEffect`, `DeleteCustomEffect`,
-  `NewCustomEffect`, `CallOrShowCustomEffectsAsync` en `OnCustomEffectsChanged`) kan naar een
-  eigen klasse
 - Eén gedeelde schrijver voor `CustomEffectLibrary` en `LightingSettingsSaver`: beide schrijven
   hun bestand even na de laatste wijziging, loggen de eerste fout volledig en proberen het daarna
   opnieuw, elk met een eigen timer en eigen foutafhandeling

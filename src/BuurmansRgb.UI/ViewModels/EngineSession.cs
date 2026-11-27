@@ -7,7 +7,8 @@ namespace BuurmansRgb.UI.ViewModels;
 // The connection of the settings app to the engine, and the one way to call it. MainViewModel
 // attaches each new connection and detaches it when it goes; the coordinators that call the engine
 // for it (LampSync, StillPreviewCoordinator, EngineOptionsCoordinator, SceneCoordinator,
-// SettingsBackupViewModel, SharingViewModel) get this session.
+// CustomEffectsCoordinator, LedEditCoordinator, SettingsBackupViewModel, SharingViewModel) get this
+// session.
 // Calls that change something go through the call queue (Post), in the order the user made them,
 // a newer one with the same key replacing one that still waits. An answer is only shown while the
 // connection that gave it is still the current one (Read, WhenCurrent, IsCurrent): after
