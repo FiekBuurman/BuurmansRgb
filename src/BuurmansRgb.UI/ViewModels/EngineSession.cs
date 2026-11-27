@@ -54,26 +54,25 @@ internal sealed class EngineSession
     // For a call that only reads and whose failure needs no message: only to the log.
     public static void OnReadFailed(Exception exception) => Trace.TraceError(exception.ToString());
 
-    // In the queue on the current connection; false, and nothing sent, without one.
-    public bool Post(object key, Func<IEngineApi, Task> call) => Post(key, (IEngineConnection connection) => call(connection.Api));
+    // In the queue on the current connection; nothing is sent without one.
+    public void Post(object key, Func<IEngineApi, Task> call) => PostOn(key, connection => call(connection.Api));
 
     // The same, for a call that checks with WhenCurrent or IsCurrent whether its connection is
     // still there.
-    public bool Post(object key, Func<IEngineConnection, Task> call)
+    public void PostOn(object key, Func<IEngineConnection, Task> call)
     {
         if (Current is not { } connection)
         {
-            return false;
+            return;
         }
 
         _calls.Post(key, () => call(connection));
-        return true;
     }
 
     // In the queue, behind the changes that still wait; show gets the answer on the UI thread, unless
     // the connection was made again meanwhile.
-    public bool Read<T>(object key, Func<IEngineApi, Task<T>> call, Action<T> show) =>
-        Post(key, async (IEngineConnection connection) =>
+    public void Read<T>(object key, Func<IEngineApi, Task<T>> call, Action<T> show) =>
+        PostOn(key, async connection =>
         {
             var value = await call(connection.Api);
             WhenCurrent(connection, () => show(value));

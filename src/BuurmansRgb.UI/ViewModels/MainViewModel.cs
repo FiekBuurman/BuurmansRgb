@@ -1018,7 +1018,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _customEffectChanges++;
         ShowCustomEffect(effect);
-        _session.Post((CustomEffectCall, effect.Id), (IEngineConnection connection) => CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect)));
+        _session.PostOn((CustomEffectCall, effect.Id), connection => CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect)));
     }
 
     // The engine gives every device that shows it, and so this one, the static effect; the choice
@@ -1042,7 +1042,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
         ShowEffects();
         ShowPickerColor();
-        _session.Post((CustomEffectCall, id), async (IEngineConnection connection) =>
+        _session.PostOn((CustomEffectCall, id), async connection =>
         {
             await CallOrShowCustomEffectsAsync(connection, async () =>
             {
@@ -1090,7 +1090,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             candidate => _customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
         var effect = new CustomEffect(string.Empty, name, [new CustomEffectStep(_deviceColor), new CustomEffectStep(RgbColor.Black)]);
         _customEffectChanges++;
-        _session.Post(new object(), async (IEngineConnection connection) =>
+        _session.PostOn(new object(), async connection =>
         {
             var saved = await CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect));
             _session.WhenCurrent(connection, () =>
@@ -1743,7 +1743,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // shows what the engine has again, with the message the tray menu gives too.
     private void SendAutoStart(bool enabled)
     {
-        _session.Post(AutoStartCall, async (IEngineConnection connection) =>
+        _session.PostOn(AutoStartCall, async connection =>
         {
             if (await connection.Api.SetAutoStartAsync(enabled))
             {
@@ -1832,7 +1832,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // not exist yet.
     private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false, Action? failed = null)
     {
-        _session.Post(new object(), async (IEngineConnection connection) =>
+        _session.PostOn(new object(), async connection =>
         {
             try
             {
@@ -1960,7 +1960,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var open = Profiles.SelectedName;
-        _session.Post(ProfilesReloadCall, async (IEngineConnection connection) =>
+        _session.PostOn(ProfilesReloadCall, async connection =>
         {
             var names = await connection.Api.GetProfilesAsync();
             var wholeHouse = await connection.Api.GetWholeHouseTimesAsync();
@@ -2013,7 +2013,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // with ProfilesChanged too, which shows them again.
     private void SendWholeHouseTimes(WholeHouseTimes times)
     {
-        _session.Post(WholeHouseTimesCall, async (IEngineConnection connection) =>
+        _session.PostOn(WholeHouseTimesCall, async connection =>
         {
             await connection.Api.SetWholeHouseTimesAsync(times);
             var saved = await connection.Api.GetWholeHouseTimesAsync();
