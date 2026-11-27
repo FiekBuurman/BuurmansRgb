@@ -50,6 +50,27 @@ public sealed class LedArrangementCacheTests
     }
 
     [Fact]
+    public void For_ARingWithAnotherCount_MakesANewOne()
+    {
+        var cache = new LedArrangementCache();
+
+        var ring = Ring(cache, 8, 500);
+
+        Assert.Same(ring, Ring(cache, 8, 500));
+        Assert.NotSame(ring, Ring(cache, 9, 500));
+    }
+
+    [Fact]
+    public void For_SwitchingBetweenRingAndGrid_GivesTheRightTypeEachTime()
+    {
+        var cache = new LedArrangementCache();
+
+        Assert.IsType<RingArrangement>(Ring(cache, 8, 500));
+        Assert.IsType<CellArrangement>(Dots(cache, 8, 500));
+        Assert.IsType<RingArrangement>(Ring(cache, 8, 500));
+    }
+
+    [Fact]
     public void For_ARing_IsARingThatShrinksToFit()
     {
         var cache = new LedArrangementCache();
