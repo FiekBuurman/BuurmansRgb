@@ -3,8 +3,9 @@ namespace BuurmansRgb.Engine.Profiles;
 // Which scene is on, for ProfileLibrary.ActiveName: the one loaded or saved last, until the lighting
 // changes in any other way. Its own lock, apart from the one of the library, because LightingChanged
 // comes from inside the lighting controller, also while another thread holds the lock of the
-// library. Nothing outside is called under this lock, so the library may read Name under its own
-// lock (Load), never the other way round. Changed goes out outside the lock, from Change only.
+// library. Only the delegates of Change (so the predicate of EndIf) run under this lock; they must be
+// pure and take no lock, so the library may read Name under its own lock (Load), never the other way
+// round. Changed goes out outside the lock, from Change only.
 internal sealed class ActiveSceneTracker
 {
     private readonly Lock _gate = new();
