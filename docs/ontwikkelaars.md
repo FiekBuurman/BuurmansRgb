@@ -1285,14 +1285,25 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   elke kleur eerst als `<Color x:Key="…Color">`, en een brush wijst daarnaar (of naar een kleur
   met een naam, zoals `Transparent`), ook de rode sluitknop (`CloseHoverColor`) en de links
   (`LinkColor`, `LinkHoverColor`); `TokenContrastTests` laat geen brush met een losse hexcode toe.
-  Alleen het logo in `Controls.xaml` heeft zijn eigen kleuren. De componenten en de donkere stijl
-  van de gewone controls staan in `Themes/Controls.xaml`, wat de pagina's delen in
-  `Themes/Theme.xaml`, en de pagina's in `Views/Pages`. De gloed van een
-  LED-bolletje is een radiale gradiënt (`LedBulb`) in plaats van een `DropShadowEffect`, zodat
+  Alleen het logo in `Controls.Window.xaml` heeft zijn eigen kleuren. De componenten en de donkere stijl
+  van de gewone controls staan in `Themes/Controls*.xaml`, wat de pagina's delen in
+  `Themes/Theme.xaml`, en de pagina's in `Views/Pages`. `Controls.xaml` zelf houdt de tekstrollen en de
+  statusregel en voegt de andere bestanden samen: `Controls.Focus.xaml` (de focusringen: één template,
+  de hoekradius per stijl via `Corners.Radius`), `Controls.Icons.xaml`, `Controls.Window.xaml`
+  (logo en titelbalk), `Controls.Inputs.xaml` (schakelaar, schuif, tekstveld, keuzelijst, scrollbalk),
+  `Controls.Buttons.xaml` (knoppen en tegels; de ronde knoppen delen `RoundButtonBase`) en
+  `Controls.Cards.xaml` (kaarten, apparaatkaart, chip, effecttegel). Een `StaticResource` kijkt niet
+  in een bestand naast het zijne: elk bestand voegt zelf `Tokens.xaml` (en waar nodig de focusringen
+  en iconen) samen, alleen als het ze met een `StaticResource` gebruikt (elke `Source=` laadt een
+  eigen kopie, dus een merge "voor de zekerheid" kost opstarttijd en geheugen), behalve
+  `Controls.xaml`, dat alles samenvoegt voor de app. `Controls.Cards.xaml` staat als laatste, zodat
+  de stijl van `LedBulb` en een opzoeking van een token dezelfde brush vinden. Hoeken komen uit de tokens (`ButtonRadius`,
+  `RoundRadius`, `FieldRadius`), niet uit getallen in een template.
+  De gloed van een LED-bolletje is een radiale gradiënt (`LedBulb`) in plaats van een `DropShadowEffect`, zodat
   niet elk bolletje elk frame apart gerenderd wordt. Een LED die geen licht geeft (uit, of elk
   kanaal onder 8: `LedRing.IsDark`) tekent `LedBulb` zonder gloed en met een ring van 1,5 px
   binnen zijn rand in `LedOffRingBrush`; `LedPreviewView` geeft een zwarte LED die ring in plaats
-  van de vage omtrek van de andere. Beide krijgen de brush via hun stijl in `Controls.xaml`
+  van de vage omtrek van de andere. Beide krijgen de brush via hun stijl in `Controls.Cards.xaml`
   (`OffRingBrush`, als `DynamicResource`). Een bolletje op een kaartknop krijgt
   `CardLedOffRingBrush` van een stijl in de `Style.Resources` van `CardButton`, en de bolletjes
   op de strip van Kleur krijgen `StripLedOffRingBrush` in hun `DataTemplate`, die geen

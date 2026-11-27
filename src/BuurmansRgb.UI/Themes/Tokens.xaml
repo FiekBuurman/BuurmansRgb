@@ -149,7 +149,6 @@
     <Color x:Key="LedBlueColor">#5B93FF</Color>
 
     <SolidColorBrush x:Key="LedRedBrush" Color="{StaticResource LedRedColor}" />
-    <SolidColorBrush x:Key="LedYellowBrush" Color="{StaticResource LedYellowColor}" />
     <SolidColorBrush x:Key="LedGreenBrush" Color="{StaticResource LedGreenColor}" />
     <SolidColorBrush x:Key="LedBlueBrush" Color="{StaticResource LedBlueColor}" />
 
@@ -195,6 +194,10 @@
     <!-- Buttons with text are rectangles with the corners of a preset tile, not pills as in § 4: WPF
          turns a radius of half a wide button into an ellipse instead of round ends. -->
     <CornerRadius x:Key="ButtonRadius">12</CornerRadius>
+    <!-- Half of MinClickSize: a circle, as the round buttons in the design. -->
+    <CornerRadius x:Key="RoundRadius">22</CornerRadius>
+    <!-- The text field, the drop-down field and its list. -->
+    <CornerRadius x:Key="FieldRadius">12</CornerRadius>
     <sys:Double x:Key="MinClickSize">44</sys:Double>
     <!-- The tiles of the toolbox on Kleur: smaller than MinClickSize, so more colors fit; the handleiding
          names it as a deviation from the design. -->

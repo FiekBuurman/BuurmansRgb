@@ -4,7 +4,7 @@ using System.Windows.Controls;
 
 namespace BuurmansRgb.UI.Views;
 
-// The one link of the app (its style in Themes/Controls.xaml, DESIGN.md § 4 "Link"): a button that a
+// The one link of the app (its style in Themes/Controls.Buttons.xaml, DESIGN.md § 4 "Link"): a button that a
 // screen reader reads as a link, as it was a Hyperlink, instead of a button. UI Automation sees the
 // control type Hyperlink, which Verteller says as "link", and still the Invoke pattern of a button,
 // so a click, Enter, Space and a screen reader all do the same. Its text is shown as it is, and so is

@@ -3,7 +3,7 @@ using System.Windows.Controls;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The CheckBox of the theme (Themes/Controls.xaml), in a window off screen.
+// The CheckBox of the theme (Themes/Controls.Inputs.xaml), in a window off screen.
 [Collection(AppThemeCollection.Name)]
 public sealed class CheckBoxStyleTests
 {

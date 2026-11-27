@@ -8,7 +8,7 @@ using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The ring of an LED that is off or black comes from the theme (Themes/Controls.xaml): the bulbs
+// The ring of an LED that is off or black comes from the theme (Themes/Controls.Cards.xaml): the bulbs
 // draw it in LedOffRingBrush, which stands out 3:1 on every ground of the LEDs (TokenContrastTests).
 [Collection(AppThemeCollection.Name)]
 public sealed class LedRingStyleTests

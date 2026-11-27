@@ -6,7 +6,7 @@ using System.Windows.Input;
 namespace BuurmansRgb.UI.Views;
 
 // The card of a device on Kleur that opens and closes (DESIGN.md § 9.3 "Apparaatkaart"), with its
-// template in Themes/Controls.xaml. The part HeaderSite is the ToggleButton of the head: it takes the
+// template in Themes/Controls.Cards.xaml. The part HeaderSite is the ToggleButton of the head: it takes the
 // keyboard focus, Enter, Space and the mouse, and → opens and ← closes the card, as a folder in
 // Verkenner. For UI Automation the card itself is the element (ExpanderAutomationPeer, type Group
 // with ExpandCollapse): it reports the focus of HeaderSite as its own, so Verteller reads the card,

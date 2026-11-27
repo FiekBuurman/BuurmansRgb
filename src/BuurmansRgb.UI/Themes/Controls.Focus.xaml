@@ -1,0 +1,39 @@
+<!-- The focus rings of the controls (Controls.xaml merges it, and the other Controls files that draw a ring merge it too). -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+                    xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
+
+    <!-- Focus rings: 2 px in text, drawn just outside the control, only when the keyboard moved the focus.
+         The ring is one template; a style based on it sets the corners with Corners.Radius, which the
+         template reads from the ring itself: a focus visual lives in the adorner layer, not in the
+         template of the control, so it cannot look up the corners of that control. -->
+    <Style x:Key="FocusRing">
+        <Setter Property="views:Corners.Radius" Value="10" />
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="{TemplateBinding views:Corners.Radius}" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Around a card with the corners of a card (18), so the ring follows the whole card. -->
+    <Style x:Key="FocusRingCard" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="21" />
+    </Style>
+    <!-- Around a button or slider with the corners of a button (12), 3 px further out. -->
+    <Style x:Key="FocusRingButton" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="15" />
+    </Style>
+    <!-- Around a switch: round ends for a ring 38 px high. A larger radius would make WPF draw an
+         ellipse instead of round ends. -->
+    <Style x:Key="FocusRingSwitch" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="19" />
+    </Style>
+    <!-- Around a square control that is drawn as a circle, such as an icon button. -->
+    <Style x:Key="FocusRingRound" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="999" />
+    </Style>
+</ResourceDictionary>

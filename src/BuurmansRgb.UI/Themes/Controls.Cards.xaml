@@ -1,0 +1,250 @@
+<!-- Cards and what is a card: the card styles, the LED strip board, the device card, the chip and the effect tile (§ 4, § 9.3). -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+                    xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Tokens.xaml" />
+        <ResourceDictionary Source="Controls.Focus.xaml" />
+        <ResourceDictionary Source="Controls.Icons.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- § 4 Card: surface with a 1 px border, no shadow. -->
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CardRadius}" />
+        <Setter Property="Padding" Value="16,14" />
+    </Style>
+    <Style x:Key="LargeCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="CornerRadius" Value="{StaticResource LargeCardRadius}" />
+        <Setter Property="Padding" Value="18" />
+    </Style>
+    <!-- An LED bulb that is off shows led-off; off or black, it gets a ring that shows where it is. -->
+    <Style TargetType="views:LedBulb">
+        <Setter Property="OffBrush" Value="{StaticResource LedOffBrush}" />
+        <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
+    </Style>
+    <!-- The preview of the LEDs of a device: a black LED gets the same ring. The text on the keys of a
+         keyboard grows with the text size of Windows and follows the contrast theme (KeyCapBrush). -->
+    <Style TargetType="views:LedPreviewView">
+        <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
+        <Setter Property="KeyCapFontSize" Value="{DynamicResource KeyCapSize}" />
+        <Setter Property="KeyCapBrush" Value="{DynamicResource KeyCapBrush}" />
+        <Setter Property="KeyCapHaloBrush" Value="{DynamicResource KeyCapHaloBrush}" />
+    </Style>
+
+    <!-- The LED strip (§ 4): a row of evenly spread bulbs on the "circuit board". -->
+    <Style x:Key="StripBoard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource StripBgBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource StripRadius}" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Padding" Value="10,0" />
+    </Style>
+
+    <!-- A card that opens something (§ 4, § 6): the whole card is the button, so the hover border and the
+         focus ring follow the card. Other controls on the card sit beside it, not in it. -->
+    <Style x:Key="CardButton" TargetType="Button">
+        <Style.Resources>
+            <!-- A bulb on the card: its ring on the face of a button (CardLedOffRingBrush). -->
+            <Style TargetType="views:LedBulb" BasedOn="{StaticResource {x:Type views:LedBulb}}">
+                <Setter Property="OffRingBrush" Value="{DynamicResource CardLedOffRingBrush}" />
+            </Style>
+        </Style.Resources>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="16,14" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingCard}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="{StaticResource CardRadius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- The head of a device card on Kleur (DESIGN.md § 9.3): the part HeaderSite of DeviceCard, one
+         click area with the arrow (right when closed, down when open) and the icon, name and line of
+         its content. Without a face of its own: under the mouse the surface-raised of the design, and
+         in a contrast theme a line in the highlight. -->
+    <Style x:Key="DeviceCardHeader" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Face" CornerRadius="{StaticResource ButtonRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
+                        <DockPanel>
+                            <Path x:Name="Chevron" DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Style="{StaticResource LineIcon}"
+                                  Data="{StaticResource IconChevronRight}" Stroke="{TemplateBinding Foreground}" />
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        </DockPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Chevron" Property="Data" Value="{StaticResource IconChevronDown}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource HoverOutlineBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The head keeps 14 em of its text for the name beside the small strip and Knipperen; with less
+         room they go under the name, on the right (§ 9.6). -->
+    <views:EmConverter x:Key="DeviceCardHeadingWidth" Ems="14" />
+
+    <!-- A device card on Kleur that opens and closes (DeviceCard, § 9.3): a card with the head on top,
+         Note under it (also closed), and the content under a line of 1 px only while open, without an
+         animation. -->
+    <Style TargetType="views:DeviceCard">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="views:DeviceCard">
+                    <Border CornerRadius="{StaticResource CardRadius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                        <StackPanel>
+                            <views:HeaderPanel Margin="8,6,18,6" MinHeight="44" Gap="6" StackedAsideAlignment="Right"
+                                               MinHeadingWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource DeviceCardHeadingWidth}}">
+                                <ToggleButton x:Name="HeaderSite" Style="{StaticResource DeviceCardHeader}"
+                                              Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                                <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center" Content="{TemplateBinding Aside}" />
+                            </views:HeaderPanel>
+                            <ContentPresenter Content="{TemplateBinding Note}" />
+                            <Border x:Name="Body" Padding="18,14,18,8" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding BorderBrush}" Visibility="Collapsed">
+                                <ContentPresenter x:Name="ExpandSite" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="Body" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A chip of the row "Naar een apparaat" on Kleur (§ 9.3 "Apparaat-chip"): a pill with a bulb in the
+         color of the device and its name; it jumps, it has no chosen stand. -->
+    <Style x:Key="DeviceChip" TargetType="Button">
+        <Style.Resources>
+            <Style TargetType="views:LedBulb" BasedOn="{StaticResource {x:Type views:LedBulb}}">
+                <Setter Property="OffRingBrush" Value="{DynamicResource CardLedOffRingBrush}" />
+            </Style>
+        </Style.Resources>
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="FontSize" Value="{DynamicResource SmallBodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Face" CornerRadius="{StaticResource RoundRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- An effect tile on Kleur (§ 9.3 "Effecttegel"): at least 44 px high and 9.5 em of its own text
+         wide (142 px at 100 %), into which the longest name with ✓ fits on one line, so every tile in
+         the WrapPanel is as wide as the others and the row does not jump with another choice; the name
+         may wrap rather than be cut off. Chosen: a border of 3 px with 2 px less padding, so the text
+         stays where it is and the tile keeps its height, and a ✓ before the name, so the choice shows
+         not only by the border. No picture that moves. -->
+    <views:EmConverter x:Key="EffectTileMinWidth" Ems="9.5" />
+    <Style x:Key="EffectTile" TargetType="views:EffectTile">
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="MinWidth" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource EffectTileMinWidth}}" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TileTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource TileFaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="views:EffectTile">
+                    <Border x:Name="Face" CornerRadius="{StaticResource TileRadius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                        <DockPanel VerticalAlignment="Center">
+                            <views:DecorativeText x:Name="Check" DockPanel.Dock="Left" Text="✓ " Visibility="Collapsed" />
+                            <TextBlock TextWrapping="Wrap" Text="{TemplateBinding Content}" />
+                        </DockPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Check" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="BorderThickness" Value="3" />
+                <Setter Property="Padding" Value="12,6" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ChosenTileBorderBrush}" />
+                <Setter Property="Background" Value="{DynamicResource ChosenTileFaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ChosenTileTextBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

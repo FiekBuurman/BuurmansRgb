@@ -7,7 +7,7 @@ namespace BuurmansRgb.UI.Views;
 // An LED of the design (§ 4): a dot in its color with a glow around it, like the CSS box-shadow
 // "0 0 <GlowBlur> <GlowSpread> <color>". The glow is a radial gradient drawn past the bounds
 // instead of a DropShadowEffect, which would render every bulb off screen on each frame. Off, it
-// shows OffBrush (led-off of the tokens, set by its style in Controls.xaml) without a glow. Off or
+// shows OffBrush (led-off of the tokens, set by its style in Controls.Cards.xaml) without a glow. Off or
 // black, it gets a ring in OffRingBrush (LedRing), so you still see where it is. Only decoration:
 // what it shows is also said in text nearby.
 //

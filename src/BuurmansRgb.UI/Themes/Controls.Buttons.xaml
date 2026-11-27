@@ -1,0 +1,317 @@
+<!-- The buttons: primary, secondary, round, tiles, the new button and the link (§ 4). -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+                    xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Tokens.xaml" />
+        <ResourceDictionary Source="Controls.Focus.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- § 4 Primary button: text-colored, with the corners of ButtonRadius; in a contrast theme the
+         highlight (AccentBrush). Under the mouse a little lighter; in a contrast theme, where
+         that would not show, the colors swap and a ring in the highlight keeps the shape of the
+         button, as the accent buttons of Windows do. Without one the hover tokens are the colors at
+         rest and the ring is transparent. Under the mouse the face always takes AccentHoverBrush, as
+         the trigger sets the face itself: a Background of your own on a PrimaryButton shows only at
+         rest. -->
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="Padding" Value="28,0" />
+        <Setter Property="FontSize" Value="{DynamicResource PrimaryButtonSize}" />
+        <Setter Property="FontWeight" Value="ExtraBold" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border x:Name="Face" CornerRadius="{StaticResource ButtonRadius}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <Border x:Name="HoverRing" CornerRadius="{StaticResource ButtonRadius}" BorderThickness="2" BorderBrush="Transparent" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Face" Property="Opacity" Value="0.9" />
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+                            <Setter TargetName="HoverRing" Property="BorderBrush" Value="{DynamicResource HoverOutlineBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource OnAccentHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Face" Property="Opacity" Value="0.8" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A quieter button for the smaller actions: a surface with a border and the corners of ButtonRadius.
+         One that does nothing now (IsEnabled false) keeps its shape but goes grey: its text in the
+         disabled grey (4.5:1 on a card, TokenContrastTests), on a face that shows the card through,
+         with the border of a card; not the whole button at a lower opacity, which leaves the text too
+         faint to read. The tooltip of such a button stays (ToolTipService.ShowOnDisabled). That trigger
+         sets the colors on the button, not on its face, so a trigger of a style based on this one
+         comes before it (DayToggle keeps a day that is on visible). -->
+    <Style x:Key="SecondaryButton" TargetType="ButtonBase">
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="16,0" />
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="views:Corners.Radius" Value="{StaticResource ButtonRadius}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ButtonBase">
+                    <Border x:Name="Face" CornerRadius="{TemplateBinding views:Corners.Radius}" BorderThickness="1" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource DisabledFaceBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The base of the round buttons, such as the wrench in the design: a SecondaryButton with the
+         corners of a circle at 44 px (RoundRadius), and a focus ring to match. -->
+    <Style x:Key="RoundButtonBase" TargetType="ButtonBase" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="views:Corners.Radius" Value="{StaticResource RoundRadius}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
+    </Style>
+
+    <!-- A round 44 px button with a line icon as its content, such as the wrench in the design. -->
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource RoundButtonBase}">
+        <Setter Property="Width" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Height" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- A round toggle with a short text, such as a day of the week: on, text-colored like the primary
+         button with bg text; off, a surface with a border like the secondary button. A larger text
+         size of Windows makes it a pill, as wide as its text. -->
+    <Style x:Key="DayToggle" TargetType="ToggleButton" BasedOn="{StaticResource RoundButtonBase}">
+        <Setter Property="Padding" Value="8,0" />
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+            </Trigger>
+            <!-- A day that cannot be changed (no time yet) still shows whether it is on. Off, it is the
+                 disabled button above: grey text on the face that shows the card through. On, the
+                 disabled grey is its face (5:1 on a card, TokenContrastTests) with bg text, so it stays
+                 apart from a day that is off and looks greyer than a day that is on; a contrast theme
+                 gives the face GrayText with Window text. The triggers of a style win over those of
+                 its template, and a later one over an earlier one, so this comes after IsChecked. -->
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsChecked" Value="True" />
+                    <Condition Property="IsEnabled" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- An IconButton that repeats while it is held down, such as − and + of a zone length. -->
+    <Style x:Key="IconRepeatButton" TargetType="RepeatButton" BasedOn="{StaticResource RoundButtonBase}">
+        <Setter Property="Width" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Height" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- § 4 "+ new" button: transparent with a dashed border-strong border and the corners of ButtonRadius,
+         or the Corners.Radius of a style based on it. A dashed line needs a Rectangle, which has one
+         radius: the top left one. -->
+    <Style x:Key="NewButton" TargetType="Button">
+        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="Padding" Value="24,0" />
+        <Setter Property="FontSize" Value="{DynamicResource NewButtonSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="views:Corners.Radius" Value="{StaticResource ButtonRadius}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Rectangle x:Name="Dashes" StrokeThickness="2" StrokeDashArray="3 2" Stroke="{DynamicResource BorderStrongBrush}"
+                                   RadiusX="{TemplateBinding views:Corners.Radius, Converter={x:Static views:Corners.TopLeft}}"
+                                   RadiusY="{TemplateBinding views:Corners.Radius, Converter={x:Static views:Corners.TopLeft}}" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Dashes" Property="Stroke" Value="{DynamicResource ControlHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- § 4 Preset tile: 44 px high, filled with its color; Tag True marks the chosen one with a 3 px
+         text border. A binding gives Tag a bool, so the trigger compares with a bool: the text "True"
+         never equals it. The corners are Corners.Radius, so a style based on it can set others. -->
+    <Style x:Key="PresetTile" TargetType="Button">
+        <Setter Property="Height" Value="{StaticResource MinClickSize}" />
+        <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="views:Corners.Radius" Value="{StaticResource TileRadius}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="{TemplateBinding views:Corners.Radius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+            </Trigger>
+            <Trigger Property="Tag">
+                <Trigger.Value>
+                    <sys:Boolean>True</sys:Boolean>
+                </Trigger.Value>
+                <Setter Property="BorderBrush" Value="{DynamicResource TextBrush}" />
+                <Setter Property="BorderThickness" Value="3" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- A preset tile of the toolbox on Kleur: a square of SmallTileSize instead of 44 px high, with
+         smaller corners to go with it. The tiles of a list of colors stay PresetTile. -->
+    <Style x:Key="SmallPresetTile" TargetType="Button" BasedOn="{StaticResource PresetTile}">
+        <Setter Property="views:Corners.Radius" Value="{StaticResource SmallTileRadius}" />
+        <Setter Property="Width" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="Height" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="MinWidth" Value="0" />
+    </Style>
+
+    <!-- The tiles of a list of colors (ColorListEditor) and the steps of an own effect: rows of at
+         most six tiles 44 wide and 8 apart, with the + and − buttons (ColorListButton) behind them. -->
+    <Style x:Key="ColorTileList" TargetType="ItemsControl">
+        <Setter Property="MaxWidth" Value="312" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A tile of a ColorTileList; its item gives IsSelected (Tag) and Name. -->
+    <Style x:Key="ColorListTile" TargetType="Button" BasedOn="{StaticResource PresetTile}">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="Tag" Value="{Binding IsSelected}" />
+        <Setter Property="ToolTip" Value="{Binding Name}" />
+        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+    </Style>
+
+    <Style x:Key="ColorListButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
+    <!-- "+" before the own colors of the toolbox: the "+ new" button as a square of SmallTileSize with
+         the corners of a SmallPresetTile. -->
+    <Style x:Key="AddTile" TargetType="Button" BasedOn="{StaticResource NewButton}">
+        <Setter Property="Width" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="Height" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="views:Corners.Radius" Value="{StaticResource SmallTileRadius}" />
+    </Style>
+
+    <!-- The one link of the app (DESIGN.md § 4, "Link"): a text action as a button, such as "Hoe komt
+         een apparaat erbij?", the name of a zone in the preview and "Alles selecteren". It is always
+         underlined, also in a contrast theme, so it is a link by more than its color (WCAG 1.4.1). The
+         line is a text decoration, drawn in the color of the text: in a contrast theme HotTrack at
+         rest and the highlight under the mouse. The text wraps when its place is narrower, such as a
+         long zone name. Keyboard focus gives it the focus ring of the app. One that does nothing now,
+         such as "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey without the line, so
+         it no longer looks like a link: a link has no frame or fill, so fading alone would leave it
+         blue. Its grey is DisabledLinkBrush: the muted text at 0.6, in a contrast theme GrayText
+         without opacity, as the text of a disabled button. The
+         hand goes by itself, as WPF shows the cursor of the parent over a disabled element. Under the
+         mouse a link gets lighter. Its content is a text, shown as it is: the app has no access keys, so
+         an underscore, as in a zone name of OpenRGB such as "D_LED1", stays an underscore. It is
+         the style of every LinkButton, which a screen reader reads as a link, so a link is always a
+         LinkButton and always looks like one. -->
+    <Style TargetType="views:LinkButton">
+        <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
+        <Setter Property="FontSize" Value="{DynamicResource SmallBodySize}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="views:LinkButton">
+                    <Grid VerticalAlignment="Center" Margin="4,0">
+                        <TextBlock x:Name="Text" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                   TextWrapping="Wrap" TextDecorations="Underline" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Text" Property="TextDecorations" Value="{x:Null}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource LinkHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource DisabledLinkBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>
