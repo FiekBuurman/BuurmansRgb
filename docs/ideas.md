@@ -641,11 +641,25 @@ uitbreidingen in `docs/bouwplan.md`.
   (refactorplan 26-11-2026)
 - Het verlaten van het naamvak van een eigen effect (`OnCustomEffectNameLostFocus`, dat
   `EndNameEdit` aanroept en het vak de naam opnieuw laat tonen) en van het hexveld
-  (`OnHexLostFocus`) staan nog in `ColorPage.xaml.cs`. `CommitOnEnter` zou er een
-  `LostFocusCommand` bij kunnen krijgen, zodat die pagina alleen nog de focus na een klik regelt.
+  (`OnHexLostFocus`) staan nog in code-behind, sinds `kleurpagina-opsplitsen` in
+  `CustomEffectEditor.xaml.cs` en `ColorMixer.xaml.cs`. `CommitOnEnter` zou er een
+  `LostFocusCommand` bij kunnen krijgen, zodat die bestanden alleen nog de focus na een klik regelen.
   Bleef liggen bij `dialogen-als-service`: de taak noemde alleen Enter en Escape, en het
   naamvak geeft de tekst van het vak mee, wat een eigen soort commando vraagt
   (refactorplan 26-11-2026)
+- De em-breedtes van Kleur staan sinds `kleurpagina-opsplitsen` twee keer: `MixColumnWidth` in
+  `ColorPage.xaml` (de kolom van "Bewaar als scène") en `ColorMixer.xaml`, `ValueColumnWidth` in
+  `ColorPage.xaml` (Helderheid, Snelheid, Richting) en `CustomEffectEditor.xaml`, en de stijl
+  `Label` alleen nog in `CustomEffectEditor.xaml`. Ze kunnen naar een gedeeld resourcebestand
+  (bijvoorbeeld bij `Controls.Cards.xaml`), zodat een andere breedte op één plek verandert. Bleef
+  liggen: de taak noemde alleen het opsplitsen, en een sleutel in de app-resources geldt voor elke
+  pagina (refactorplan 26-11-2026)
+- Het paneel van een eigen effect (`CustomEffectPanel`) zoekt `IsCustomEffect`, de deelknoppen en
+  "Patroon overnemen" nog via `RelativeSource AncestorType=UserControl`, dus via de pagina. Dat
+  werkt omdat `CustomEffectEditor` en `ColorMixer` panels zijn; wordt een van beide ooit een
+  `UserControl`, dan vinden die bindingen dat control met dezelfde DataContext en werken ze nog,
+  maar `AncestorType=views:CustomEffectEditor` zou duidelijker zijn. Bleef liggen om de verplaatste
+  XAML regel voor regel gelijk te houden (refactorplan 26-11-2026)
 - `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
   `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of
