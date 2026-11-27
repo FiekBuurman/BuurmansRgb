@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace BuurmansRgb.UI.Views;
 
@@ -52,5 +53,28 @@ internal static class VisualTreeSearch
 
         element.Focus();
         return true;
+    }
+
+    // Focuses the button of the tile at index, or of the last one when the list got shorter, and
+    // without tiles the fallback. Unless now, once the tiles are laid out again, so the one at that
+    // place exists: after a tile was removed or added.
+    internal static void FocusTileAt(this ItemsControl tiles, int index, UIElement? fallback, bool now = false)
+    {
+        void Focus()
+        {
+            if (!tiles.FocusItemAt<Button>(index))
+            {
+                fallback?.Focus();
+            }
+        }
+
+        if (now)
+        {
+            Focus();
+        }
+        else
+        {
+            tiles.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, Focus);
+        }
     }
 }
