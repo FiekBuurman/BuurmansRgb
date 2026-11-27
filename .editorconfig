@@ -30,3 +30,8 @@ dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_style.underscore_camel.required_prefix = _
 dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+# In Engine en UI volgen de namespaces bewust de mappen niet: zie "Mappen en namespaces" in
+# docs/ontwikkelaars.md. In de andere projecten blijft IDE0130 aan.
+[src/{BuurmansRgb.Engine,BuurmansRgb.UI}/**.cs]
+dotnet_diagnostic.IDE0130.severity = none
