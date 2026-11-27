@@ -782,7 +782,7 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 Met **Ctrl+klik** zet je een losse LED bij de gekozen LED's of haal je hem eruit, zoals in
 Verkenner: zo kies je bijv. W, A, S en D zonder de toetsen ertussen. Ctrl+Shift+klik zet de reeks
 vanaf de vorige klik erbij. Boven het mengpaneel staat dan hoeveel het er zijn ("4 LED's van
-Gesimuleerd toetsenbord") in plaats van "LED 3 t/m 7".
+Gesimuleerd toetsenbord") in plaats van "LED 3 t/m 7 van Gesimuleerd toetsenbord".
 
 ![Het gesimuleerde toetsenbord met de letters op de toetsen; W, A, S en D zijn met Ctrl+klik gekozen en hebben elk een selectiering, de toetsen ertussen niet](images/toetsen-wasd.png)
 
@@ -1631,15 +1631,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **De tekstgrootte van Windows** noemt het ontwerp niet: daar hebben de letters vaste maten (§ 2).
   De app vermenigvuldigt ze met de tekstgrootte (zie "Tekstgrootte" bij "Toegankelijkheid"), en maakt dan plaats:
   de navigatiebalk is minstens 88 px en breder als de labels dat vragen (het ontwerp zegt
-  ~72–88 px), en op Kleur gaan het voorbeeld en de schuiven en de vier kolommen van "Licht en
-  beweging" onder elkaar zodra ze naast elkaar niet passen. Bij 100 % ziet alles eruit als in het
+  ~72–88 px), en op Kleur gaan het voorbeeld en de schuiven van "Helderheid en
+  snelheid" onder elkaar zodra ze naast elkaar niet passen. Bij 100 % ziet alles eruit als in het
   ontwerp. Het woordmerk blijft 22 px, ook boven Apparaten.
 - **Minder beweging** noemt het ontwerp niet: daar gloeit het voorbeeld altijd mee. Met de
   animaties van Windows uit staat het stil (zie "Minder beweging" bij "Toegankelijkheid"). De melding met
   "Laten lopen" staat in de Statusregel (§ 4), en de markering van Knipperen is een pil met een
   rand van 2 px in de tekstkleur (een contrastthema geeft hem de kleur van dat thema).
-- **Instellingen** staat niet in het ontwerp; het gebruikt dezelfde kaarten, kleuren en
-  lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik". De Statusregel (de pauze, de
+- Scènes zegt "Eén klik" in plaats van "Eén tik". De Statusregel (de pauze, de
   verbinding weg en het voorbeeld dat stilstaat, sinds `een-melding` in één kaart) staat in § 4
   van het ontwerp, ook de melding over andere RGB-software (`conflict-melding`) en waar die in de
   volgorde staat. Die melding heeft als enige twee knoppen, **Uitleg** en **Niet meer melden**;
@@ -2268,8 +2267,8 @@ tray-menu of bij Instellingen in de app.
 - Elke pauze van de effecten en elke hervatting staat erin met de reden, bijv. "Effects paused
   (screen off)." en "Pause ended (screen off); effects run again."; houden er meer redenen
   tegelijk aan, dan staan die erbij ("also paused: locked", "still paused: locked"). De redenen
-  heten `tray menu`, `locked`, `asleep`, `screen off` en `screen saver` (zie "Pauzeren" bij
-  Effecten). Zo zie je achteraf waarom de effecten stilstonden.
+  heten `tray menu`, `locked`, `asleep`, `screen off` en `screen saver` (zie "Pauzeren").
+  Zo zie je achteraf waarom de effecten stilstonden.
 - Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg, alleen
   die van jou: andere gebruikers op de pc houden hun `%AppData%\BuurmansRgb` (zie "Verwijderen"
   in [installatie.md](installatie.md#verwijderen)).

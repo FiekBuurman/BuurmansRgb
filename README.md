@@ -63,8 +63,8 @@ draaien zonder hardware. Meer in [docs/ontwikkelaars.md](docs/ontwikkelaars.md).
 ## Status
 
 Taak 0 t/m 9 uit het [bouwplan](docs/bouwplan.md) zijn gebouwd, plus een reeks uitbreidingen.
-Alles is getest met gesimuleerde apparaten en de installer op een echte pc; het testen per
-apparaattype op echte hardware staat nog open.
+Alles is getest met gesimuleerde apparaten, de installer op een echte pc, en op 24-11-2026 de
+echte apparaten thuis; per apparaattype staan nog een paar criteria open (o.a. de headset).
 
 ## Meer lezen
 

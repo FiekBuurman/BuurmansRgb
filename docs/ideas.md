@@ -49,8 +49,8 @@ uitbreidingen in `docs/bouwplan.md`.
   tray-menu al loopt (`TrayPresenter.RestartAsync` geeft dan `false` terug zonder iets te doen),
   of omdat de herstart al vóór het sluiten van de app vastliep (de `catch` in
   `TrayPresenter.RestartAsync` vóór `CloseIfOpen`), dan blijft onderaan "buurmansRgb herstart…"
-  staan tot de volgende wijziging of het opnieuw verbinden. Een gebeurtenis van de engine (herstart geweigerd of mislukt) zou dat opruimen en de
-  knop weer vrijgeven
+  staan tot de volgende wijziging of het opnieuw verbinden. Een gebeurtenis van de engine
+  (herstart geweigerd of mislukt) zou dat opruimen en de knop weer vrijgeven
 - Herstarten: alleen OpenRGB en PawnIO herstarten zonder buurmansRgb zelf (dan blijft de
   instellingen-app open), en in de melding noemen welk programma PawnIO vasthoudt als de driver
   niet stopt. De stap met adminrechten logt nu niets; de engine logt de uitkomst en alleen de
@@ -192,10 +192,11 @@ uitbreidingen in `docs/bouwplan.md`.
   een uitleg; nu staat dat alleen in de tooltip. Bij Statisch en Ademen maakt hij ook geen
   verschil, maar daar is hij niet mis
 - Faalt een apparaat tijdens het renderen na het omzetten van "Zones gelijk" (de setter van
-  `LightingController.ZonesAlike` of `SetZonesAlike` → `RenderLocked` → `Provider.SetLeds`
-  gooit), dan gaat `ZonesAlikeChanged` niet af: de keuze staat in het geheugen, maar wordt niet
-  bewaard en de app hoort het niet. `PausedLights` meldt zijn wijziging met try/finally,
-  `SetLighting` doet het net als `ZonesAlike` niet. Gelijktrekken als eigen fix, met een test
+  `LightingController.ZonesAlike` of `SetZonesAlike`, beide via `SetOption` → `RenderLocked` →
+  `Provider.SetLeds` gooit), dan gaat `ZonesAlikeChanged` niet af: de keuze staat in het
+  geheugen, maar wordt niet bewaard en de app hoort het niet. `PausedLights` meldt zijn wijziging
+  met try/finally, `SetLighting` (via `Mutate`) doet het net als `ZonesAlike` niet.
+  Gelijktrekken als eigen fix, met een test
 - Een effect over de hele kast, met apparaten op een plek in de kast: elk apparaat (en elke
   zone) een plek en grootte in een tekening van de kast, zodat een regenboog of golf in één
   richting van de voorste fans via het moederbord naar de achterste loopt. De richting is nu per
@@ -305,9 +306,10 @@ uitbreidingen in `docs/bouwplan.md`.
   blijft
 - Wat nog per effect buiten `EffectTraits` staat (refactorplan 26-11-2026): de bolletjes van
   Regenboog, Kleurenloop en Vuur op een scènekaart (`SceneLook.DotsOf`) en dat Per LED geen ene
-  kleur heeft (`SceneLook.OneColorOf`) zijn eigen tekenwerk van de app; en `MainViewModel` biedt de
-  snelheid ook voor een eigen effect (`IsAnimated(id) || IsCustom`). Pas in de tabel zetten als een
-  nieuw effect hier echt een tweede plek nodig heeft
+  kleur heeft (`SceneLook.OneColorOf`) zijn eigen tekenwerk van de app; en
+  `MainViewModel.IsSpeedEnabled` biedt de snelheid ook voor een eigen effect
+  (`EffectIds.IsAnimated(id) || IsCustom`). Pas in de tabel zetten als een nieuw effect hier echt
+  een tweede plek nodig heeft
 
 ## Instellingen-app en ontwerp
 
@@ -341,9 +343,9 @@ uitbreidingen in `docs/bouwplan.md`.
   verwijzing naar "Instellingen bewaren…" voor een andere pc; nu noemt het blok alleen de
   verlichting, de helderheid, de slaapstand en "Starten met Windows" (`wat-blijft-bewaard`)
 - Eén gedeeld template voor een rij met een schakelaar op Instellingen: de vier schakelaars daar
-  (en "Zones gelijk" in het voorbeeld op Kleur) volgen hetzelfde patroon, nu elk met de hand in de XAML. Meer dan
-  verplaatsen, omdat de rijen een `x:Name` hebben waar `FocusFallback` naar wijst en de boom voor
-  UI Automation gelijk moet blijven (refactorreview 4-11-2026)
+  (en "Zones gelijk" in het voorbeeld op Kleur) volgen hetzelfde patroon, nu elk met de hand in
+  de XAML. Meer dan verplaatsen, omdat de rijen een `x:Name` hebben waar `FocusFallback` naar
+  wijst en de boom voor UI Automation gelijk moet blijven (refactorreview 4-11-2026)
 - Zes oudere plekken kiezen de tekst voor één of meer nog met de hand en kunnen ook
   `UiText.ForCount` gebruiken: `DeviceItem.cs:41`, `EffectOption.cs:34`,
   `OpenRgbStatusViewModel.cs:35`, `StatusLineViewModel.cs:71`, `ZoneCountPaceOption.cs:16` en
@@ -461,7 +463,8 @@ uitbreidingen in `docs/bouwplan.md`.
   wijziging. Hij bleef bij `een-melding` als subtekst staan omdat hij bij het hele venster hoort,
   niet bij een pagina, en de statusregel anders altijd zou staan
 - Onder "Details" van de statusregel ook de technische OpenRGB-status tonen (nu alleen in de
-  tooltip rechtsboven, achter de ⓘ en bij Instellingen), zodat hij op Kleur ook zonder tooltip te lezen is
+  tooltip rechtsboven, achter de ⓘ en bij Instellingen), zodat hij op Kleur ook zonder tooltip te
+  lezen is
 - De statusregel ook bovenaan Scènes en Instellingen; sinds `een-melding` staat hij alleen op
   Apparaten en Kleur, zoals het ontwerp (§ 4) hem noemt, dus op Scènes zie je een pauze of de
   verbinding die weg is alleen aan het tray-icoon, terwijl een scène die je daar aanzet dan niet
@@ -486,9 +489,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - De focus doorgeven als "Hervatten" boven het voorbeeld verdwijnt zonder klik: eindigt de pauze
   via het tray-menu terwijl de focus op die knop staat, dan valt hij naar het venster, want
   `PreviewActionsHint` heeft alleen `OnResumeClick`; de statusregel doet het wel
-  (`StatusLine.OnButtonIsVisibleChanged`). Een gedeelde attached behavior in `Views/` (zoals
-  `LiveRegion.AnnouncesUpdates`) voor "knop verbergt zich met de focus erin: focus naar de
-  volgende" zou beide bedienen (refactorreview 2-11-2026)
+  (`StatusLine.OnButtonIsVisibleChanged`). Een gedeelde attached behavior (zoals
+  `LiveRegion.AnnouncesUpdates` in `Views/Automation/`) voor "knop verbergt zich met de focus
+  erin: focus naar de volgende" zou beide bedienen (refactorreview 2-11-2026)
 - Een gewone knop die je indrukt in een contrastthema `Highlight` met `HighlightText` geven, zoals
   Windows; nu wordt hij `Window` (`SurfaceRaisedBrush`), wat op `ButtonFace` weinig of niets
   verandert
@@ -648,11 +651,12 @@ uitbreidingen in `docs/bouwplan.md`.
   Bleef liggen bij `dialogen-als-service`: de taak noemde alleen Enter en Escape, en het
   naamvak geeft de tekst van het vak mee, wat een eigen soort commando vraagt
   (refactorplan 26-11-2026)
-- `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
-  `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
-  een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of
-  het weg kan; dat raakt o.a. `MainViewModelDeviceColorTests.Rainbow_MixedColorGoesOnlyToTheOwnColors`
-  (refactorreview 23-11-2026)
+- `ColorPickerViewModel.IsUnused` en het pad "gemengd maar niet op het apparaat"
+  (`HasColorNotOnDevice`, `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te
+  bereiken, sinds kaart 4 bij een effect zonder kleur en bij een lege "Jouw effect" geen
+  mengpaneel meer toont. Besluiten of het weg kan; dat raakt o.a.
+  `MainViewModelDeviceColorTests.Rainbow_MixedColorGoesOnlyToTheOwnColors` (refactorreview
+  23-11-2026)
 - De handleiding (`docs/handleiding.md`, "Als laag boven het effect") en `design/DESIGN.md`
   (9.10, "Wat de keuze doet") zeggen dat de keuze naar "Als laag boven het effect" springt als je
   een LED klikt die al een laagkleur heeft. In de code gebeurt dat alleen bij de eerste LED van
@@ -735,8 +739,8 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een scène vanzelf aanzetten zodra OBS live gaat (en terug als de stream stopt): OBS 28 en nieuwer
   heeft obs-websocket ingebouwd (localhost, poort 4455, met een wachtwoord), dat
   `StreamStateChanged` meldt; "Aanzetten als een van deze programma's start" ziet alleen dat OBS
-  draait, niet dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
-  verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
+  draait, niet dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen
+  luisteraar die alleen verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
 - De startscènes terug kunnen halen, bijv. met "Startscènes terugzetten" bij Instellingen, voor wie
   ze verwijderde en ze toch weer wil; een scène met dezelfde naam laten staan. Nu komen ze nooit
   terug (`startScenesCreated`) (`startscenes`)
@@ -1032,7 +1036,6 @@ uitbreidingen in `docs/bouwplan.md`.
   zoals het tray-item (Run-waarde weg en `autoStartChosen: true`), dezelfde setup nog een keer
   stil draaien en controleren dat het uit blijft; nu staat dat als handmatige test in
   `ontwikkelaars.md` (`update-autostart`)
-
 - De installer bij een update de engine laten stoppen met `--exit` in plaats van `taskkill /F`,
   zodat er geen icoon in de tray blijft hangen, en net als het verwijderen alleen de apps van de
   gebruiker die installeert (`PrepareToInstall` stopt nu die van alle gebruikers). `--exit` kan pas
@@ -1185,8 +1188,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een test die de XAML van de app doorloopt en faalt op een gewone `Button`, `RepeatButton` of
   `ToggleButton` met een vaste tekst als inhoud en een gebonden `AutomationProperties.Name`: die
   hoort een `LiteralNameButton`, `LiteralNameRepeatButton` of `LiteralNameToggleButton` te zijn,
-  anders verliest een naam uit OpenRGB zijn eerste `_` voor de schermlezer. `UnderscoreNamesViewTests` vindt het nu alleen op de
-  pagina's en in de toestanden die hij opent (`zone-namen-schermlezer`, thuistest 24-11-2026).
+  anders verliest een naam uit OpenRGB zijn eerste `_` voor de schermlezer.
+  `UnderscoreNamesViewTests` vindt het nu alleen op de pagina's en in de toestanden die hij opent
+  (`zone-namen-schermlezer`, thuistest 24-11-2026).
   Neem in de statusregel (`Views/StatusLine.xaml`) ook de knoppen `StatusLineAction` en
   `StatusLineDetailAction` (gewone `Button`s met een gebonden tekst als inhoud, dus de test moet
   ook een gebonden tekst meetellen) en de `DetailsToggle` (vaste tekst "Details", gebonden

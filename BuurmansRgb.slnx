@@ -13,9 +13,11 @@
   </Folder>
   <Folder Name="/Solution Items/docs/">
     <File Path="docs/bouwplan.md" />
+    <File Path="docs/handleiding.md" />
     <File Path="docs/hardware.md" />
     <File Path="docs/ideas.md" />
     <File Path="docs/installatie.md" />
+    <File Path="docs/ontwikkelaars.md" />
     <File Path="docs/openrgb-meeleveren.md" />
     <File Path="docs/prompts.md" />
   </Folder>

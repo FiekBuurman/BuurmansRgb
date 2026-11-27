@@ -2,7 +2,8 @@
 
 > **Stand:** optie B is gekozen en gebouwd in taak 9 (PR #16). De installer staat in
 > [`installer/`](../installer/): `build.ps1` bouwt hem, `BuurmansRgb.iss` is het Inno
-> Setup-script en `sandbox/test-install.ps1` test hem in Windows Sandbox. Bouwen en testen staat
+> Setup-script en `sandbox/test-install.ps1` test hem in Windows Sandbox; op 20-10-2026 is hij op
+> de eigen pc van de gebruiker getest (taak 9 in `docs/bouwplan.md`). Bouwen en testen staat
 > in [ontwikkelaars.md](ontwikkelaars.md) onder "Installer bouwen en testen", installeren in
 > [installatie.md](installatie.md). Hieronder het oorspronkelijke onderzoek; afwijkingen van het
 > voorstel staan bij "Zo is het gebouwd".
@@ -132,10 +133,6 @@ Het voorstel hierboven is gevolgd, met deze verschillen en aanvullingen:
 
 ## Open punten en risico's
 
-- **Getest: de echte service-installatie.** Op 20-10-2026 heeft de gebruiker de installer op
-  de eigen pc gedraaid: de service `OpenRGB` draait, BuurmansRgb verbindt en verwijderen werkt
-  (de criteria van taak 9 in `docs/bouwplan.md`). De Windows Sandbox-test (`installer/sandbox`)
-  controleert hetzelfde zonder iets op je eigen pc te installeren.
 - **Waar de service zijn config bewaart:** waarschijnlijk in het profiel van LocalSystem. Dat
   is niet bevestigd. Profielen of zonegroottes die je in de OpenRGB-GUI instelt, komen
   terecht bij de service, omdat de GUI als client met de service verbindt. Dat moet nog

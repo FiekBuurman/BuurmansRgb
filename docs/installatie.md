@@ -243,14 +243,14 @@ zonder namen of bewijs [29]; een bevestigde ban is in deze bronnen niet gevonden
 Blokkeert een game iets, kijk dan in de melding welk bestand het is:
 
 - Gaat het om PawnIO, dan helpt het stoppen van alleen de service OpenRGB waarschijnlijk niet,
-  want de driver blijft geladen (starttype onbekend, zie hierboven). Probeer eerst de minder
-  ingrijpende stap: stop OpenRGB en daarna PawnIO, in een PowerShell als administrator
-  `Stop-Service OpenRGB` en `sc.exe stop PawnIO` (de naam van de driver is nog een vermoeden, zie
-  "Herstarten" in [ontwikkelaars.md](ontwikkelaars.md); dezelfde volgorde als **Herstarten** in
-  het tray-menu). Of de anti-cheat daarna nog klaagt, is **onbekend**: misschien kijkt hij ook
-  naar drivers die er staan maar niet geladen zijn. Na het spelen start **Herstarten** in het
-  tray-menu ze weer. Helpt het niet, verwijder dan PawnIO via
-  **Instellingen → Apps → PawnIO**. RAM en oudere moederborden werken dan niet meer in
+  want de driver blijft geladen (starttype handmatig, maar Windows laadt hem als het apparaat
+  van PawnIO er is, zie hierboven). Probeer eerst de minder ingrijpende stap: stop OpenRGB en
+  daarna PawnIO, in een PowerShell als administrator `Stop-Service OpenRGB` en
+  `sc.exe stop PawnIO` (de driver heet `PawnIO`, zie "Herstarten" in [hardware.md](hardware.md);
+  dezelfde volgorde als **Herstarten** in het tray-menu). Of de anti-cheat daarna nog klaagt, is
+  **onbekend**: misschien kijkt hij ook naar drivers die er staan maar niet geladen zijn. Na
+  het spelen start **Herstarten** in het tray-menu ze weer. Helpt het niet, verwijder dan
+  PawnIO via **Instellingen → Apps → PawnIO**. RAM en oudere moederborden werken dan niet meer in
   BuurmansRgb [12], mogelijk ook een videokaart (niet onderzocht); andere apparaten (USB) wel.
   Andere programma's zoals FanControl kunnen PawnIO ook gebruiken. **Let op:** de volgende
   update of herinstallatie van BuurmansRgb zet PawnIO zonder te vragen terug, want de installer

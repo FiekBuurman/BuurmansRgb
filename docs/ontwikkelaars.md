@@ -123,8 +123,9 @@ een oudere meebrengt. UI-teksten staan in `src/BuurmansRgb.UI/Resources/Strings.
 
 Tests gebruiken xUnit v3 op Microsoft.Testing.Platform (ingesteld in `global.json`) en draaien
 zonder hardware. Per project een testproject in `tests/`. Helpers die elk testproject gebruikt
-(`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`, `UseCulture`,
-`UseUICulture`, `TempDirectory` en `RepoFiles`) staan in `tests/Shared`; `tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
+(`Allocations`, `Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`, `UseCulture`,
+`UseUICulture`, `TempDirectory` en `RepoFiles`) staan in `tests/Shared`;
+`tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
 (`FakeOpenRgbConnector`, `InMemoryOpenRgb`) staat in het hulpproject
 `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests; daarnaast is er een kleine
 SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Providers.OpenRgb.Tests`).
@@ -1152,9 +1153,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `System.ServiceProcess.ServiceController` is een apart NuGet-pakket) en time-outs van 30 s
   voor OpenRGB en 15 s voor PawnIO (een service die nog start, laat hij binnen die tijd eerst
   opstarten voordat hij hem stopt, en een die nog stopt eerst stoppen voordat hij hem start).
-  PawnIO zoekt hij als service `PawnIO`, anders als eerste
-  kerneldriver met "PawnIO" in de naam (de echte naam is nog niet op een pc met PawnIO
-  nagekeken; de bronnen voor `PawnIO` staan in `openrgb-meeleveren.md`). De uitkomst
+  PawnIO zoekt hij als service `PawnIO` (zo heet de driver op de pc thuis, nagekeken op
+  24-11-2026; zie `hardware.md` en `openrgb-meeleveren.md`), anders als eerste kerneldriver
+  met "PawnIO" in de naam. De uitkomst
   (`ServicesRestartReport`) komt terug als exitcode: `0x42` in de hoogste byte, dan OpenRGB en PawnIO elk in 4 bits, en in de laagste 16 bits de oorzaak van de
   eerste fout (`ServicesRestartCause`: welke stap, de `ServiceControlFailure` en de Win32-code
   tot 2047). De engine logt die oorzaak ("The restart of the services went wrong first at
@@ -1259,7 +1260,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   nog in de regel staat; en `Others` verandert per melding (`UpdateOthers`), niet met `Clear`,
   zodat het item onder Details van een melding die blijft zijn knop en de focus houdt. De kaart
   ín het `UserControl` verbergt zich, niet het control, zodat `LiveRegion` de eerste melding als
-  wijziging ziet. De `PauseBar` en `PreviewMotionBar` zijn weg. `OpenRgbStatusViewModel` zegt
+  wijziging ziet. `OpenRgbStatusViewModel` zegt
   `Text` in gewone taal
   ("5 apparaten verbonden") en houdt de technische zin in `TechnicalText` (met de SDK-server) en
   `ToolTip` (met de tip); `CanRestart` en `RestartCommand` (via `RestartRequested`) horen bij
@@ -1563,7 +1564,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   (de wachtrij geeft daarvoor de sleutel door aan `onSucceeded`; een aanroep die alleen leest of
   de engine zegt wat het voorbeeld wil, zoals `SetFramesWantedAsync`, `SetFrameDevicesAsync` en
   het herladen van scènes, opties en eigen effecten, geeft geen beeld, dus een paginawissel geeft
-  er één), `LightingChanged`, `DevicesChanged`, `OptionsChanged` (bijv. de lampen tijdens een
+  er één), `LightingChanged`, `DevicesChanged`, `OptionsChanged` (bijv. de apparaten tijdens een
   pauze), `CustomEffectsChanged`, een pauze, een stap van Tellen, een andere pagina of een ander
   apparaat, en het venster dat terugkomt. Na een wijziging rendert de engine meteen, dus het beeld
   toont hem. Een beeld dat nog onderweg was, laat de app vallen, ook een stil beeld dat terugkomt
@@ -1724,7 +1725,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | App (Release, buiten beeld, sessie actief) | Kleur in lagen (`kleur-lagen`): Kleur met "Hele huis" en negen apparaten zoals de mock van § 9 (374 LED's), regenboog op 30 beelden per seconde van de nep-engine van de UI-tests (geen echte engine), venster 1240 × 820 buiten beeld met het thema van de app; een tijdelijke testklasse in een `git archive` van main (a15ac87) en van de branch, 10 s opwarmen en 30 s meten, drie rondes met de volgorde per ronde omgedraaid. Het testproces maakt de beelden zelf (~0,35 MB/s in elke stand). De kleine strip van een kaart als twaalf losse `LedBulb`s kostte bij alles open 9–13 % en 4,8 MB/s; als één `SmallLedStrip` per kaart is het onderstaande | Alle kaarten dicht (zo begint "Hele huis") 1,9–2,2 % van één kern, main 5,8–7,0 %; alles open 7,1–7,9 %: de kleine strips en de chips komen bovenop het voorbeeld van nu. Allocaties dicht 1,52, main 2,39, open 3,56 MB/s | Dicht 134,6–138,1 MB working set, 65,5–66,4 MB private; main 136,5–137,0 en 67,8–68,0 MB; open 142,6–143,1 en 72,8–74,1 MB |
 | App (Release, buiten beeld, sessie actief) | Kleur in de volgorde van het effect (`kleur-volgorde`): dezelfde testklasse en opzet als de rij hierboven, in een `git archive` van vóór (`kleur-lagen`, ca5f36e) en na, de nep-engine meldt Statisch, het voorbeeld loopt in regenboogbeelden, drie rondes met de volgorde per ronde anders | Alle kaarten dicht 2,2–2,6 % van één kern, vóór 2,3–2,6 %; alles open 7,4–7,7 %, vóór 7,1–9,4 %. Allocaties gelijk: dicht 1,54, open 3,57 MB/s. De effecttegels tekenen niets per beeld | Dicht 151,6–154,2 MB working set en 68,0–69,2 MB private, vóór 150,6–156,9 en 67,3–69,1 MB; open 159,4–159,6 en 75,4–75,6 MB, vóór 163,8–164,3 en 80,7–81,1 MB (~5 MB minder). Ongeveer 15 MB working set meer dan in de rij hierboven, voor vóór en na gelijk: een andere sessie |
 
-De engine is gemeten in Release met de gesimuleerde lampen en zonder OpenRGB (dan probeert hij
+De engine is gemeten in Release met de gesimuleerde apparaten en zonder OpenRGB (dan probeert hij
 elke 5 seconden te verbinden; dat is het grootste deel van de CPU bij een statische kleur).
 Wil je je eigen `settings.json` niet aanraken, start de engine dan met `USERPROFILE` en `APPDATA`
 naar een lege map (bijv. via `ProcessStartInfo.Environment`): de engine schrijft dan zijn
@@ -1738,7 +1739,7 @@ Meet allocaties met de app dicht, bijvoorbeeld met
 `dotnet-counters collect -p <pid van de engine> --counters System.Runtime --refresh-interval 60 --duration 00:05:00 --format csv`.
 Vergelijk `dotnet.gc.heap.total_allocated` met een animatie en met een statische kleur: de teller
 loopt in stappen van ongeveer 8 KB, dus een minuut per meetpunt zegt meer dan 5 seconden. De
-app is gemeten met 12 gesimuleerde lampen, 30 s per pagina, in een venster van 1240 × 820; met
+app is gemeten met 12 gesimuleerde apparaten, 30 s per pagina, in een venster van 1240 × 820; met
 Windows vergrendeld tekent WPF niets, dus die oudere meting mist het tekenen zelf (ook van de
 gloed). Met een zichtbaar venster zit de app boven het budget van 150 MB working set; minder
 beelden scheelt CPU, maar geen geheugen. Over Extern bureaublad tekent WPF zonder videokaart en
@@ -2020,7 +2021,6 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    te branden. Herstart OpenRGB en kijk of de lengte blijft.
 3. Tel nog eens en kies "Stoppen", sluit de app, vergrendel Windows en kies Verversen tijdens het
    tellen: elke keer hoort de header zijn oude lengte terug te krijgen. Probeer ook 5 per seconde.
-4. Vul met deze functie de onbekende aantallen LED's van de fans in `docs/hardware.md` in.
 
 ### settings.json met de hand
 
@@ -2197,12 +2197,12 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 
 Op een pc met OpenRGB als service en PawnIO (zoals de installer ze zet):
 
-1. Kijk welke naam de driver van PawnIO heeft: `sc query type= driver | findstr /i pawn` in een
-   opdrachtprompt. Zet de naam in `docs/hardware.md` en bij "Naam van de driver" in
-   `docs/openrgb-meeleveren.md`; is het niet `PawnIO`, pas dan
-   `ServiceRestarter.PawnIoService` en deze tekst aan. Kijk met `sc qc <naam>` ook naar het
-   starttype (`START_TYPE`) en zet het bij "De driver PawnIO" in `docs/installatie.md`, waar het
-   nu "onbekend" heet; `sc qc OpenRGB` en `netstat -ano | findstr :6742` bevestigen daar ook
+1. De driver van PawnIO heet `PawnIO` ("PawnIO Service") en start handmatig (`DEMAND_START`);
+   dat is op de pc thuis nagekeken (24-11-2026, zie "Starttype" in `docs/installatie.md` en
+   `docs/hardware.md`). Op een andere pc of met een nieuwere PawnIO: kijk met
+   `sc query type= driver | findstr /i pawn` en `sc qc PawnIO` in een opdrachtprompt. Wijkt de
+   naam of het starttype af, pas dan `ServiceRestarter.PawnIoService`, deze tekst en
+   `docs/installatie.md` aan; `sc qc OpenRGB` en `netstat -ano | findstr :6742` bevestigen daar
    automatisch starten, LocalSystem en `127.0.0.1:6742`.
 2. Kies "Herstarten" in het tray-menu en keur de UAC-vraag goed. De tooltip zegt
    "buurmansRgb – herstarten…", het icoon verdwijnt even en komt terug, en de melding zegt
