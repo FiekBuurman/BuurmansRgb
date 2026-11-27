@@ -159,16 +159,11 @@ public sealed class MainViewModelDeviceColorTests
         Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
             api.Effects = BuiltInEffects;
             api.CustomEffects = [Disco];
             arrange?.Invoke(api);
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector);
 }

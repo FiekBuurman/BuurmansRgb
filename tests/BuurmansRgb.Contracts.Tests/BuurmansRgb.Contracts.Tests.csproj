@@ -12,10 +12,13 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="BuurmansRgb.Contracts.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.Contracts\BuurmansRgb.Contracts.csproj" />
+    <!-- The fake engine, FakeEngineApi. -->
+    <ProjectReference Include="..\BuurmansRgb.Contracts.Testing\BuurmansRgb.Contracts.Testing.csproj" />
   </ItemGroup>
 
 </Project>

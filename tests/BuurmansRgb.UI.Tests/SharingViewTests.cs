@@ -17,7 +17,7 @@ public sealed class SharingViewTests
     public async Task ScenesPage_HasTheButtonsAndExportsTheChosenScene()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
             api.Profiles.Add("Avond");
@@ -49,10 +49,10 @@ public sealed class SharingViewTests
     {
         FakeEngineApi? engine = null;
         var disco = new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red)]);
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Effects = TestEffects.StaticAndRainbow;
             api.CustomEffects = [disco];
             api.Lighting[""] = api.Lighting[""] with { EffectId = disco.Id };
         });

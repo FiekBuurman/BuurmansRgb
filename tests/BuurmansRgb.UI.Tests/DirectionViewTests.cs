@@ -38,7 +38,7 @@ public sealed class DirectionViewTests
     [Fact]
     public async Task Slider_StaticEffect_IsHidden()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -221,7 +221,7 @@ public sealed class DirectionViewTests
         });
     }
 
-    private static Task<MainViewModel> ConnectWithAsync(string effectId, Action<FakeEngineApi>? arrange = null) => PageViews.ConnectAsync(api =>
+    private static Task<MainViewModel> ConnectWithAsync(string effectId, Action<FakeEngineApi>? arrange = null) => ConnectedViewModel.CreateAsync(api =>
     {
         api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.Wave];
         api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };

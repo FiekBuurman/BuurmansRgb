@@ -16,7 +16,7 @@ public sealed class RescanViewTests
     [Fact]
     public async Task Rescan_KeepsTheFocusAndSaysZoeken()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.RescanGate = new TaskCompletionSource().Task);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.RescanGate = new TaskCompletionSource().Task);
 
         AppTheme.Run(panel =>
         {
@@ -38,7 +38,7 @@ public sealed class RescanViewTests
     [Fact]
     public async Task Rescan_OpenRgbNotReached_ShowsTheMessage()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.RescanOutcome = RescanOutcome.Unreachable);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.RescanOutcome = RescanOutcome.Unreachable);
 
         AppTheme.Run(panel =>
         {

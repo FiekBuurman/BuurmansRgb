@@ -22,7 +22,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task LampsPage_NamesTheCardsAndSkipsTheStrip()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -41,7 +41,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task LampsPage_CardOfADeviceWithoutAPlace_HasTheNameAsToolTipButNoHelpText()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -59,7 +59,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task LampsPage_CardOfADeviceWithAPlace_HasThePlaceAsHelpTextAndTheNameAndLocationAsToolTip()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices =
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices =
         [
             TestDevices.Create("ram-1", "ENE DRAM 1", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x70") },
             TestDevices.Create("ram-2", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x71") },
@@ -81,7 +81,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task LampsPage_CardToolTip_FillsTheCardUpToItsEdge()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -104,9 +104,9 @@ public sealed class AccessibleNamesViewTests
     [InlineData("custom:disco")]
     public async Task ColorPage_NamesThePresetsAndSkipsTheStrip(string effectId)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
+            api.Effects = TestEffects.StaticColorLoopAndComet;
             api.CustomEffects = [TestEffects.Disco];
             api.CustomColors = [Red];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
@@ -136,10 +136,10 @@ public sealed class AccessibleNamesViewTests
     [InlineData("custom:disco", "Stappen")]
     public async Task ColorPage_NamesEveryList(string effectId, string? listOfTheEffect)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [Board];
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
+            api.Effects = TestEffects.StaticColorLoopAndComet;
             api.CustomEffects = [TestEffects.Disco];
             api.CustomColors = [Red];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
@@ -164,7 +164,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task ColorPage_Counting_NamesThePaces()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
@@ -184,7 +184,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task ScenesPage_WithASceneOpen_NamesTheCardItsBulbsAndTheTimes()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Profiles.Add("Avond");
             api.ProfileLighting["Avond"] = new LightingInfo(Orange, 0.8, EffectIds.Static);
@@ -218,7 +218,7 @@ public sealed class AccessibleNamesViewTests
     [Fact]
     public async Task SettingsPage_HasNoNameOfCode()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {

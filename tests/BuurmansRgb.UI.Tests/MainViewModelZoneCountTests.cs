@@ -194,9 +194,7 @@ public sealed class MainViewModelZoneCountTests
 
     private async Task<MainViewModel> ConnectAsync()
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => api.Devices = [Board]));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
+        var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board], _connector);
         viewModel.Navigation.GoTo(AppPage.Color);
         return viewModel;
     }

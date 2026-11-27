@@ -378,15 +378,10 @@ public sealed class MainViewModelProfileTests
         Assert.Empty(Api.Calls);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed];
+            api.Effects = TestEffects.StaticRainbowAndPerLed;
             arrange(api);
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector);
 }

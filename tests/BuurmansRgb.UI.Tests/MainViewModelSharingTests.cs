@@ -295,13 +295,8 @@ public sealed class MainViewModelSharingTests : IDisposable
         return path;
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? setUp = null, IClipboard? clipboard = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => setUp?.Invoke(api)), clipboard: clipboard ?? _clipboard);
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? setUp = null, IClipboard? clipboard = null) =>
+        ConnectedViewModel.CreateAsync(setUp, _connector, clipboard: clipboard ?? _clipboard);
 
     private sealed class RefusingClipboard : IClipboard
     {

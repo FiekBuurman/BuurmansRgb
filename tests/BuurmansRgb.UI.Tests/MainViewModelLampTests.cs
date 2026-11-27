@@ -179,7 +179,7 @@ public sealed class MainViewModelLampTests
     {
         var viewModel = await ConnectAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop];
+            api.Effects = TestEffects.StaticAndColorLoop;
             api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop };
             SwitchOff("fan")(api);
         });
@@ -402,11 +402,6 @@ public sealed class MainViewModelLampTests
         }
     };
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, arrange));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector);
 }

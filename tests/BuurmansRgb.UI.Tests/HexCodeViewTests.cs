@@ -21,7 +21,7 @@ public sealed class HexCodeViewTests
     [Fact]
     public async Task HexBox_CodeThatIsNoColor_ShowsTheColorAgainAndSaysSoWhenTheFocusGoes()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
         using var live = LiveRegionCapture.Start();
 
         AppTheme.Run(panel =>
@@ -55,7 +55,7 @@ public sealed class HexCodeViewTests
     [Fact]
     public async Task ColorName_StandsBeforeTheCodeAndFollowsTheSliders()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -99,7 +99,7 @@ public sealed class HexCodeViewTests
     [Fact]
     public async Task HexBox_TellsThePickerWhenItHasTheFocus()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -123,7 +123,7 @@ public sealed class HexCodeViewTests
     [Fact]
     public async Task HexBox_IsAFieldThatFitsACode()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {

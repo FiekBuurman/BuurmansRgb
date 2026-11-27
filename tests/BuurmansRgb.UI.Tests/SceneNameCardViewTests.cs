@@ -21,7 +21,7 @@ public sealed class SceneNameCardViewTests
     public async Task ScenesPage_NewSceneSavedWithEnter_GivesTheFocusBackToTheButton()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api => engine = api);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => engine = api);
 
         AppTheme.Run(panel =>
         {
@@ -53,7 +53,7 @@ public sealed class SceneNameCardViewTests
     public async Task ColorPage_SaveAsSceneOverAScene_PutsItOnAndGivesTheFocusBack()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
             api.Profiles.AddRange(["Avond", "Nacht"]);
@@ -105,7 +105,7 @@ public sealed class SceneNameCardViewTests
     public async Task ColorPage_SaveAsSceneCancelled_SavesNothingAndGivesTheFocusBack()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api => engine = api);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => engine = api);
 
         AppTheme.Run(panel =>
         {
@@ -129,7 +129,7 @@ public sealed class SceneNameCardViewTests
     public async Task ColorPageThenScenesPage_KeepsTheCardWithTheName()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api => engine = api);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => engine = api);
 
         AppTheme.Run(panel =>
         {

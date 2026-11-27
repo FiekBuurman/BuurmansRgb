@@ -17,7 +17,7 @@ public sealed class ContrastThemeViewTests
     [Fact]
     public async Task SettingsPage_FollowsAContrastThemeWhileItShows()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.AutoStart = true);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.AutoStart = true);
 
         AppTheme.Run(panel =>
         {

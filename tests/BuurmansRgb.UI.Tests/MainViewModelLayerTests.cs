@@ -123,15 +123,10 @@ public sealed class MainViewModelLayerTests
         Assert.Equal(["overlay fan 0 #00FF00", "on fan on"], Api.Calls);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed];
+            api.Effects = TestEffects.StaticRainbowAndPerLed;
             arrange?.Invoke(api);
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector);
 }

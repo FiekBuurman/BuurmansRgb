@@ -440,7 +440,7 @@ public sealed class EffectTilesViewTests
             .Skip(1)
             .First();
 
-    private static Task<MainViewModel> ConnectAsync(string effectId, Action<FakeEngineApi>? arrange = null) => PageViews.ConnectAsync(api =>
+    private static Task<MainViewModel> ConnectAsync(string effectId, Action<FakeEngineApi>? arrange = null) => ConnectedViewModel.CreateAsync(api =>
     {
         api.Effects = TestEffects.AllEffects;
         api.CustomEffects = [TestEffects.Disco];

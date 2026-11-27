@@ -849,15 +849,10 @@ public sealed class MainViewModelTests
     // An effect that uses no color of the device, so a mixed color is not put on.
     private static void UseRainbow(FakeEngineApi api)
     {
-        api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+        api.Effects = TestEffects.StaticAndRainbow;
         api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(arrange is null ? _connector : new ArrangingConnector(_connector, arrange));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector);
 }

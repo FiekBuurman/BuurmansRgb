@@ -20,7 +20,7 @@ public sealed class ZoneCountViewTests
     [Fact]
     public async Task Count_ShowsTheCounterWithNames()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
@@ -49,7 +49,7 @@ public sealed class ZoneCountViewTests
     [Fact]
     public async Task Stop_GivesTheFocusToCount()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {

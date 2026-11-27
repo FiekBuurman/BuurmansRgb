@@ -23,7 +23,7 @@ public sealed class LedPreviewPanelViewTests
     [Fact]
     public async Task SelectAllLink_NameStartsWithItsVisibleText()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 30)]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 30)]);
 
         AppTheme.Run(panel =>
         {
@@ -44,7 +44,7 @@ public sealed class LedPreviewPanelViewTests
     {
         var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
             [RgbZone.Fixed("D_LED1", 2), RgbZone.Fixed("Mainboard", 2)]) { Source = DeviceSource.Hardware };
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [board]);
 
         AppTheme.Run(panel =>
         {
@@ -61,7 +61,7 @@ public sealed class LedPreviewPanelViewTests
     [Fact]
     public async Task FlashButtons_SayKnipperenAndHaveTheirOwnNames()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
@@ -88,7 +88,7 @@ public sealed class LedPreviewPanelViewTests
     public async Task ZoneLeds_FoundJustAboveThemAndTheNameStaysALink()
     {
         var strip = new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 8, [RgbZone.Fixed("Strip", 8)]) { Source = DeviceSource.Hardware };
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board, strip]);
 
         AppTheme.Run(panel =>
         {
@@ -139,7 +139,7 @@ public sealed class LedPreviewPanelViewTests
     [Fact]
     public async Task TypedLengthTheZoneCannotHold_ShowsTheMessageUnderTheField()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
@@ -169,7 +169,7 @@ public sealed class LedPreviewPanelViewTests
         var header = new DeviceInfo("header", "Header", DeviceType.Motherboard, 2,
             [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 2", 0, 0, 60)]) { Source = DeviceSource.Hardware };
         var strip = new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 10, [new RgbZone("Strip", 10, 0, 60)]) { Source = DeviceSource.Hardware };
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, header, strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board, header, strip]);
 
         AppTheme.Run(panel =>
         {

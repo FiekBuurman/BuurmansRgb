@@ -101,6 +101,22 @@ een moederbord voor de zonetests van de engine uit `TestBoards` (`Of(zones)`, `B
 één klasse gebruikt (`FakeHighContrast`, `FakeProcessMeter`, `RecordingTrigger`, …) staat in
 een eigen bestand, niet genest in een testklasse.
 
+De nep-engine, `FakeEngineApi`, staat in het hulpproject `tests/BuurmansRgb.Contracts.Testing`
+(zonder eigen tests) en is er één keer, voor de RPC-tests van `BuurmansRgb.Contracts.Tests` en de
+tests van de instellingen-app. Hij is in partial-bestanden verdeeld per deel van `IEngineApi`
+(`FakeEngineApi.Lighting.cs`, `.Profiles.cs`, `.Options.cs`, `.Sharing.cs`, `.CustomEffects.cs`,
+…); wat hij antwoordt zet een test met properties (`Devices`, `Effects`, `RescanOutcome`,
+`ExportedShare`, …) en elke aanroep komt als regel in `Calls` (`"scene fade 0.25"`).
+`SetGate`, `SetException` en `FailOnce` houden een aanroep vast of laten hem mislukken. In
+`BuurmansRgb.UI.Tests` staan `FakeEngineConnector` en `FakeEngineConnection` in eigen bestanden.
+Een view model dat met de nep-engine verbonden is, maakt een test met
+`ConnectedViewModel.CreateAsync(arrange, connector, …)`: `arrange` zet de nep-engine klaar, ook
+bij opnieuw verbinden, en de optionele parameters geven een klok, programma's, een klembord en
+dergelijke mee. Een testklasse met eigen standaarden (zoals een vaste lijst effecten) houdt een
+korte `ConnectAsync` die `CreateAsync` aanroept. Lijsten effecten die vaak terugkomen staan in
+`TestEffects` (`AllEffects`, `StaticAndRainbow`, `StaticRainbowAndPerLed`, `StaticAndColorLoop`,
+`StaticColorLoopAndComet`).
+
 De viewtests van de instellingen-app draaien in een echt venster buiten beeld (`OffscreenWindow`,
 op `OffscreenWindow.Offset`); `PageViews.Press` drukt er een toets zoals het toetsenbord dat doet,
 en `LiveRegionCapture` vangt wat een schermlezer zou voorlezen en zet `LiveRegion` daarna terug.

@@ -149,11 +149,6 @@ public sealed class MainViewModelRescanTests
         Assert.False(viewModel.DeviceRescan.HasMessage);
     }
 
-    private async Task<MainViewModel> ConnectAsync()
-    {
-        var viewModel = new MainViewModel(_connector);
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync() =>
+        ConnectedViewModel.CreateAsync(connector: _connector);
 }

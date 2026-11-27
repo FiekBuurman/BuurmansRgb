@@ -377,10 +377,10 @@ public sealed class CustomEffectViewTests
     }
 
     private static Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, CustomEffect? effect = null, string? effectId = null) =>
-        PageViews.ConnectAsync(api =>
+        ConnectedViewModel.CreateAsync(api =>
         {
             effect ??= Disco;
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Effects = TestEffects.StaticAndRainbow;
             api.CustomEffects = [effect];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId ?? effect.Id };
             arrange?.Invoke(api);

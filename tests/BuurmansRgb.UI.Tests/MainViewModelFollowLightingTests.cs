@@ -73,7 +73,7 @@ public sealed class MainViewModelFollowLightingTests
     {
         var viewModel = await ConnectAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Effects = TestEffects.StaticAndRainbow;
             api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
         });
         viewModel.ColorPicker.Green = 255;
@@ -91,7 +91,7 @@ public sealed class MainViewModelFollowLightingTests
     [Fact]
     public async Task LightingChanged_ToTheColorLoopWhileMixingAColor_ShowsTheLoopColor()
     {
-        var viewModel = await ConnectAsync(api => api.Effects = [EffectIds.Static, EffectIds.ColorLoop]);
+        var viewModel = await ConnectAsync(api => api.Effects = TestEffects.StaticAndColorLoop);
         viewModel.ColorPicker.Green = 255;
 
         Api.Lighting[""] = new(Blue, 0.3, EffectIds.ColorLoop) { Loop = new ColorLoop([Orange, Blue]) };
@@ -110,7 +110,7 @@ public sealed class MainViewModelFollowLightingTests
     {
         var viewModel = await ConnectAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop];
+            api.Effects = TestEffects.StaticAndColorLoop;
             api.Lighting[""] = new(Red, 0.8, EffectIds.ColorLoop) { Loop = new ColorLoop([Orange, Blue]) };
         });
         viewModel.ColorPicker.Blue = 255;
@@ -161,7 +161,7 @@ public sealed class MainViewModelFollowLightingTests
     [Fact]
     public async Task LightingChanged_ColorLoop_ShowsTheNewLoopAndKeepsTheSelectedColor()
     {
-        var viewModel = await ConnectAsync(api => api.Effects = [EffectIds.Static, EffectIds.ColorLoop]);
+        var viewModel = await ConnectAsync(api => api.Effects = TestEffects.StaticAndColorLoop);
         Api.Lighting[""] = new(Red, 0.8, EffectIds.ColorLoop) { Loop = new ColorLoop([Red, Green, Blue]) };
         Api.RaiseLightingChanged();
         viewModel.ColorLoopEditor.SelectCommand.Execute(1);
@@ -173,11 +173,6 @@ public sealed class MainViewModelFollowLightingTests
         Assert.Equal(1, viewModel.ColorLoopEditor.SelectedIndex);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, arrange ?? (_ => { })));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector);
 }

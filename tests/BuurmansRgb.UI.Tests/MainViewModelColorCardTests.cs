@@ -224,17 +224,12 @@ public sealed class MainViewModelColorCardTests
     private Task<MainViewModel> ConnectAsync(string effectId, params CustomEffect[] customEffects) =>
         ConnectAsync(effectId, _ => { }, customEffects);
 
-    private async Task<MainViewModel> ConnectAsync(string effectId, Action<FakeEngineApi> arrange, params CustomEffect[] customEffects)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(string effectId, Action<FakeEngineApi> arrange, params CustomEffect[] customEffects) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
             arrange(api);
             api.Effects = TestEffects.AllEffects;
             api.CustomEffects = customEffects.Length > 0 || !CustomEffects.IsCustom(effectId) ? [.. customEffects] : [TestEffects.Disco];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector);
 }
