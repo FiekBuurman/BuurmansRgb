@@ -126,4 +126,17 @@ public sealed class SceneCoordinatorTests
         Assert.Equal(["Gamen", "Nacht", "Werk"], _profiles.Names);
         Assert.Equal("Werk", _profiles.SelectedName);
     }
+
+    // A change of the times of "Alles uit" goes to the engine, and the saved times are shown.
+    [Fact]
+    public async Task SendWholeHouseTimes_SendsThemShowsTheSavedTimesAndSaysSo()
+    {
+        await _scenes.LoadAsync(Api);
+
+        _wholeHouseTimes.On.IsOn = true;
+
+        Assert.Equal(["whole house off - on 07:00"], Api.Calls);
+        Assert.True(_wholeHouseTimes.On.IsOn);
+        Assert.Equal([Strings.WholeHouseTimesSaved], _messages);
+    }
 }
