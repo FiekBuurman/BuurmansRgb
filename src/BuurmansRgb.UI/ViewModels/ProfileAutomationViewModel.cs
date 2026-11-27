@@ -86,6 +86,8 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts. It
     // comes after the names in the field, unless it is there already. A name with a comma would
     // fall apart in two names in the field, so it is refused with an error until the next change.
+    // No XAML binds PickProgramCommand (the button uses BrowseProgramCommand); the generated command
+    // is there for the tests.
     [RelayCommand]
     private void PickProgram(string? program)
     {
