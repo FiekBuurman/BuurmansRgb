@@ -169,7 +169,7 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(ActiveLedProperty, value);
     }
 
-    // Runs with a LedKeyPress for each key of the preview; see KeyPressOf.
+    // Runs with a LedKeyPress for each key of the preview; see LedPreviewKeyboard.
     public ICommand? KeyCommand
     {
         get => (ICommand?)GetValue(KeyCommandProperty);
@@ -238,64 +238,13 @@ public sealed class LedPreviewView : FrameworkElement
     // The LED the tooltip names, LedMatrix.NoLed while it is hidden.
     internal int ToolTipLed => _toolTip?.Led ?? LedMatrix.NoLed;
 
-    // What a key does in the preview: the arrows, Home and End move the active LED, with Shift
-    // they extend the range, Space and Enter choose the active LED, Ctrl+Space puts it in the
-    // selection or takes it out, Ctrl+A chooses all and Escape none. With Ctrl the arrows, Home and
-    // End move the active LED as without it, leaving the selection, as in a list of Windows. null
-    // for any other key, which the window gets.
-    internal static LedKeyPress? KeyPressOf(Key key, ModifierKeys modifiers)
-    {
-        if (modifiers == ModifierKeys.Control)
-        {
-            return key switch
-            {
-                Key.A => new(LedKey.SelectAll),
-                Key.Space => new(LedKey.Toggle),
-                Key.Left => new(LedKey.Previous),
-                Key.Right => new(LedKey.Next),
-                Key.Up => new(LedKey.Up),
-                Key.Down => new(LedKey.Down),
-                Key.Home => new(LedKey.First),
-                Key.End => new(LedKey.Last),
-                _ => null,
-            };
-        }
-
-        if (modifiers is not (ModifierKeys.None or ModifierKeys.Shift))
-        {
-            return null;
-        }
-
-        var extend = modifiers == ModifierKeys.Shift;
-        return key switch
-        {
-            Key.Left => new(LedKey.Previous, extend),
-            Key.Right => new(LedKey.Next, extend),
-            Key.Up => new(LedKey.Up, extend),
-            Key.Down => new(LedKey.Down, extend),
-            Key.Home => new(LedKey.First, extend),
-            Key.End => new(LedKey.Last, extend),
-            Key.Space or Key.Enter => new(LedKey.Select, extend),
-            Key.Escape when !extend => new(LedKey.ClearSelection),
-            _ => null,
-        };
-    }
-
-    // Runs KeyCommand for a key, with the LED in the row above or below as drawn for Up and Down.
-    // False when it is no key of the preview or the command does not take it.
+    // Runs KeyCommand for a key (LedPreviewKeyboard), with the LED in the row above or below as
+    // drawn for Up and Down. False when it is no key of the preview or the command does not take it.
     internal bool PressKey(Key key, ModifierKeys modifiers)
     {
-        if (KeyCommand is not { } command || KeyPressOf(key, modifiers) is not { } press)
-        {
-            return false;
-        }
-
-        if (press.Key is LedKey.Up or LedKey.Down)
-        {
-            press = press with { Target = ArrangementFor(ActualWidth).LedInNextRow(ActiveLed, up: press.Key == LedKey.Up) };
-        }
-
-        if (!command.CanExecute(press))
+        if (KeyCommand is not { } command
+            || LedPreviewKeyboard.PressOf(key, modifiers, ActiveLed, () => ArrangementFor(ActualWidth)) is not { } press
+            || !command.CanExecute(press))
         {
             return false;
         }
