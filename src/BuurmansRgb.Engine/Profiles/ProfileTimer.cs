@@ -143,7 +143,7 @@ internal sealed class ProfileTimer : IProfileTrigger
         }
     }
 
-    // The earliest time wins; two profiles at the same time load the first in alphabetical order.
+    // The earliest time wins; two profiles at the same time load the first in the order of TryGetTimed.
     private void Schedule()
     {
         lock (_gate)
@@ -232,8 +232,8 @@ internal sealed class ProfileTimer : IProfileTrigger
 
     // Every time of every profile, at the moment at gives it (the next or the one that passed last),
     // in the order of TryGetTimed. Schedule and LoadLatest replace the best so far only by one that is
-    // strictly earlier or later, so of two at the same moment the first in that order wins: the first
-    // in alphabetical order.
+    // strictly earlier or later, so of two at the same moment the first in that order wins: the scenes
+    // in alphabetical order, then Uit om and Aan om.
     private static IEnumerable<(DateTimeOffset At, TimedProfile Profile)> Occurrences(IReadOnlyList<TimedProfile> profiles, Func<LoadTime, DateTimeOffset> at)
     {
         foreach (var profile in profiles)
