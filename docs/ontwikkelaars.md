@@ -545,7 +545,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   (`CustomEffectsCoordinator.IsNameTaken`, met de namen van `GetEffectsAsync`) en zet de melding
   (`NameError`) onder het vak, een live region. Het vak schrijft de naam alleen bij Enter en als
   het de focus verliest (`UpdateSourceTrigger=Explicit`, met `CommitOnEnter` voor Enter en Escape en
-  `ColorPage.xaml.cs` voor de focus): dan bewaart
+  `CustomEffectEditor.xaml.cs` voor de focus): dan bewaart
   `CustomEffectEditorViewModel.EndNameEdit` een goede naam, of zet de echte naam terug met een
   melding die de geweigerde en de echte naam noemt (`CustomEffectNameTakenKept`,
   `CustomEffectNameEmptyKept`), zodat een schermlezer één melding hoort. Die melding gaat weg bij
@@ -975,7 +975,29 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   focus aan het eerste `T` van het item op die plek, of van het laatste als de lijst korter werd
   (de tegel na een weggehaalde kleur of stap op Kleur, het nieuwe tijdveld na "+ Nog een tijd" op
   Scènes); zonder item geeft hij `false` en kiest de pagina zelf een ander doel
-  (`VisualTreeSearchTests`).
+  (`VisualTreeSearchTests`). `ItemsControl.FocusTileAt(index, fallback)` doet dat voor de knop van
+  een tegel, met een ander doel als er geen tegel meer is, zodra de tegels opnieuw staan
+  (`CustomEffectEditor` en `ColorMixer`).
+- **Onderdelen van Kleur** (`kleurpagina-opsplitsen`): `ColorPage.xaml` houdt de kaarten bij elkaar;
+  drie delen staan in `Views` in een eigen bestand met hun code-behind. `ValueSlider` is een
+  schuif met zijn naam erboven en zijn waarde rechts (Hold, Fade, Rood, Groen, Blauw, Helderheid,
+  Snelheid en Richting): `Label` is ook de naam voor een schermlezer, `HelpText` ook de tooltip,
+  `ItemStatus` wat een schermlezer zegt in plaats van het getal, `FillBrush` de kleur van de
+  schuif (niet `Foreground`, want die zou de naam ook kleuren), en de schuif krijgt de `Name` van
+  het control als AutomationId (zo blijft `DirectionSlider` hetzelfde). `CustomEffectEditor` is
+  "Jouw effect" en `ColorMixer` het mengpaneel; hun DataContext is die van de pagina
+  (`MainViewModel`), en de pagina toont ze en zet `FocusFallback.Target` erop, want een
+  `ElementName` naar `EffectTiles` werkt niet over de grens van hun namescope. Alle drie zijn een
+  `StackPanel` met `x:Class`, geen `UserControl`: een verborgen `UserControl` bouwt zijn inhoud pas
+  als hij voor het eerst zichtbaar wordt, zodat bijvoorbeeld de schuif van Richting bij Statisch
+  uit de UI Automation-boom en de tests zou verdwijnen; een panel heeft ook geen eigen element voor
+  UI Automation, zodat een schermlezer dezelfde boom ziet als toen alles in de pagina stond
+  (`ValueSliderViewTests`, `ColorPagePartsViewTests`). Een `StaticResource` in zo'n bestand ziet
+  alleen de resources van de app en van het bestand zelf, niet die van de pagina: daarom heeft elk
+  zijn eigen `Label`, `HexBox` of `ToolboxTile`, en voegen de pagina, `ColorMixer` en
+  `CustomEffectEditor` de breedtes (`EmConverter`) uit `Views/ColorPageResources.xaml` samen.
+  `FindName` op de pagina vindt hun elementen niet; tests zoeken ze in de visuele boom
+  (`AppTheme.Descendants`).
 - **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om de zip
   (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app kiest
   alleen het bestand (`IFileDialogs.ChooseBackupToSave` en `ChooseBackupToRestore`, met

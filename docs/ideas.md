@@ -365,8 +365,9 @@ uitbreidingen in `docs/bouwplan.md`.
   maat kiest
 - Eén gedeelde stijl voor een melding onder een veld (een `DockPanel` met `WarningMark` en een
   `TextBlock` als live region met `LiveRegion.AnnouncesUpdates`); nu staat dat blok zeven keer in
-  de XAML, onder andere bij de hex-code en de naam van een eigen effect in `ColorPage.xaml`, bij de lengte van
-  een zone in `LedPreviewPanel.xaml` en bij "Vanzelf aanzetten" in `ScenesPage.xaml` (die met
+  de XAML, onder andere bij de hex-code in `ColorMixer.xaml`, de naam van een eigen effect in
+  `CustomEffectEditor.xaml`, bij de lengte van een zone in `LedPreviewPanel.xaml` en bij
+  "Vanzelf aanzetten" in `ScenesPage.xaml` (die met
   `HasError` en `BoolToVisibility`, de andere drie met `NullToCollapsed`). Geen control met een
   eigen `Text`-property: die slikt dezelfde melding opnieuw in, zodat er geen nieuwe aankondiging
   komt, terwijl `CustomEffectViewTests` juist controleert dat een schermlezer hem dan weer hoort.
@@ -641,8 +642,9 @@ uitbreidingen in `docs/bouwplan.md`.
   (refactorplan 26-11-2026)
 - Het verlaten van het naamvak van een eigen effect (`OnCustomEffectNameLostFocus`, dat
   `EndNameEdit` aanroept en het vak de naam opnieuw laat tonen) en van het hexveld
-  (`OnHexLostFocus`) staan nog in `ColorPage.xaml.cs`. `CommitOnEnter` zou er een
-  `LostFocusCommand` bij kunnen krijgen, zodat die pagina alleen nog de focus na een klik regelt.
+  (`OnHexLostFocus`) staan nog in code-behind, sinds `kleurpagina-opsplitsen` in
+  `CustomEffectEditor.xaml.cs` en `ColorMixer.xaml.cs`. `CommitOnEnter` zou er een
+  `LostFocusCommand` bij kunnen krijgen, zodat die bestanden alleen nog de focus na een klik regelen.
   Bleef liggen bij `dialogen-als-service`: de taak noemde alleen Enter en Escape, en het
   naamvak geeft de tekst van het vak mee, wat een eigen soort commando vraagt
   (refactorplan 26-11-2026)

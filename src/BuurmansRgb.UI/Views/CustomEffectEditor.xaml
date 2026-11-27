@@ -1,0 +1,116 @@
+<!-- "Jouw effect" of Kleur (ColorPage): the choice of the own effects with "+ Eigen effect maken", or without own
+     effects only that link; with an own effect chosen its name, its steps and the times of the chosen step, and
+     the mixed color goes to that step. Its DataContext is that of the page (MainViewModel). The page shows and
+     hides it, and gives it the place of the focus when it hides with the focus in it (FocusFallback).
+     A panel rather than a UserControl (CustomEffectEditor.xaml.cs). -->
+<StackPanel x:Class="BuurmansRgb.UI.Views.CustomEffectEditor"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+            xmlns:vm="clr-namespace:BuurmansRgb.UI.ViewModels"
+            xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
+            mc:Ignorable="d"
+            d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <StackPanel.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+                <Setter Property="Margin" Value="0,0,0,6" />
+            </Style>
+        </ResourceDictionary>
+    </StackPanel.Resources>
+
+    <TextBlock Style="{StaticResource Body}" FontWeight="Normal" Text="{x:Static res:Strings.NoCustomEffects}"
+               Visibility="{Binding EffectTiles.HasCustomEffects, Converter={StaticResource InverseBoolToVisibility}}" />
+    <ComboBox x:Name="CustomEffectChoice" MinWidth="280" HorizontalAlignment="Left"
+              ItemsSource="{Binding EffectTiles.CustomEffects}" SelectedItem="{Binding EffectTiles.SelectedCustomEffect}" DisplayMemberPath="DisplayName"
+              AutomationProperties.Name="{x:Static res:Strings.CustomEffectChoiceName}"
+              Visibility="{Binding EffectTiles.HasCustomEffects, Converter={StaticResource BoolToVisibility}}" />
+    <!-- A new own effect of steps, which the editor below then shows. -->
+    <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
+            Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
+            ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
+
+    <StackPanel x:Name="CustomEffectPanel" Margin="0,8,0,0" DataContext="{Binding CustomEffectEditor}"
+                Visibility="{Binding DataContext.IsCustomEffect, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}, Converter={StaticResource BoolToVisibility}}">
+        <DockPanel>
+            <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Top" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.CustomEffectDelete}"
+                    ToolTip="{x:Static res:Strings.CustomEffectDeleteToolTip}" Command="{Binding DeleteCommand}"
+                    AutomationProperties.Name="{x:Static res:Strings.CustomEffectDeleteAccessibleName}" />
+            <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.CustomEffectHint}" />
+        </DockPanel>
+        <!-- Sharing the effect, as a file or as a code to paste (SharingViewModel of the page). -->
+        <WrapPanel Margin="0,8,0,0">
+            <Button Margin="0,0,8,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareExport}"
+                    ToolTip="{x:Static res:Strings.ShareExportEffectToolTip}"
+                    AutomationProperties.Name="{x:Static res:Strings.ShareExportEffectAccessibleName}"
+                    Command="{Binding DataContext.Sharing.ExportEffectCommand, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}}" CommandParameter="{Binding}" />
+            <Button Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareCopyCode}"
+                    ToolTip="{x:Static res:Strings.ShareCopyEffectCodeToolTip}"
+                    AutomationProperties.Name="{x:Static res:Strings.ShareCopyEffectCodeAccessibleName}"
+                    Command="{Binding DataContext.Sharing.CopyEffectCodeCommand, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}}" CommandParameter="{Binding}" />
+        </WrapPanel>
+
+        <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectNameLabel}" />
+        <!-- The name counts with Enter (CommitOnEnter), or when the box loses the focus: then one that is
+             not kept makes way for the name of the effect, and the message says so (OnCustomEffectNameLostFocus).
+             Escape puts back the name the effect has. -->
+        <TextBox Text="{Binding Name, UpdateSourceTrigger=Explicit}" MaxLength="40" LostFocus="OnCustomEffectNameLostFocus"
+                 views:CommitOnEnter.CancelCommand="{Binding CancelNameEditCommand}"
+                 AutomationProperties.Name="{x:Static res:Strings.CustomEffectNameAccessibleName}" />
+        <DockPanel Margin="0,6,0,0" Visibility="{Binding NameError, Converter={StaticResource NullToCollapsed}}">
+            <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+            <TextBlock TextWrapping="Wrap" Text="{Binding NameError, NotifyOnTargetUpdated=True}"
+                       AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
+        </DockPanel>
+
+        <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectStepsLabel}" />
+        <!-- Rows of at most six tiles, as the color lists; a pattern shows as a gradient. -->
+        <WrapPanel>
+            <ItemsControl x:Name="StepTiles" Style="{StaticResource ColorTileList}" ItemsSource="{Binding Steps}"
+                          AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepsLabel}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:CustomEffectStepItem}">
+                        <Button Style="{StaticResource ColorListTile}" Background="{Binding Colors, Converter={StaticResource ColorsToBrush}}"
+                                AutomationProperties.HelpText="{x:Static res:Strings.CustomEffectStepHelp}"
+                                Command="{Binding DataContext.SelectStepCommand, ElementName=StepTiles}"
+                                CommandParameter="{Binding Index}" PreviewKeyDown="OnStepKeyDown" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Style="{StaticResource ColorListButton}" Content="+"
+                    ToolTip="{x:Static res:Strings.CustomEffectStepAdd}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepAdd}"
+                    Command="{Binding AddStepCommand}" Click="OnStepButtonClick" />
+            <Button Style="{StaticResource ColorListButton}" Content="−"
+                    ToolTip="{x:Static res:Strings.CustomEffectStepRemove}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepRemove}"
+                    Command="{Binding RemoveStepCommand}" Click="OnStepButtonClick" />
+            <Button Style="{StaticResource ColorListButton}" Content="←"
+                    ToolTip="{x:Static res:Strings.CustomEffectStepEarlier}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepEarlier}"
+                    Command="{Binding MoveStepEarlierCommand}" Click="OnStepButtonClick" />
+            <Button Style="{StaticResource ColorListButton}" Content="→"
+                    ToolTip="{x:Static res:Strings.CustomEffectStepLater}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepLater}"
+                    Command="{Binding MoveStepLaterCommand}" Click="OnStepButtonClick" />
+        </WrapPanel>
+        <TextBlock Style="{StaticResource SubText}" Text="{Binding SelectedStepText}" />
+        <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
+                Content="{x:Static res:Strings.CustomEffectTakePattern}" ToolTip="{x:Static res:Strings.CustomEffectTakePatternToolTip}"
+                ToolTipService.ShowOnDisabled="True"
+                Command="{Binding DataContext.TakeLedPatternCommand, RelativeSource={RelativeSource AncestorType=views:CustomEffectEditor}}" />
+
+        <!-- The two times of the chosen step side by side, or under each other when the text of a
+             larger text size of Windows needs the room. -->
+        <views:CardGrid Margin="0,10,0,0" MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
+            <views:ValueSlider Label="{x:Static res:Strings.CustomEffectHold}" ValueText="{Binding HoldText}" ItemStatus="{Binding HoldText}"
+                               Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
+                               Value="{Binding HoldSeconds}" SmallChange="0.1" LargeChange="1" TickFrequency="0.1" />
+            <views:ValueSlider Label="{x:Static res:Strings.CustomEffectFade}" ValueText="{Binding FadeText}" ItemStatus="{Binding FadeText}"
+                               Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
+                               Value="{Binding FadeSeconds}" SmallChange="0.1" LargeChange="1" TickFrequency="0.1" />
+        </views:CardGrid>
+    </StackPanel>
+</StackPanel>

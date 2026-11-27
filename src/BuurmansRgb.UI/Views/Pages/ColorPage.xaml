@@ -17,71 +17,24 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <UserControl.Resources>
-        <!-- The real devices and the simulated ones each under their own heading; "all devices" has none. -->
-        <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="Group" />
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- The twelve bulbs of the strip in the preview. -->
-        <x:Array x:Key="StripBulbs" Type="sys:Int32">
-            <sys:Int32>1</sys:Int32><sys:Int32>2</sys:Int32><sys:Int32>3</sys:Int32><sys:Int32>4</sys:Int32>
-            <sys:Int32>5</sys:Int32><sys:Int32>6</sys:Int32><sys:Int32>7</sys:Int32><sys:Int32>8</sys:Int32>
-            <sys:Int32>9</sys:Int32><sys:Int32>10</sys:Int32><sys:Int32>11</sys:Int32><sys:Int32>12</sys:Int32>
-        </x:Array>
+            <!-- The real devices and the simulated ones each under their own heading; "all devices" has none. -->
+            <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
+                <CollectionViewSource.GroupDescriptions>
+                    <PropertyGroupDescription PropertyName="Group" />
+                </CollectionViewSource.GroupDescriptions>
+            </CollectionViewSource>
 
-        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
-            <Setter Property="Margin" Value="0,0,0,6" />
-        </Style>
-
-        <!-- Least widths in em of the body text, which a larger text size of Windows makes wider, so
-             fewer columns fit and the rest goes under them. A column of the preview and the sliders
-             fits the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding
-             and border of the preview (38 px), with a little to spare: 358 px at 100 %. A column with
-             a value (brightness, speed, direction or a time of a step) fits its name beside it: 150 px.
-             The title of the page (10 em) keeps 12 em beside the choice of the lamp, and the line of
-             the chosen LEDs as much beside Verloop vullen and Selectie opheffen. -->
-        <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
-        <views:EmConverter x:Key="ValueColumnWidth" Ems="10" />
-        <views:EmConverter x:Key="HeadingWidth" Ems="12" />
-
-        <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
-             A field like the others, with their border, hover and focus, so you see you can type in it;
-             without their fill, so it stays on the dark of the preview. Just wide enough for a code, at
-             every text size of Windows: seven characters of 0.6 em in the mono font, plus 54 px for the
-             padding, the border of the focus and the caret (180 px at 30 px). The width only follows the
-             font size, so it does not change while you type. -->
-        <views:EmConverter x:Key="HexBoxWidth" Ems="4.2" Extra="54" />
-        <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="FontSize" Value="{DynamicResource HexCodeSize}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Width" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource HexBoxWidth}}" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Margin" Value="0,4,0,0" />
-            <Setter Property="MaxLength" Value="7" />
-        </Style>
-
-        <!-- A tile of the toolbox, of a preset or an own color: shows its Color under its Name, a click
-             mixes it, and it is marked when it is the mixed color. -->
-        <Style x:Key="ToolboxTile" TargetType="Button" BasedOn="{StaticResource SmallPresetTile}">
-            <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
-            <Setter Property="ToolTip" Value="{Binding Name}" />
-            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-            <Setter Property="CommandParameter" Value="{Binding Color}" />
-            <Setter Property="Tag">
-                <Setter.Value>
-                    <MultiBinding Converter="{StaticResource EqualValues}">
-                        <Binding Path="Color" />
-                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                    </MultiBinding>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- The title of the page (10 em of the body text) keeps 12 em beside the choice of the lamp, and the
+                 line of the chosen LEDs as much beside Verloop vullen and Selectie opheffen. The other least
+                 widths (MixColumnWidth, ValueColumnWidth) are in ColorPageResources.xaml, as ColorMixer and
+                 CustomEffectEditor use them too. -->
+            <views:EmConverter x:Key="HeadingWidth" Ems="12" />
+        </ResourceDictionary>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -302,113 +255,10 @@
                                 ToolTipService.ShowOnDisabled="True" Command="{Binding ResetEffectColorsCommand}" />
                     </StackPanel>
 
-                    <!-- "Jouw effect": the choice of the own effects with "+ Eigen effect maken", or without own effects
-                         only that link; with an own effect chosen its name, its steps and the times of the chosen
-                         step, and the mixed color goes to that step. When this hides with the focus in it, such as
-                         after deleting the effect, the focus goes to the chosen effect tile. -->
-                    <StackPanel Margin="0,0,0,14" Visibility="{Binding ShowsCustomEffectCard, Converter={StaticResource BoolToVisibility}}"
-                                views:FocusFallback.Target="{Binding ElementName=EffectTiles}">
-                        <TextBlock Style="{StaticResource Body}" FontWeight="Normal" Text="{x:Static res:Strings.NoCustomEffects}"
-                                   Visibility="{Binding EffectTiles.HasCustomEffects, Converter={StaticResource InverseBoolToVisibility}}" />
-                        <ComboBox x:Name="CustomEffectChoice" MinWidth="280" HorizontalAlignment="Left"
-                                  ItemsSource="{Binding EffectTiles.CustomEffects}" SelectedItem="{Binding EffectTiles.SelectedCustomEffect}" DisplayMemberPath="DisplayName"
-                                  AutomationProperties.Name="{x:Static res:Strings.CustomEffectChoiceName}"
-                                  Visibility="{Binding EffectTiles.HasCustomEffects, Converter={StaticResource BoolToVisibility}}" />
-                        <!-- A new own effect of steps, which the editor below then shows. -->
-                        <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
-                                Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
-                                ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
-
-                        <StackPanel x:Name="CustomEffectPanel" Margin="0,8,0,0" DataContext="{Binding CustomEffectEditor}"
-                                    Visibility="{Binding DataContext.IsCustomEffect, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibility}}">
-                            <DockPanel>
-                                <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Top" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.CustomEffectDelete}"
-                                        ToolTip="{x:Static res:Strings.CustomEffectDeleteToolTip}" Command="{Binding DeleteCommand}"
-                                        AutomationProperties.Name="{x:Static res:Strings.CustomEffectDeleteAccessibleName}" />
-                                <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.CustomEffectHint}" />
-                            </DockPanel>
-                            <!-- Sharing the effect, as a file or as a code to paste (SharingViewModel of the page). -->
-                            <WrapPanel Margin="0,8,0,0">
-                                <Button Margin="0,0,8,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareExport}"
-                                        ToolTip="{x:Static res:Strings.ShareExportEffectToolTip}"
-                                        AutomationProperties.Name="{x:Static res:Strings.ShareExportEffectAccessibleName}"
-                                        Command="{Binding DataContext.Sharing.ExportEffectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                                <Button Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareCopyCode}"
-                                        ToolTip="{x:Static res:Strings.ShareCopyEffectCodeToolTip}"
-                                        AutomationProperties.Name="{x:Static res:Strings.ShareCopyEffectCodeAccessibleName}"
-                                        Command="{Binding DataContext.Sharing.CopyEffectCodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
-                            </WrapPanel>
-
-                            <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectNameLabel}" />
-                            <!-- The name counts with Enter (CommitOnEnter), or when the box loses the focus: then one that is
-                                 not kept makes way for the name of the effect, and the message says so (OnCustomEffectNameLostFocus).
-                                 Escape puts back the name the effect has. -->
-                            <TextBox Text="{Binding Name, UpdateSourceTrigger=Explicit}" MaxLength="40" LostFocus="OnCustomEffectNameLostFocus"
-                                     views:CommitOnEnter.CancelCommand="{Binding CancelNameEditCommand}"
-                                     AutomationProperties.Name="{x:Static res:Strings.CustomEffectNameAccessibleName}" />
-                            <DockPanel Margin="0,6,0,0" Visibility="{Binding NameError, Converter={StaticResource NullToCollapsed}}">
-                                <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
-                                <TextBlock TextWrapping="Wrap" Text="{Binding NameError, NotifyOnTargetUpdated=True}"
-                                           AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
-                            </DockPanel>
-
-                            <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectStepsLabel}" />
-                            <!-- Rows of at most six tiles, as the color lists; a pattern shows as a gradient. -->
-                            <WrapPanel>
-                                <ItemsControl x:Name="StepTiles" Style="{StaticResource ColorTileList}" ItemsSource="{Binding Steps}"
-                                              AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepsLabel}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type vm:CustomEffectStepItem}">
-                                            <Button Style="{StaticResource ColorListTile}" Background="{Binding Colors, Converter={StaticResource ColorsToBrush}}"
-                                                    AutomationProperties.HelpText="{x:Static res:Strings.CustomEffectStepHelp}"
-                                                    Command="{Binding DataContext.SelectStepCommand, ElementName=StepTiles}"
-                                                    CommandParameter="{Binding Index}" PreviewKeyDown="OnStepKeyDown" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Button Style="{StaticResource ColorListButton}" Content="+"
-                                        ToolTip="{x:Static res:Strings.CustomEffectStepAdd}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepAdd}"
-                                        Command="{Binding AddStepCommand}" Click="OnStepButtonClick" />
-                                <Button Style="{StaticResource ColorListButton}" Content="−"
-                                        ToolTip="{x:Static res:Strings.CustomEffectStepRemove}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepRemove}"
-                                        Command="{Binding RemoveStepCommand}" Click="OnStepButtonClick" />
-                                <Button Style="{StaticResource ColorListButton}" Content="←"
-                                        ToolTip="{x:Static res:Strings.CustomEffectStepEarlier}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepEarlier}"
-                                        Command="{Binding MoveStepEarlierCommand}" Click="OnStepButtonClick" />
-                                <Button Style="{StaticResource ColorListButton}" Content="→"
-                                        ToolTip="{x:Static res:Strings.CustomEffectStepLater}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepLater}"
-                                        Command="{Binding MoveStepLaterCommand}" Click="OnStepButtonClick" />
-                            </WrapPanel>
-                            <TextBlock Style="{StaticResource SubText}" Text="{Binding SelectedStepText}" />
-                            <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
-                                    Content="{x:Static res:Strings.CustomEffectTakePattern}" ToolTip="{x:Static res:Strings.CustomEffectTakePatternToolTip}"
-                                    ToolTipService.ShowOnDisabled="True"
-                                    Command="{Binding DataContext.TakeLedPatternCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-
-                            <!-- The two times of the chosen step side by side, or under each other when the text of a
-                                 larger text size of Windows needs the room. -->
-                            <views:CardGrid Margin="0,10,0,0" MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
-                                <StackPanel>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding HoldText}" />
-                                        <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectHold}" />
-                                    </DockPanel>
-                                    <Slider Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
-                                            Value="{Binding HoldSeconds}" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="0.1"
-                                            AutomationProperties.Name="{x:Static res:Strings.CustomEffectHold}" AutomationProperties.ItemStatus="{Binding HoldText}" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding FadeText}" />
-                                        <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectFade}" />
-                                    </DockPanel>
-                                    <Slider Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
-                                            Value="{Binding FadeSeconds}" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="0.1"
-                                            AutomationProperties.Name="{x:Static res:Strings.CustomEffectFade}" AutomationProperties.ItemStatus="{Binding FadeText}" />
-                                </StackPanel>
-                            </views:CardGrid>
-                        </StackPanel>
-                    </StackPanel>
+                    <!-- "Jouw effect" (CustomEffectEditor). When it hides with the focus in it, such as after deleting
+                         the effect, the focus goes to the chosen effect tile. -->
+                    <views:CustomEffectEditor Margin="0,0,0,14" Visibility="{Binding ShowsCustomEffectCard, Converter={StaticResource BoolToVisibility}}"
+                                              views:FocusFallback.Target="{Binding ElementName=EffectTiles}" />
 
                     <!-- Per LED without chosen LEDs: where to choose them, and a jump to "Per apparaat". -->
                     <StackPanel Margin="0,0,0,14" Visibility="{Binding ShowsPerLedHint, Converter={StaticResource BoolToVisibility}}">
@@ -421,128 +271,8 @@
                     <TextBlock Style="{StaticResource Body}" FontWeight="Normal" Text="{Binding NoColorText}"
                                Visibility="{Binding ShowsNoColor, Converter={StaticResource BoolToVisibility}}" />
 
-                    <!-- The mixing panel: the preview beside the sliders, or above them when the text of a larger
-                         text size of Windows needs the room. -->
-                    <views:CardGrid MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource MixColumnWidth}}"
-                                    Visibility="{Binding ShowsMixer, Converter={StaticResource BoolToVisibility}}">
-                        <Border VerticalAlignment="Top" Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}" Padding="18,26,18,20"
-                                AutomationProperties.Name="{x:Static res:Strings.ColorPreviewAccessibleName}">
-                            <StackPanel>
-                                <Border Style="{StaticResource StripBoard}">
-                                    <views:DecorativeItemsControl ItemsSource="{StaticResource StripBulbs}" Focusable="False" IsTabStop="False" VerticalAlignment="Center">
-                                        <views:DecorativeItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <UniformGrid Rows="1" />
-                                            </ItemsPanelTemplate>
-                                        </views:DecorativeItemsControl.ItemsPanel>
-                                        <views:DecorativeItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4" OffRingBrush="{StaticResource StripLedOffRingBrush}"
-                                                               Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                            </DataTemplate>
-                                        </views:DecorativeItemsControl.ItemTemplate>
-                                    </views:DecorativeItemsControl>
-                                </Border>
-                                <DockPanel Margin="0,22,0,0">
-                                    <TextBlock DockPanel.Dock="Right" Margin="12,0,0,8" VerticalAlignment="Bottom" Style="{StaticResource MonoValue}" FontSize="{DynamicResource SubTextSize}"
-                                               Text="{Binding ColorPicker.RgbText}" />
-                                    <StackPanel>
-                                        <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />
-                                        <!-- The name of the color before its hex code, "Warm wit · #FFF4E5"; the code goes
-                                             under the name when the text of a larger text size of Windows needs the room,
-                                             with the dot before it, so no dot stays behind the name.
-                                             The name follows the color while you drag, so it is no live region. -->
-                                        <WrapPanel>
-                                            <TextBlock Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
-                                                       Text="{Binding ColorPicker.ColorName}"
-                                                       AutomationProperties.Name="{Binding ColorPicker.ColorName}" AutomationProperties.AutomationId="CurrentColorName" />
-                                            <StackPanel Orientation="Horizontal">
-                                                <views:DecorativeText Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
-                                                                      Foreground="{DynamicResource TextMutedBrush}" Text="·" />
-                                                <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
-                                                         GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
-                                                         LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
-                                            </StackPanel>
-                                        </WrapPanel>
-                                    </StackPanel>
-                                </DockPanel>
-                                <!-- A code that is no color makes way for that of the color when the field loses the focus; this says so. -->
-                                <DockPanel Margin="0,6,0,0" Visibility="{Binding ColorPicker.HexError, Converter={StaticResource NullToCollapsed}}">
-                                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
-                                    <TextBlock TextWrapping="Wrap" Text="{Binding ColorPicker.HexError, NotifyOnTargetUpdated=True}"
-                                               AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
-                                </DockPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <StackPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Red, StringFormat={}{0:0}}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelRed}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Red}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    Foreground="{StaticResource LedRedBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelRed}" />
-                            <DockPanel Margin="0,14,0,0">
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Green, StringFormat={}{0:0}}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelGreen}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Green}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    Foreground="{StaticResource LedGreenBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelGreen}" />
-                            <DockPanel Margin="0,14,0,0">
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Blue, StringFormat={}{0:0}}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelBlue}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Blue}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
-
-                            <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" AutomationProperties.HeadingLevel="Level3" />
-                            <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine of the design and
-                                 the full colors fit one row in a wide window, and the rest wraps under them. -->
-                            <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False"
-                                          AutomationProperties.Name="{x:Static res:Strings.ToolboxHeader}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:ColorPreset}">
-                                        <Button Style="{StaticResource ToolboxTile}" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- The own colors, kept by the engine: "+" first, so the tiles after it wrap within the
-                                 column; a click mixes one, Delete or its context menu takes it away. -->
-                            <TextBlock Margin="0,10,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.CustomColorsHeader}" AutomationProperties.HeadingLevel="Level3" />
-                            <DockPanel>
-                                <Button x:Name="AddCustomColor" DockPanel.Dock="Left" Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource AddTile}" Content="+"
-                                        ToolTip="{x:Static res:Strings.CustomColorsAddToolTip}" ToolTipService.ShowOnDisabled="True"
-                                        AutomationProperties.Name="{x:Static res:Strings.CustomColorsAdd}"
-                                        Command="{Binding CustomColors.AddCommand}" Click="OnAddCustomColorClick" />
-                                <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False"
-                                              AutomationProperties.Name="{x:Static res:Strings.CustomColorsHeader}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type vm:CustomColorItem}">
-                                            <Button Style="{StaticResource ToolboxTile}" AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
-                                                    PreviewKeyDown="OnCustomColorKeyDown" views:FocusKeeper.Key="{Binding FocusKey}">
-                                                <Button.ContextMenu>
-                                                    <ContextMenu>
-                                                        <MenuItem Header="{x:Static res:Strings.CustomColorRemove}" Click="OnRemoveCustomColorClick" />
-                                                    </ContextMenu>
-                                                </Button.ContextMenu>
-                                            </Button>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </DockPanel>
-                        </StackPanel>
-                    </views:CardGrid>
+                    <!-- The mixing panel (ColorMixer). -->
+                    <views:ColorMixer Visibility="{Binding ShowsMixer, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
             </Border>
 
@@ -552,52 +282,40 @@
                 <StackPanel>
                     <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BrightnessSpeedHeader}" AutomationProperties.HeadingLevel="Level2" />
                     <views:CardGrid MaxColumns="3" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
+                        <views:ValueSlider Label="{x:Static res:Strings.BrightnessHeader}" ValueText="{Binding Brightness, StringFormat={}{0:0}%}"
+                                           Minimum="0" Maximum="100" Value="{Binding Brightness}" SmallChange="1" LargeChange="10" TickFrequency="1" />
                         <StackPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Brightness, StringFormat={}{0:0}%}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.BrightnessHeader}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="100" Value="{Binding Brightness}" SmallChange="1" LargeChange="10"
-                                    IsSnapToTickEnabled="True" TickFrequency="1" AutomationProperties.Name="{x:Static res:Strings.BrightnessHeader}" />
-                        </StackPanel>
-                        <StackPanel>
-                            <DockPanel IsEnabled="{Binding IsSpeedEnabled}">
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Speed, StringFormat={}{0:0}%}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.SpeedHeader}" />
-                            </DockPanel>
-                            <Slider Minimum="{x:Static vm:MainViewModel.MinSpeed}" Maximum="{x:Static vm:MainViewModel.MaxSpeed}"
-                                    Value="{Binding Speed}" SmallChange="5" LargeChange="25" IsSnapToTickEnabled="True" TickFrequency="5"
-                                    IsEnabled="{Binding IsSpeedEnabled}" AutomationProperties.Name="{x:Static res:Strings.SpeedHeader}" />
+                            <views:ValueSlider Label="{x:Static res:Strings.SpeedHeader}" ValueText="{Binding Speed, StringFormat={}{0:0}%}" IsEnabled="{Binding IsSpeedEnabled}"
+                                               Minimum="{x:Static vm:MainViewModel.MinSpeed}" Maximum="{x:Static vm:MainViewModel.MaxSpeed}"
+                                               Value="{Binding Speed}" SmallChange="5" LargeChange="25" TickFrequency="5" />
                             <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.SpeedOnlyAnimated}"
                                        Visibility="{Binding IsSpeedEnabled, Converter={StaticResource InverseBoolToVisibility}}" />
                         </StackPanel>
                         <!-- Only for the effects that run over the LEDs; the arrow points the way, 0° to the right. -->
                         <StackPanel Visibility="{Binding IsDirectionVisible, Converter={StaticResource BoolToVisibility}}">
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding DirectionText}" />
-                                <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
-                                <Path DockPanel.Dock="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="12" Height="12"
-                                      Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"
-                                      Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}">
-                                    <Path.RenderTransform>
-                                        <RotateTransform Angle="{Binding Direction}" />
-                                    </Path.RenderTransform>
-                                </Path>
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.DirectionHeader}" />
-                            </DockPanel>
-                            <Slider x:Name="DirectionSlider" Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
-                                    Value="{Binding Direction}" SmallChange="5" LargeChange="45" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    AutomationProperties.Name="{x:Static res:Strings.DirectionHeader}"
-                                    AutomationProperties.HelpText="{x:Static res:Strings.DirectionHelp}"
-                                    AutomationProperties.ItemStatus="{Binding DirectionText}"
-                                    ToolTip="{x:Static res:Strings.DirectionHelp}"
-                                    PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted" />
+                            <!-- The help is the tooltip of the slider too. Its AutomationId stays DirectionSlider. -->
+                            <views:ValueSlider x:Name="DirectionSlider" Label="{x:Static res:Strings.DirectionHeader}" ValueText="{Binding DirectionText}"
+                                               HelpText="{x:Static res:Strings.DirectionHelp}" ItemStatus="{Binding DirectionText}"
+                                               Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
+                                               Value="{Binding Direction}" SmallChange="5" LargeChange="45" TickFrequency="1"
+                                               PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted">
+                                <views:ValueSlider.ValueIcon>
+                                    <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
+                                    <Path Margin="0,0,8,0" VerticalAlignment="Center" Width="12" Height="12"
+                                          Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"
+                                          Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}">
+                                        <Path.RenderTransform>
+                                            <RotateTransform Angle="{Binding Direction}" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                </views:ValueSlider.ValueIcon>
+                            </views:ValueSlider>
                             <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
                                     Content="{x:Static res:Strings.DirectionClear}" Command="{Binding ClearDirectionCommand}"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionClearAccessibleName}"
                                     Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}"
-                                    views:FocusFallback.Target="{Binding ElementName=DirectionSlider}" />
+                                    views:FocusFallback.Target="{Binding Slider, ElementName=DirectionSlider}" />
                         </StackPanel>
                     </views:CardGrid>
                 </StackPanel>

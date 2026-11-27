@@ -1,0 +1,16 @@
+<!-- The least widths of the columns of Kleur, shared by the page (ColorPage), the mixing panel (ColorMixer)
+     and "Jouw effect" (CustomEffectEditor), so a width changes in one place. Each of them merges this file. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
+    <!-- Least widths in em of the body text, which a larger text size of Windows makes wider, so
+         fewer columns fit and the rest goes under them. A column of the preview and the sliders
+         fits the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding
+         and border of the preview (38 px), with a little to spare: 358 px at 100 %; the column of
+         "Bewaar als scène" on the page has the same. -->
+    <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
+
+    <!-- A column with a value (brightness, speed, direction or, in CustomEffectEditor, a time of a step)
+         fits its name beside it: 150 px at 100 %. -->
+    <views:EmConverter x:Key="ValueColumnWidth" Ems="10" />
+</ResourceDictionary>
