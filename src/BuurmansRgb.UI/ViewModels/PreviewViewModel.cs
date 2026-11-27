@@ -8,10 +8,13 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // Shows the frames the engine renders for the devices in view, and the LEDs selected in the
 // per-LED editor. Use it from the UI thread. time runs the delay before a new zone length goes to
-// the engine (ZoneLengthViewModel).
-public sealed partial class PreviewViewModel(TimeProvider? time = null) : ObservableObject, IPreviewActions, IDisposable
+// the engine (ZoneLengthViewModel). requests get what the user asks for in a device preview, after
+// this has followed it for the count of LEDs (PreviewActionsCoordinator in the app); without them
+// nothing goes anywhere.
+public sealed partial class PreviewViewModel(TimeProvider? time = null, IPreviewRequests? requests = null) : ObservableObject, IPreviewActions, IDisposable
 {
     private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly IPreviewRequests? _requests = requests;
     private readonly UiThread _ui = new();
     private LightingFrame _latestFrame = LightingFrame.Empty;
 
@@ -46,35 +49,6 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
     // Without devices, "Per apparaat" says how to find them instead of showing cards.
     [ObservableProperty]
     public partial bool HasDevices { get; private set; }
-
-    // Raised when the user clicks an LED in one of the device previews.
-    public event EventHandler<LedClick>? LedClicked;
-
-    // Raised when the user clicks the name of a zone, to select all of its LEDs.
-    public event EventHandler<LedSelection>? LedsSelected;
-
-    // Raised when the user clears the selection of LEDs from the preview.
-    public event EventHandler? LedSelectionCleared;
-
-    // Raised when the user sets another length for a resizable zone.
-    public event EventHandler<ZoneResize>? ZoneResizeRequested;
-
-    // Raised when the user asks a device to flash, with its id.
-    public event EventHandler<string>? FlashRequested;
-
-    // Raised when the user asks one zone of a device to flash.
-    public event EventHandler<ZoneFlash>? ZoneFlashRequested;
-
-    // Raised when the user switches "Zones gelijk" of a device.
-    public event EventHandler<ZonesAlikeChoice>? ZonesAlikeRequested;
-
-    // Raised when the user starts, changes or stops a count of the LEDs of a zone; also stopped
-    // when the counted zone goes from view.
-    public event EventHandler<ZoneCountStart>? ZoneCountStartRequested;
-
-    public event EventHandler<ZoneCountUpdate>? ZoneCountChangeRequested;
-
-    public event EventHandler<ZoneCountStop>? ZoneCountStopRequested;
 
     // The count of LEDs the engine runs now, kept while the preview is made again; null while no
     // zone is counted, or while the counted zone is not in view.
@@ -186,7 +160,7 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
 
         if (stopOutOfView && shown is not null && Count is null && _counts.StopOwn(shown.DeviceId, shown.ZoneIndex))
         {
-            ZoneCountStopRequested?.Invoke(this, new ZoneCountStop(shown.DeviceId, shown.ZoneIndex));
+            _requests?.StopZoneCount(new ZoneCountStop(shown.DeviceId, shown.ZoneIndex));
         }
     }
 
@@ -403,44 +377,44 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
         }
     }
 
-    // The device previews hand what the user does to these; the main view model listens to the events.
-    void IPreviewActions.ClickLed(LedClick click) => LedClicked?.Invoke(this, click);
+    // The device previews hand what the user does to these; they go on to the requests.
+    void IPreviewRequests.ClickLed(LedClick click) => _requests?.ClickLed(click);
 
-    void IPreviewActions.SelectLeds(LedSelection selection) => LedsSelected?.Invoke(this, selection);
+    void IPreviewRequests.SelectLeds(LedSelection selection) => _requests?.SelectLeds(selection);
 
-    void IPreviewActions.ClearLedSelection() => LedSelectionCleared?.Invoke(this, EventArgs.Empty);
+    void IPreviewRequests.ClearLedSelection() => _requests?.ClearLedSelection();
 
     // A new length of the counted zone, such as from "Dit is de laatste", ends its count in the
     // engine.
-    void IPreviewActions.ResizeZone(ZoneResize resize)
+    void IPreviewRequests.ResizeZone(ZoneResize resize)
     {
         _counts.Resize(resize.DeviceId, resize.ZoneIndex);
-        ZoneResizeRequested?.Invoke(this, resize);
+        _requests?.ResizeZone(resize);
     }
 
-    void IPreviewActions.FlashDevice(string deviceId) => FlashRequested?.Invoke(this, deviceId);
+    void IPreviewRequests.FlashDevice(string deviceId) => _requests?.FlashDevice(deviceId);
 
-    void IPreviewActions.FlashZone(ZoneFlash flash) => ZoneFlashRequested?.Invoke(this, flash);
+    void IPreviewRequests.FlashZone(ZoneFlash flash) => _requests?.FlashZone(flash);
 
-    void IPreviewActions.SetZonesAlike(ZonesAlikeChoice choice) => ZonesAlikeRequested?.Invoke(this, choice);
+    void IPreviewRequests.SetZonesAlike(ZonesAlikeChoice choice) => _requests?.SetZonesAlike(choice);
 
-    void IPreviewActions.StartZoneCount(ZoneCountStart start)
+    void IPreviewRequests.StartZoneCount(ZoneCountStart start)
     {
         _counts.Start(start.DeviceId, start.ZoneIndex);
-        ZoneCountStartRequested?.Invoke(this, start);
+        _requests?.StartZoneCount(start);
     }
 
-    void IPreviewActions.ChangeZoneCount(ZoneCountUpdate update) => ZoneCountChangeRequested?.Invoke(this, update);
+    void IPreviewRequests.ChangeZoneCount(ZoneCountUpdate update) => _requests?.ChangeZoneCount(update);
 
     // The count ends here at once (ZoneCountTracker.Stop).
-    void IPreviewActions.StopZoneCount(ZoneCountStop stop)
+    void IPreviewRequests.StopZoneCount(ZoneCountStop stop)
     {
         if (_counts.Stop(stop.DeviceId, stop.ZoneIndex))
         {
             ShowCount();
         }
 
-        ZoneCountStopRequested?.Invoke(this, stop);
+        _requests?.StopZoneCount(stop);
     }
 
     private static IEnumerable<ZoneLengthViewModel> LengthsOf(IEnumerable<DevicePreviewViewModel> previews) =>

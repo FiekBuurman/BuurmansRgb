@@ -113,14 +113,12 @@ public sealed class PreviewViewModelTests
     }
 
     [Fact]
-    public void PressKeys_RaiseTheEventsOfClicksAndSelections()
+    public void PressKeys_HandOnTheClicksAndSelections()
     {
-        var preview = new PreviewViewModel();
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
         preview.ShowDevices([Fan]);
-        List<object> raised = [];
-        preview.LedClicked += (_, click) => raised.Add(click);
-        preview.LedsSelected += (_, leds) => raised.Add(leds);
-        preview.LedSelectionCleared += (_, _) => raised.Add("clear");
+        var raised = actions.Requests;
 
         preview.Devices[0].PressKey(LedKey.Next, extend: true);
         preview.Devices[0].PressKey(LedKey.SelectAll);
@@ -131,16 +129,15 @@ public sealed class PreviewViewModelTests
     }
 
     [Fact]
-    public void ClickLed_RaisesLedClickedWithTheDevice()
+    public void ClickLed_HandsOnTheClickWithTheDevice()
     {
-        var preview = new PreviewViewModel();
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
         preview.ShowDevices([Fan]);
-        LedClick? clicked = null;
-        preview.LedClicked += (_, click) => clicked = click;
 
         preview.Devices[0].ClickLed(1, extend: true);
 
-        Assert.Equal(new LedClick("fan", 1, Extend: true), clicked);
+        Assert.Equal([new LedClick("fan", 1, Extend: true)], actions.Requests);
     }
 
     // The engine reports the devices again (here after an earlier resize) while the user is still
@@ -149,9 +146,9 @@ public sealed class PreviewViewModelTests
     public void ShowDevices_ZoneLengthNotSentYet_StaysAndGoesOutAfterThePause()
     {
         var time = new FakeTimeProvider();
-        var preview = new PreviewViewModel(time);
-        var resizes = new List<ZoneResize>();
-        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(time, actions);
+        var resizes = actions.Of<ZoneResize>();
         preview.ShowDevices([Strip(10)]);
         preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);
 
@@ -169,9 +166,9 @@ public sealed class PreviewViewModelTests
     public void ShowDevices_ZoneWithALengthNotSentYetGoes_SendsItNow()
     {
         var time = new FakeTimeProvider();
-        var preview = new PreviewViewModel(time);
-        var resizes = new List<ZoneResize>();
-        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(time, actions);
+        var resizes = actions.Of<ZoneResize>();
         preview.ShowDevices([Strip(10)]);
         preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);
 
@@ -185,9 +182,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowDevices_ZoneGoesHalfwayADrag_SendsItsLength()
     {
-        var preview = new PreviewViewModel(new FakeTimeProvider());
-        var resizes = new List<ZoneResize>();
-        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(new FakeTimeProvider(), actions);
+        var resizes = actions.Of<ZoneResize>();
         preview.ShowDevices([Strip(10)]);
         var length = preview.Devices[0].Zones[0].Length!;
         length.BeginDrag();
@@ -203,9 +200,9 @@ public sealed class PreviewViewModelTests
     public void Dispose_SendsTheLengthsThatWait()
     {
         var time = new FakeTimeProvider();
-        var preview = new PreviewViewModel(time);
-        var resizes = new List<ZoneResize>();
-        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(time, actions);
+        var resizes = actions.Of<ZoneResize>();
         preview.ShowDevices([Strip(10), Strip(10) with { Id = "other" }]);
         preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);
         var dragged = preview.Devices[1].Zones[0].Length!;
@@ -237,10 +234,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void CountLeds_SendsAWaitingLengthFirstAndStartsTheCount()
     {
-        var preview = new PreviewViewModel(new FakeTimeProvider());
-        List<object> requests = [];
-        preview.ZoneResizeRequested += (_, resize) => requests.Add(resize);
-        preview.ZoneCountStartRequested += (_, start) => requests.Add(start);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(new FakeTimeProvider(), actions);
+        var requests = actions.Requests;
         preview.ShowDevices([Board(20, 0)]);
         var zone = preview.Devices[0].Zones[0];
         zone.Length!.IncreaseCommand.Execute(null);
@@ -394,9 +390,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowDevices_CountedZoneGoesFromView_StopsTheCount()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
@@ -412,9 +408,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowDevices_CountOfAnotherAppGoesFromView_LeavesTheCount()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
 
@@ -431,9 +427,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowZoneCount_ZoneNotInView_IsLeftAloneAndShowsLater()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Fan]);
 
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
@@ -448,9 +444,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void StopCount_StopsTheCountInView()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.StopCount();
         preview.Devices[0].Zones[0].CountLedsCommand.Execute(null);
@@ -466,9 +462,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void StopCount_CountOfAnotherApp_LeavesIt()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.ShowZoneCount(new ZoneCountInfo("board", 0, 4, 60, 1, true));
 
@@ -483,9 +479,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void Keep_ThenACountOfAnotherAppGoesFromView_LeavesIt()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, false) { Sequence = 1 });
@@ -502,9 +498,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowZoneCount_NoneAfterTheOwnCount_ThenACountOfAnotherAppGoesFromView_LeavesIt()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 1 });
@@ -521,9 +517,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowZoneCount_NoneBeforeTheOwnCountIsConfirmed_KeepsItOwn()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
 
@@ -540,9 +536,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ShowZoneCount_StepFromBeforeTheStart_DoesNotConfirmTheOwnCount()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 4 });
 
@@ -561,9 +557,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void Pause_BeforeTheOwnCountIsConfirmed_ThenACountOfAnotherAppGoesFromView_LeavesIt()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
 
@@ -579,11 +575,10 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ForgetZoneCountStart_ThenACountOfAnotherAppGoesFromView_LeavesIt()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStart> starts = [];
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStartRequested += (_, start) => starts.Add(start);
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var starts = actions.Of<ZoneCountStart>();
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
 
@@ -599,9 +594,9 @@ public sealed class PreviewViewModelTests
     [Fact]
     public void ForgetZoneCountStart_AfterTheCountIsConfirmed_KeepsItOwn()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 0)]);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 3 });
