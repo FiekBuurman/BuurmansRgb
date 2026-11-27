@@ -1,5 +1,3 @@
-using BuurmansRgb.Engine.Lighting;
-
 namespace BuurmansRgb.Engine.Profiles;
 
 // ProgramWatcher.HoldUntilProgramsStop: while a program shows its scene, a time keeps its lighting
