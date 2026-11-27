@@ -113,7 +113,7 @@ internal sealed class CustomEffectLibrary : IDisposable
             {
                 EffectsLocked();
             }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 Trace.TraceError(exception.ToString());
                 if (!_disposed)
@@ -380,7 +380,7 @@ internal sealed class CustomEffectLibrary : IDisposable
             {
                 EffectsLocked();
             }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 // Load logged the whole first failure; every few seconds the message is enough.
                 Trace.TraceWarning($"Still could not read the own effects: {exception.Message}");
@@ -448,7 +448,7 @@ internal sealed class CustomEffectLibrary : IDisposable
                 Trace.TraceInformation("Wrote the own effects after all.");
             }
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             // The whole first failure; a timer that tries again every moment only adds its message.
             if (_saveFailed)

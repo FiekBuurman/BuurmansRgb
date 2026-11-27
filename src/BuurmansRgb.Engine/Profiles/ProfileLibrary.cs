@@ -82,7 +82,7 @@ internal sealed class ProfileLibrary
                 return [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))];
             }
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
             return [];
@@ -107,7 +107,7 @@ internal sealed class ProfileLibrary
                 Store([.. scenes.OrderBy(profile => profile.Name, ProfileNames.Comparer)]);
             }
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             Trace.TraceError($"Could not write the start scenes; the next start tries again: {exception}");
             return StartScenesOutcome.NotWritten;
@@ -197,7 +197,7 @@ internal sealed class ProfileLibrary
                 return ScenesLocked().FirstOrDefault(profile => Matches(profile, name.Trim()))?.Name;
             }
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
             return null;
@@ -244,7 +244,7 @@ internal sealed class ProfileLibrary
                 ];
             }
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
             return [];
@@ -623,7 +623,7 @@ internal sealed class ProfileLibrary
         {
             Store([.. ProfilesLocked().Select(profile => ReferenceEquals(profile, backOn) ? profile with { Lighting = before.Lighting } : profile)]);
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             Trace.TraceError($"Could not keep the lighting from before Alles uit for Aan om: {exception}");
         }

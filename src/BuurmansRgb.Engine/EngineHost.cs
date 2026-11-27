@@ -201,7 +201,7 @@ internal sealed class EngineHost(
             {
                 known.WriteBackup(before);
             }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 Trace.TraceError($"A backup was not restored: the files of now could not be copied first: {exception}");
                 return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
@@ -225,7 +225,7 @@ internal sealed class EngineHost(
                     }
                 }
             }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 Trace.TraceError($"Restoring a backup failed at {replaced[^1]}; putting back {string.Join(", ", replaced)}: {exception}");
                 PutBack(known, replaced, before, lightingBefore, activeBefore);
@@ -343,7 +343,7 @@ internal sealed class EngineHost(
                     Remove(known, name);
                 }
             }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 Trace.TraceError($"Could not put {name} back; the copy is in {known.BackupsFolder}: {exception.Message}");
             }

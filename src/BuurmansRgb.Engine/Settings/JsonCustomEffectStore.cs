@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 
@@ -12,28 +11,13 @@ internal sealed class JsonCustomEffectStore(string filePath) : ICustomEffectStor
     public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.EffectsFileName);
 
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
-    public string BrokenFilePath => filePath + ".broken";
+    public string BrokenFilePath => JsonFile.BrokenPathOf(filePath);
 
     // An effect that does not read, or with the id or the name of an earlier one, is skipped, and
     // so are the effects after the first CustomEffects.MaxEffects.
     public IReadOnlyList<CustomEffect> Load()
     {
-        if (!File.Exists(filePath))
-        {
-            return [];
-        }
-
-        CustomEffectsFile? file;
-        try
-        {
-            file = LenientJson.Deserialize(File.ReadAllBytes(filePath), EngineSettingsJsonContext.Default.CustomEffectsFile);
-        }
-        catch (JsonException exception)
-        {
-            Trace.TraceError(exception.ToString());
-            File.Move(filePath, BrokenFilePath, overwrite: true);
-            return [];
-        }
+        var file = JsonFile.ReadOrMoveAside(filePath, EngineSettingsJsonContext.Default.CustomEffectsFile);
 
         var effects = new List<CustomEffect>();
         foreach (var settings in file?.Effects ?? [])

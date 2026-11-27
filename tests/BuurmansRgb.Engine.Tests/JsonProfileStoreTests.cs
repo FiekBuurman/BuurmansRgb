@@ -550,6 +550,20 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Exists_CountsAFileThatWentAsideAsBroken()
+    {
+        Assert.False(_store.Exists);
+
+        File.WriteAllText(_directory.File("profiles.json"), "{ not json");
+        Assert.True(_store.Exists);
+
+        Assert.Empty(_store.Load());
+        Assert.False(File.Exists(_directory.File("profiles.json")));
+        Assert.True(File.Exists(_store.BrokenFilePath));
+        Assert.True(_store.Exists);
+    }
+
+    [Fact]
     public void Load_FileInUse_Throws()
     {
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Orange)))]);

@@ -26,7 +26,7 @@ internal sealed class SettingsFileWatcher : ISettingsFileEvents, IDisposable
             _watcher.Error += OnError;
             _watcher.EnableRaisingEvents = true;
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception) || exception is ArgumentException)
+        catch (Exception exception) when (FileErrors.IsAccessError(exception) || exception is ArgumentException)
         {
             Trace.TraceWarning($"Changes to {filePath} are not picked up until a restart: {exception.Message}");
             _watcher?.Dispose();

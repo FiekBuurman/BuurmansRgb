@@ -153,7 +153,7 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
                 return EngineCommandResult.Done;
             }
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
             return EngineCommandResult.Done;

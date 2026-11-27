@@ -107,7 +107,8 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
     }
 
     // What Windows throws when it does not let autostart be read or changed; AutoStartExtensions
-    // catches the same.
+    // catches the same. Not FileErrors.IsAccessError: the registry also throws SecurityException,
+    // which a file never does.
     internal static bool IsAccessError(Exception exception) =>
         exception is UnauthorizedAccessException or SecurityException or IOException;
 

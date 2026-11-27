@@ -92,9 +92,11 @@ internal static class Program
             Trace.TraceWarning(warning);
         }
 
+        var profileStore = new JsonProfileStore(JsonProfileStore.DefaultFilePath);
+
         // No engine runs, so this one starts and does the command once it runs; a scene that is not
         // there stops it here.
-        if (options.Command?.CheckBeforeStart(new JsonProfileStore(JsonProfileStore.DefaultFilePath)) is { } check and not EngineCommandResult.Done)
+        if (options.Command?.CheckBeforeStart(profileStore) is { } check and not EngineCommandResult.Done)
         {
             return (int)check;
         }
@@ -136,7 +138,7 @@ internal static class Program
         var customColors = new CustomColorList();
         // Disposed after the host, so the last change of an own effect is written at the exit.
         using var customEffects = new CustomEffectLibrary(new JsonCustomEffectStore(JsonCustomEffectStore.DefaultFilePath), lighting);
-        var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
+        var profiles = new ProfileLibrary(profileStore, lighting);
         // Disposed after the host, which stops listening to it first.
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
         // The host disposes them, before it saves for the last time.
