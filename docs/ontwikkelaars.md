@@ -587,7 +587,8 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   de UI: `Run` voert iets meteen uit als je al op de UI-thread bent en zet het er anders op,
   `Post` zet het er altijd op. Een view model dat iets van de engine toont, doet dat in
   `ReentrancyGuard.Run` (`IsActive`), zodat dat tonen niet als wijziging van de gebruiker terug
-  naar de engine gaat. Een kind-view model van `MainViewModel` volgt een van twee patronen. **Puur:** het kent
+  naar de engine gaat.
+  Een kind-view model van `MainViewModel` volgt een van twee patronen. **Puur:** het kent
   de engine niet en vraagt alles met events (zoals `AppInfoViewModel.Message`,
   `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
   **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
