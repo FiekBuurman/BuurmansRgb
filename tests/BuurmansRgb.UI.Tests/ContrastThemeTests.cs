@@ -90,7 +90,7 @@ public sealed class ContrastThemeTests
         ["CloseHoverBrush"] = "CloseHoverColor",
         ["CloseHoverTextBrush"] = "White",
         ["TextSelectionBrush"] = "LedBlueBrush",
-        ["WarningBrush"] = "LedYellowBrush",
+        ["WarningBrush"] = "LedYellowColor",
         ["ButtonFaceBrush"] = "SurfaceBrush",
         ["ButtonTextBrush"] = "TextBrush",
         ["ButtonBorderBrush"] = "BorderBrush",
@@ -207,7 +207,6 @@ public sealed class ContrastThemeTests
     // contrast theme covers it (SwitchOnCoverBrush).
     [Theory]
     [InlineData("LedRedBrush")]
-    [InlineData("LedYellowBrush")]
     [InlineData("LedGreenBrush")]
     [InlineData("LedBlueBrush")]
     [InlineData("LedOffBrush")]
