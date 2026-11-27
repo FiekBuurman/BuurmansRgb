@@ -19,7 +19,13 @@ public sealed class ActiveSceneTrackerTests
     {
         _tracker.Set("Avond");
 
-        _tracker.Showing("Nacht", () => Task.Run(_tracker.OnLightingChanged).Wait());
+        _tracker.Showing("Nacht", () =>
+        {
+            // A thread of its own always has another ManagedThreadId; Task.Run().Wait() may run inline.
+            var other = new Thread(_tracker.OnLightingChanged);
+            other.Start();
+            other.Join();
+        });
 
         Assert.Null(_tracker.Name);
     }
