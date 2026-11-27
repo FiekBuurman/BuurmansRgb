@@ -388,24 +388,12 @@
                             <!-- The two times of the chosen step side by side, or under each other when the text of a
                                  larger text size of Windows needs the room. -->
                             <views:CardGrid Margin="0,10,0,0" MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
-                                <StackPanel>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding HoldText}" />
-                                        <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectHold}" />
-                                    </DockPanel>
-                                    <Slider Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
-                                            Value="{Binding HoldSeconds}" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="0.1"
-                                            AutomationProperties.Name="{x:Static res:Strings.CustomEffectHold}" AutomationProperties.ItemStatus="{Binding HoldText}" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <DockPanel>
-                                        <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding FadeText}" />
-                                        <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectFade}" />
-                                    </DockPanel>
-                                    <Slider Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
-                                            Value="{Binding FadeSeconds}" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="0.1"
-                                            AutomationProperties.Name="{x:Static res:Strings.CustomEffectFade}" AutomationProperties.ItemStatus="{Binding FadeText}" />
-                                </StackPanel>
+                                <views:ValueSlider Label="{x:Static res:Strings.CustomEffectHold}" ValueText="{Binding HoldText}" ItemStatus="{Binding HoldText}"
+                                                   Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
+                                                   Value="{Binding HoldSeconds}" SmallChange="0.1" LargeChange="1" TickFrequency="0.1" />
+                                <views:ValueSlider Label="{x:Static res:Strings.CustomEffectFade}" ValueText="{Binding FadeText}" ItemStatus="{Binding FadeText}"
+                                                   Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
+                                                   Value="{Binding FadeSeconds}" SmallChange="0.1" LargeChange="1" TickFrequency="0.1" />
                             </views:CardGrid>
                         </StackPanel>
                     </StackPanel>
@@ -476,24 +464,12 @@
                         </Border>
 
                         <StackPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Red, StringFormat={}{0:0}}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelRed}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Red}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    Foreground="{StaticResource LedRedBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelRed}" />
-                            <DockPanel Margin="0,14,0,0">
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Green, StringFormat={}{0:0}}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelGreen}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Green}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    Foreground="{StaticResource LedGreenBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelGreen}" />
-                            <DockPanel Margin="0,14,0,0">
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Blue, StringFormat={}{0:0}}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelBlue}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Blue}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
+                            <views:ValueSlider Label="{x:Static res:Strings.ChannelRed}" ValueText="{Binding ColorPicker.Red, StringFormat={}{0:0}}" FillBrush="{StaticResource LedRedBrush}"
+                                               Minimum="0" Maximum="255" Value="{Binding ColorPicker.Red}" SmallChange="1" LargeChange="16" TickFrequency="1" />
+                            <views:ValueSlider Margin="0,14,0,0" Label="{x:Static res:Strings.ChannelGreen}" ValueText="{Binding ColorPicker.Green, StringFormat={}{0:0}}" FillBrush="{StaticResource LedGreenBrush}"
+                                               Minimum="0" Maximum="255" Value="{Binding ColorPicker.Green}" SmallChange="1" LargeChange="16" TickFrequency="1" />
+                            <views:ValueSlider Margin="0,14,0,0" Label="{x:Static res:Strings.ChannelBlue}" ValueText="{Binding ColorPicker.Blue, StringFormat={}{0:0}}" FillBrush="{StaticResource LedBlueBrush}"
+                                               Minimum="0" Maximum="255" Value="{Binding ColorPicker.Blue}" SmallChange="1" LargeChange="16" TickFrequency="1" />
 
                             <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" AutomationProperties.HeadingLevel="Level3" />
                             <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine of the design and
@@ -552,52 +528,40 @@
                 <StackPanel>
                     <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BrightnessSpeedHeader}" AutomationProperties.HeadingLevel="Level2" />
                     <views:CardGrid MaxColumns="3" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
+                        <views:ValueSlider Label="{x:Static res:Strings.BrightnessHeader}" ValueText="{Binding Brightness, StringFormat={}{0:0}%}"
+                                           Minimum="0" Maximum="100" Value="{Binding Brightness}" SmallChange="1" LargeChange="10" TickFrequency="1" />
                         <StackPanel>
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Brightness, StringFormat={}{0:0}%}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.BrightnessHeader}" />
-                            </DockPanel>
-                            <Slider Minimum="0" Maximum="100" Value="{Binding Brightness}" SmallChange="1" LargeChange="10"
-                                    IsSnapToTickEnabled="True" TickFrequency="1" AutomationProperties.Name="{x:Static res:Strings.BrightnessHeader}" />
-                        </StackPanel>
-                        <StackPanel>
-                            <DockPanel IsEnabled="{Binding IsSpeedEnabled}">
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Speed, StringFormat={}{0:0}%}" />
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.SpeedHeader}" />
-                            </DockPanel>
-                            <Slider Minimum="{x:Static vm:MainViewModel.MinSpeed}" Maximum="{x:Static vm:MainViewModel.MaxSpeed}"
-                                    Value="{Binding Speed}" SmallChange="5" LargeChange="25" IsSnapToTickEnabled="True" TickFrequency="5"
-                                    IsEnabled="{Binding IsSpeedEnabled}" AutomationProperties.Name="{x:Static res:Strings.SpeedHeader}" />
+                            <views:ValueSlider Label="{x:Static res:Strings.SpeedHeader}" ValueText="{Binding Speed, StringFormat={}{0:0}%}" IsEnabled="{Binding IsSpeedEnabled}"
+                                               Minimum="{x:Static vm:MainViewModel.MinSpeed}" Maximum="{x:Static vm:MainViewModel.MaxSpeed}"
+                                               Value="{Binding Speed}" SmallChange="5" LargeChange="25" TickFrequency="5" />
                             <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.SpeedOnlyAnimated}"
                                        Visibility="{Binding IsSpeedEnabled, Converter={StaticResource InverseBoolToVisibility}}" />
                         </StackPanel>
                         <!-- Only for the effects that run over the LEDs; the arrow points the way, 0° to the right. -->
                         <StackPanel Visibility="{Binding IsDirectionVisible, Converter={StaticResource BoolToVisibility}}">
-                            <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding DirectionText}" />
-                                <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
-                                <Path DockPanel.Dock="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="12" Height="12"
-                                      Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"
-                                      Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}">
-                                    <Path.RenderTransform>
-                                        <RotateTransform Angle="{Binding Direction}" />
-                                    </Path.RenderTransform>
-                                </Path>
-                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.DirectionHeader}" />
-                            </DockPanel>
-                            <Slider x:Name="DirectionSlider" Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
-                                    Value="{Binding Direction}" SmallChange="5" LargeChange="45" IsSnapToTickEnabled="True" TickFrequency="1"
-                                    AutomationProperties.Name="{x:Static res:Strings.DirectionHeader}"
-                                    AutomationProperties.HelpText="{x:Static res:Strings.DirectionHelp}"
-                                    AutomationProperties.ItemStatus="{Binding DirectionText}"
-                                    ToolTip="{x:Static res:Strings.DirectionHelp}"
-                                    PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted" />
+                            <!-- The help is the tooltip of the slider too. Its AutomationId stays DirectionSlider. -->
+                            <views:ValueSlider x:Name="DirectionSlider" Label="{x:Static res:Strings.DirectionHeader}" ValueText="{Binding DirectionText}"
+                                               HelpText="{x:Static res:Strings.DirectionHelp}" ItemStatus="{Binding DirectionText}"
+                                               Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
+                                               Value="{Binding Direction}" SmallChange="5" LargeChange="45" TickFrequency="1"
+                                               PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted">
+                                <views:ValueSlider.ValueIcon>
+                                    <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
+                                    <Path Margin="0,0,8,0" VerticalAlignment="Center" Width="12" Height="12"
+                                          Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"
+                                          Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}">
+                                        <Path.RenderTransform>
+                                            <RotateTransform Angle="{Binding Direction}" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                </views:ValueSlider.ValueIcon>
+                            </views:ValueSlider>
                             <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
                                     Content="{x:Static res:Strings.DirectionClear}" Command="{Binding ClearDirectionCommand}"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionClearAccessibleName}"
                                     Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}"
-                                    views:FocusFallback.Target="{Binding ElementName=DirectionSlider}" />
+                                    views:FocusFallback.Target="{Binding Slider, ElementName=DirectionSlider}" />
                         </StackPanel>
                     </views:CardGrid>
                 </StackPanel>
