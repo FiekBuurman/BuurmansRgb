@@ -16,53 +16,53 @@
             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <StackPanel.Resources>
         <ResourceDictionary>
-        <ResourceDictionary.MergedDictionaries>
-            <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
-        </ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- The twelve bulbs of the strip in the preview. -->
-        <x:Array x:Key="StripBulbs" Type="sys:Int32">
-            <sys:Int32>1</sys:Int32><sys:Int32>2</sys:Int32><sys:Int32>3</sys:Int32><sys:Int32>4</sys:Int32>
-            <sys:Int32>5</sys:Int32><sys:Int32>6</sys:Int32><sys:Int32>7</sys:Int32><sys:Int32>8</sys:Int32>
-            <sys:Int32>9</sys:Int32><sys:Int32>10</sys:Int32><sys:Int32>11</sys:Int32><sys:Int32>12</sys:Int32>
-        </x:Array>
+            <!-- The twelve bulbs of the strip in the preview. -->
+            <x:Array x:Key="StripBulbs" Type="sys:Int32">
+                <sys:Int32>1</sys:Int32><sys:Int32>2</sys:Int32><sys:Int32>3</sys:Int32><sys:Int32>4</sys:Int32>
+                <sys:Int32>5</sys:Int32><sys:Int32>6</sys:Int32><sys:Int32>7</sys:Int32><sys:Int32>8</sys:Int32>
+                <sys:Int32>9</sys:Int32><sys:Int32>10</sys:Int32><sys:Int32>11</sys:Int32><sys:Int32>12</sys:Int32>
+            </x:Array>
 
-        <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
-             A field like the others, with their border, hover and focus, so you see you can type in it;
-             without their fill, so it stays on the dark of the preview. Just wide enough for a code, at
-             every text size of Windows: seven characters of 0.6 em in the mono font, plus 54 px for the
-             padding, the border of the focus and the caret (180 px at 30 px). The width only follows the
-             font size, so it does not change while you type. -->
-        <views:EmConverter x:Key="HexBoxWidth" Ems="4.2" Extra="54" />
-        <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="FontSize" Value="{DynamicResource HexCodeSize}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Width" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource HexBoxWidth}}" />
-            <Setter Property="HorizontalAlignment" Value="Left" />
-            <Setter Property="Margin" Value="0,4,0,0" />
-            <Setter Property="MaxLength" Value="7" />
-        </Style>
+            <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
+                 A field like the others, with their border, hover and focus, so you see you can type in it;
+                 without their fill, so it stays on the dark of the preview. Just wide enough for a code, at
+                 every text size of Windows: seven characters of 0.6 em in the mono font, plus 54 px for the
+                 padding, the border of the focus and the caret (180 px at 30 px). The width only follows the
+                 font size, so it does not change while you type. -->
+            <views:EmConverter x:Key="HexBoxWidth" Ems="4.2" Extra="54" />
+            <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+                <Setter Property="FontWeight" Value="Medium" />
+                <Setter Property="FontSize" Value="{DynamicResource HexCodeSize}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource HexBoxWidth}}" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="0,4,0,0" />
+                <Setter Property="MaxLength" Value="7" />
+            </Style>
 
-        <!-- A tile of the toolbox, of a preset or an own color: shows its Color under its Name, a click
-             mixes it, and it is marked when it is the mixed color. -->
-        <Style x:Key="ToolboxTile" TargetType="Button" BasedOn="{StaticResource SmallPresetTile}">
-            <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
-            <Setter Property="ToolTip" Value="{Binding Name}" />
-            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=views:ColorMixer}}" />
-            <Setter Property="CommandParameter" Value="{Binding Color}" />
-            <Setter Property="Tag">
-                <Setter.Value>
-                    <MultiBinding Converter="{StaticResource EqualValues}">
-                        <Binding Path="Color" />
-                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=views:ColorMixer}" />
-                    </MultiBinding>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <!-- A tile of the toolbox, of a preset or an own color: shows its Color under its Name, a click
+                 mixes it, and it is marked when it is the mixed color. -->
+            <Style x:Key="ToolboxTile" TargetType="Button" BasedOn="{StaticResource SmallPresetTile}">
+                <Setter Property="Margin" Value="0,0,8,8" />
+                <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
+                <Setter Property="ToolTip" Value="{Binding Name}" />
+                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=views:ColorMixer}}" />
+                <Setter Property="CommandParameter" Value="{Binding Color}" />
+                <Setter Property="Tag">
+                    <Setter.Value>
+                        <MultiBinding Converter="{StaticResource EqualValues}">
+                            <Binding Path="Color" />
+                            <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=views:ColorMixer}" />
+                        </MultiBinding>
+                    </Setter.Value>
+                </Setter>
+            </Style>
         </ResourceDictionary>
     </StackPanel.Resources>
 

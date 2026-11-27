@@ -18,22 +18,22 @@
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <UserControl.Resources>
         <ResourceDictionary>
-        <ResourceDictionary.MergedDictionaries>
-            <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
-        </ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/BuurmansRgb.UI;component/Views/ColorPageResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <!-- The real devices and the simulated ones each under their own heading; "all devices" has none. -->
-        <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="Group" />
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
+            <!-- The real devices and the simulated ones each under their own heading; "all devices" has none. -->
+            <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
+                <CollectionViewSource.GroupDescriptions>
+                    <PropertyGroupDescription PropertyName="Group" />
+                </CollectionViewSource.GroupDescriptions>
+            </CollectionViewSource>
 
-        <!-- The title of the page (10 em of the body text) keeps 12 em beside the choice of the lamp, and the
-             line of the chosen LEDs as much beside Verloop vullen and Selectie opheffen. The other least
-             widths (MixColumnWidth, ValueColumnWidth) are in ColorPageResources.xaml, as ColorMixer and
-             CustomEffectEditor use them too. -->
-        <views:EmConverter x:Key="HeadingWidth" Ems="12" />
+            <!-- The title of the page (10 em of the body text) keeps 12 em beside the choice of the lamp, and the
+                 line of the chosen LEDs as much beside Verloop vullen and Selectie opheffen. The other least
+                 widths (MixColumnWidth, ValueColumnWidth) are in ColorPageResources.xaml, as ColorMixer and
+                 CustomEffectEditor use them too. -->
+            <views:EmConverter x:Key="HeadingWidth" Ems="12" />
         </ResourceDictionary>
     </UserControl.Resources>
 
