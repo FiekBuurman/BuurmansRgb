@@ -831,7 +831,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   andere `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. De naam
   staat in `ActiveSceneTracker`, met een eigen lock omdat `LightingChanged` uit de lock van de
   controller komt terwijl een andere draad de lock van `ProfileLibrary` kan houden: de
-  bibliotheek neemt de lock van de tracker alleen onder de zijne, nooit andersom, en de tracker
+  bibliotheek houdt ze nooit andersom vast: neemt ze beide, dan eerst de zijne en dan die van de tracker. De tracker
   vuurt zijn event buiten de lock af vanuit één methode (`Change`). Bij elke
   wissel (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en
   na het starten zet `RestoreActive` hem terug als die scène nog bestaat.
