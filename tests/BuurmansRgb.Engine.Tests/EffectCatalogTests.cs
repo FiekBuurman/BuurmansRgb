@@ -15,6 +15,23 @@ public sealed class EffectCatalogTests
         Assert.Equal([EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop, EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed], EffectCatalog.Ids);
     }
 
+    // What the settings app and the engine know of an effect (EffectTraits) has a row for every
+    // effect the engine renders, in the same order, and no row for an effect it cannot render.
+    [Fact]
+    public void Ids_EveryEffectHasItsTraits()
+    {
+        Assert.Equal(EffectCatalog.Ids, EffectTraits.Ids);
+        Assert.All(EffectCatalog.Ids, id => Assert.NotSame(EffectTraits.Unknown, EffectTraits.Of(id)));
+    }
+
+    // An own effect plays without a row of its own: it has the traits of every own effect.
+    [Fact]
+    public void IsValidId_OwnEffect_HasTheTraitsOfAnOwnEffect()
+    {
+        Assert.True(EffectCatalog.IsValidId("custom:1a2b3c4d"));
+        Assert.Same(EffectTraits.Custom, EffectTraits.Of("custom:1a2b3c4d"));
+    }
+
     [Theory]
     [InlineData(null, false)]
     [InlineData("", false)]

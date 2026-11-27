@@ -11,6 +11,10 @@ namespace BuurmansRgb.Engine.Lighting;
 // thread-safe: LightingController uses it under its lock.
 internal sealed class LightingTable
 {
+    // "twinkle, comet, scanner and fire": the effects that take a list of colors, in the order of
+    // the settings app.
+    private static readonly string EffectsWithColorList = JoinWithAnd([.. EffectTraits.Ids.Where(id => EffectTraits.Of(id).TakesColorList)]);
+
     private readonly Dictionary<string, DeviceLighting> _devices = [];
     private DeviceLighting? _global;
 
@@ -92,11 +96,14 @@ internal sealed class LightingTable
         if (!lighting.EffectColors.IsValid)
         {
             throw new ArgumentException(
-                $"Only twinkle, comet, scanner and fire have colors of their own, {EffectColors.MinColors} to {EffectColors.MaxColors} of them.", "colors");
+                $"Only {EffectsWithColorList} have colors of their own, {EffectColors.MinColors} to {EffectColors.MaxColors} of them.", "colors");
         }
 
         EffectCatalog.ThrowIfUnknown(lighting.EffectId);
     }
+
+    private static string JoinWithAnd(IReadOnlyList<string> words) =>
+        words.Count < 2 ? string.Concat(words) : $"{string.Join(", ", words.Take(words.Count - 1))} and {words[^1]}";
 
     // A device can only differ from a global lighting that is set, so the default becomes the
     // global lighting the first time one device gets its own.

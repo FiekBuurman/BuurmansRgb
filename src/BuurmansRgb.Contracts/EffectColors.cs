@@ -32,14 +32,14 @@ public sealed record EffectColors
     [JsonIgnore]
     public bool IsValid => Lists.All(pair => Takes(pair.Key) && IsValidList(pair.Value));
 
-    // Whether the effect takes a list of colors.
-    public static bool Takes(string? effectId) => effectId is EffectIds.Twinkle or EffectIds.Comet or EffectIds.Scanner or EffectIds.Fire;
+    // Whether the effect takes a list of colors (EffectTraits.TakesColorList).
+    public static bool Takes(string? effectId) => EffectTraits.Of(effectId).TakesColorList;
 
     public static bool IsValidList(IReadOnlyList<RgbColor>? colors) => colors is { Count: >= MinColors and <= MaxColors };
 
-    // The colors of an effect without a list of its own on a lamp of lampColor.
+    // The colors of an effect without a list of its own on a lamp of lampColor (EffectTraits.DefaultColors).
     public static IReadOnlyList<RgbColor> Default(string effectId, RgbColor lampColor) =>
-        effectId == EffectIds.Fire ? DefaultFire : [lampColor];
+        EffectTraits.Of(effectId).DefaultColorsFor(lampColor);
 
     // The colors the effect shows on a lamp of lampColor: its own list, or else its default.
     public IReadOnlyList<RgbColor> For(string effectId, RgbColor lampColor) =>
