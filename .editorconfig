@@ -19,8 +19,6 @@ trim_trailing_whitespace = false
 
 [*.cs]
 csharp_style_namespace_declarations = file_scoped:warning
-# Namespaces volgen de mappen bewust niet: zie "Mappen en namespaces" in docs/ontwikkelaars.md.
-dotnet_diagnostic.IDE0130.severity = none
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
@@ -32,3 +30,8 @@ dotnet_naming_symbols.private_fields.applicable_kinds = field
 dotnet_naming_symbols.private_fields.applicable_accessibilities = private
 dotnet_naming_style.underscore_camel.required_prefix = _
 dotnet_naming_style.underscore_camel.capitalization = camel_case
+
+# In Engine en UI volgen de namespaces bewust de mappen niet: zie "Mappen en namespaces" in
+# docs/ontwikkelaars.md. In de andere projecten blijft IDE0130 aan.
+[src/{BuurmansRgb.Engine,BuurmansRgb.UI}/**.cs]
+dotnet_diagnostic.IDE0130.severity = none

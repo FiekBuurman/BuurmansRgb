@@ -111,7 +111,9 @@ een oudere meebrengt. UI-teksten staan in `src/BuurmansRgb.UI/Resources/Strings.
   `BuurmansRgb.UI.ViewModels`, enzovoort. Zo bleven `xmlns:vm` in de XAML en alle tests gelijk.
   Zet een nieuw bestand in de map die bij het onderwerp past en geef het de namespace van zijn
   buren (uitzondering: `JsonCustomEffectStore` houdt `BuurmansRgb.Engine.Settings`); maak geen
-  namespace per map. `.editorconfig` zet IDE0130 uit, zodat "Sync namespaces" ze niet terugzet.
+  namespace per map. `.editorconfig` zet IDE0130 uit voor Engine en UI, zodat "Sync namespaces"
+  ze niet terugzet; in de andere projecten volgen de namespaces de mappen wel en blijft IDE0130
+  aan.
 - Een XAML-bestand of een `.resx` verhuis je niet zomaar: de pack-URI's en de resourcenamen
   hangen van de map en de namespace af.
 
