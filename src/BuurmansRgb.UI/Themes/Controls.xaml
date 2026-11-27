@@ -11,7 +11,8 @@
 
     <ResourceDictionary.MergedDictionaries>
         <!-- A StaticResource does not look in a file next to its own, so each file merges the tokens, focus
-             rings and icons that it uses itself. A lookup meets the last file first, and Controls.Cards.xaml
+             rings and icons that it uses itself with a StaticResource, and no more: every Source= is a
+             copy of its own, so a merge "to be safe" loads a file again. A lookup meets the last file first, and Controls.Cards.xaml
              comes last: the LedBulb style in it and the lookup of a token then find the same brush
              (LedRingStyleTests). -->
         <ResourceDictionary Source="Tokens.xaml" />

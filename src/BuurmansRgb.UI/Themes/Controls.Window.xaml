@@ -7,7 +7,6 @@
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Tokens.xaml" />
-        <ResourceDictionary Source="Controls.Icons.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
     <!-- The small dark app icon (icon/buurmansrgb-icon-small-dark.svg) for in the app itself. -->

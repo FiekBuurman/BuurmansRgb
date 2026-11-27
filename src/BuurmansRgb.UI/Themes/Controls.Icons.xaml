@@ -5,10 +5,6 @@
                     xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
                     xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
 
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Tokens.xaml" />
-    </ResourceDictionary.MergedDictionaries>
-
     <!-- Line icons (§ 4): 24 by 24 like the screens of the design, drawn 22 px with a 2 px stroke. -->
     <Geometry x:Key="IconLamps">M9,18 H15 M10,21 H14 M12,3 A6,6 0 0 0 8,13.5 C8.8,14.3 9,15 9,16 H15 C15,15 15.2,14.3 16,13.5 A6,6 0 0 0 12,3 Z</Geometry>
     <Geometry x:Key="IconColor">M4,6 H14 M18,6 H20 M4,12 H8 M12,12 H20 M4,18 H16 M14,6 A2,2 0 1 0 18,6 A2,2 0 1 0 14,6 Z M8,12 A2,2 0 1 0 12,12 A2,2 0 1 0 8,12 Z M16,18 A2,2 0 1 0 20,18 A2,2 0 1 0 16,18 Z</Geometry>
