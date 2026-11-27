@@ -15,7 +15,7 @@ public sealed partial class DayOption(WeekDays day) : ObservableObject
     [ObservableProperty]
     public partial bool IsChecked { get; set; } = true;
 
-    // Monday first, as a Dutch week starts.
+    // A button per day of UiText.Week.
     public static IReadOnlyList<DayOption> CreateWeek() => [.. UiText.Week.Select(day => new DayOption(day))];
 
     // The days that are checked.

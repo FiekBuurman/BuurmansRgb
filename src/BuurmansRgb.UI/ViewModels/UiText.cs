@@ -36,7 +36,7 @@ internal static class UiText
 
     public static string LongDay(WeekDays day) => Lookup("DayLong", day) ?? day.ToString();
 
-    // "Elke dag","Werkdagen", "In het weekend", or the days themselves: "ma, wo, vr".
+    // "Elke dag", "Werkdagen", "In het weekend", or the days themselves: "ma, wo, vr".
     public static string Days(WeekDays days) => (days & WeekDays.Every) switch
     {
         WeekDays.Every or WeekDays.None => Strings.DaysEvery,
