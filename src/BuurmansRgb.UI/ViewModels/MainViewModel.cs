@@ -800,6 +800,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void NewCustomEffect() => _customEffects.Create(_deviceColor);
 
     private bool CanCreateCustomEffect() => _customEffects.CanCreate;
+
     private async Task LoadAsync(IEngineApi api)
     {
         var devices = await api.GetDevicesAsync();
