@@ -61,17 +61,7 @@ internal sealed class LedOverlayStore
     // LEDs stay as they are. Returns whether the layer changed.
     public bool Set(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
-        RgbColor?[] stored = [.. For(deviceId)];
-        if (stored.Length < firstLed + colors.Count)
-        {
-            Array.Resize(ref stored, firstLed + colors.Count);
-        }
-
-        for (var i = 0; i < colors.Count; i++)
-        {
-            stored[firstLed + i] = colors[i];
-        }
+        var stored = LedRuns.Write(For(deviceId), firstLed, colors);
 
         if (Normalize(stored) is not { } normalized)
         {

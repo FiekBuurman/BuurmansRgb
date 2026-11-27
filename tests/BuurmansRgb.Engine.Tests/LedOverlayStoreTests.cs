@@ -53,6 +53,17 @@ public sealed class LedOverlayStoreTests
     }
 
     [Fact]
+    public void Set_ThatChangesTheLayer_GivesANewInstance()
+    {
+        _store.Set(Strip.Id, 0, [Red]);
+        var before = _store.For(Strip.Id);
+
+        _store.Set(Strip.Id, 0, [Blue]);
+
+        Assert.NotSame(before, _store.For(Strip.Id));
+    }
+
+    [Fact]
     public void Snapshot_IsACopy()
     {
         _store.Set(Strip.Id, 0, [Red]);

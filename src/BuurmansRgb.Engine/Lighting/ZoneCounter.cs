@@ -24,12 +24,12 @@ namespace BuurmansRgb.Engine.Lighting;
 // the lighting raises its events outside its lock and fetches device lists on another thread.
 internal sealed class ZoneCounter : IDisposable
 {
-    private readonly LightingController _lighting;
+    private readonly IZoneCountTarget _lighting;
     private readonly ZoneLengthKeeper _lengths;
     private readonly Lock _gate = new();
     private Counting? _counting;
 
-    public ZoneCounter(LightingController lighting, ZoneLengthKeeper lengths)
+    public ZoneCounter(IZoneCountTarget lighting, ZoneLengthKeeper lengths)
     {
         _lighting = lighting;
         _lengths = lengths;

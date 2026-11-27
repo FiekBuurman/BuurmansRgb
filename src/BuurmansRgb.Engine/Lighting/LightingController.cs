@@ -15,7 +15,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // The parts live in partial files: the devices (.Devices), the pause (.Pause), the options
 // (.Options), a flash (.Flash), a count of LEDs (.Count) and a fade (.Fade); this one has the
 // state, the lighting and the render. All of them share the one lock.
-internal sealed partial class LightingController : ILightingStateSource, IDisposable
+internal sealed partial class LightingController : ILightingStateSource, IDeviceSource, IZoneCountTarget, ICustomEffectSink, IDisposable
 {
     // What a device that is switched off shows: black, and static, so it needs no frames.
     private static readonly StaticEffect Off = new(RgbColor.Black);

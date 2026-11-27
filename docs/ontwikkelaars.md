@@ -395,6 +395,12 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `LedColorStore`, `LedOverlayStore` en `DeviceOutputs`, zeggen in hun commentaar "Not
   thread-safe: LightingController uses it under its lock". Een nieuw deel krijgt een eigen
   partial-bestand of hulpklasse, geen tweede lock.
+- **Smalle interfaces** (`smalle-controller-interfaces`): een klasse die de controller gebruikt,
+  vraagt alleen wat ze nodig heeft, naar het voorbeeld van `ILightingStateSource`:
+  `IDeviceSource` (apparaten, `DevicesChanged`, `ResizeZone`; `SimulatedDevicesSwitch` en
+  `ZoneLengthKeeper`), `IZoneCountTarget` (`ZoneCounter`) en `ICustomEffectSink`
+  (`CustomEffectLibrary`). Een test van zo'n klasse mag een kleine fake gebruiken. De twee
+  LED-stores schrijven een stuk kleuren met `LedRuns.Write`.
 - **Render-loop:** alleen als minstens één apparaat een bewegend effect toont, draait een
   `PeriodicTimer` op `framesPerSecond`; ook tijdens het knipperen. Een frame stuurt alleen de
   apparaten waarvan de kleuren veranderden, en alloceert niets zolang de instellingen-app dicht

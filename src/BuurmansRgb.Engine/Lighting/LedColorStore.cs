@@ -65,18 +65,7 @@ internal sealed class LedColorStore
     // own; the other LEDs stay as they are. The colors are stored for these zones from now on.
     public void Set(RgbDevice device, int firstLed, IReadOnlyList<RgbColor> colors)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
-        RgbColor?[] stored = [.. For(device)];
-        if (stored.Length < firstLed + colors.Count)
-        {
-            Array.Resize(ref stored, firstLed + colors.Count);
-        }
-
-        for (var i = 0; i < colors.Count; i++)
-        {
-            stored[firstLed + i] = colors[i];
-        }
-
+        var stored = LedRuns.Write(For(device), firstLed, [.. colors.Select(color => (RgbColor?)color)]);
         _entries[device.Id] = new(stored, ZoneLengthsOf(device));
     }
 

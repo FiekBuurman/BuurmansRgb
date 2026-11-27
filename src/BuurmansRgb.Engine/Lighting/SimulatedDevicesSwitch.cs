@@ -22,7 +22,7 @@ namespace BuurmansRgb.Engine.Lighting;
 internal sealed class SimulatedDevicesSwitch : IDisposable
 {
     private readonly SwitchableDeviceProvider _simulated;
-    private readonly LightingController _lighting;
+    private readonly IDeviceSource _lighting;
     private readonly IServerStatusSource? _openRgb;
     private readonly Lock _gate = new();
     private SimulatedDevicesMode _mode = SimulatedDevicesMode.Automatic;
@@ -30,7 +30,7 @@ internal sealed class SimulatedDevicesSwitch : IDisposable
     private bool _openRgbTried;
     private bool _hadRealDevices;
 
-    public SimulatedDevicesSwitch(SwitchableDeviceProvider simulated, LightingController lighting, IServerStatusSource? openRgb = null)
+    public SimulatedDevicesSwitch(SwitchableDeviceProvider simulated, IDeviceSource lighting, IServerStatusSource? openRgb = null)
     {
         _simulated = simulated;
         _lighting = lighting;
