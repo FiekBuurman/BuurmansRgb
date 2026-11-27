@@ -11,22 +11,3 @@ public interface IProcessMeter
     // Read opens it again.
     void Release();
 }
-
-// The CPU time the process used since it started, on all cores together, and its working set.
-public readonly record struct ProcessReading(TimeSpan ProcessorTime, long WorkingSetBytes);
-
-// Reads nothing: for a MainViewModel without a meter, such as in a test that is not about it.
-public sealed class NoProcessMeter : IProcessMeter
-{
-    public static NoProcessMeter Instance { get; } = new();
-
-    private NoProcessMeter()
-    {
-    }
-
-    public ProcessReading? Read(int processId) => null;
-
-    public void Release()
-    {
-    }
-}
