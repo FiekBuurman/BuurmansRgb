@@ -32,7 +32,7 @@ internal sealed class EngineSession
 
     public IEngineApi? Api => Current?.Api;
 
-    public bool IsConnected => Current is not null;
+    public bool HasConnection => Current is not null;
 
     public void Attach(IEngineConnection connection) => Current = connection;
 

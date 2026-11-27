@@ -740,7 +740,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void SendFramesWanted()
     {
         var wanted = WantsFrames;
-        if (!_session.IsConnected || wanted == _framesWanted)
+        if (!_session.HasConnection || wanted == _framesWanted)
         {
             return;
         }
@@ -753,7 +753,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void SendFrameDevices()
     {
         var device = FrameDevice;
-        if (!_session.IsConnected || device == _frameDevice)
+        if (!_session.HasConnection || device == _frameDevice)
         {
             return;
         }
@@ -773,7 +773,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // lamp.
     private void RequestStill()
     {
-        if (!Motion.IsStill || !ShowsPreview || !_session.IsConnected)
+        if (!Motion.IsStill || !ShowsPreview || !_session.HasConnection)
         {
             return;
         }
@@ -1011,7 +1011,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // A new name shows in the effect choice at once.
     private void SendCustomEffect(CustomEffect effect)
     {
-        if (!_session.IsConnected)
+        if (!_session.HasConnection)
         {
             return;
         }
@@ -1026,7 +1026,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // the effect that still waits.
     private void DeleteCustomEffect(string id)
     {
-        if (!_session.IsConnected || _customEffects.FirstOrDefault(effect => effect.Id == id) is not { } deleted)
+        if (!_session.HasConnection || _customEffects.FirstOrDefault(effect => effect.Id == id) is not { } deleted)
         {
             return;
         }
@@ -1080,7 +1080,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanCreateCustomEffect))]
     private void NewCustomEffect()
     {
-        if (!_session.IsConnected)
+        if (!_session.HasConnection)
         {
             return;
         }
@@ -1101,7 +1101,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
     }
 
-    private bool CanCreateCustomEffect() => _session.IsConnected && _customEffects.Count < CustomEffects.MaxEffects;
+    private bool CanCreateCustomEffect() => _session.HasConnection && _customEffects.Count < CustomEffects.MaxEffects;
 
     // Whether another own effect, or an effect of the engine, has the name in the effect choice;
     // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
@@ -1155,7 +1155,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // changes of this app that wait, and only shown when no change was sent meanwhile.
     private void OnCustomEffectsChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (!_session.IsConnected)
+        if (!_session.HasConnection)
         {
             return;
         }
@@ -1325,7 +1325,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // for when it does not).
     private void FollowLighting()
     {
-        if (!_session.IsConnected)
+        if (!_session.HasConnection)
         {
             return;
         }
@@ -1368,7 +1368,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void Send(string setting, Func<IEngineApi, string?, Task> call)
     {
-        if (!_session.IsConnected || SelectedDevice is not { } selected)
+        if (!_session.HasConnection || SelectedDevice is not { } selected)
         {
             return;
         }
@@ -1420,7 +1420,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // old one. "Hele huis" switches every lamp on when any is off, as it colors them all.
     private void SwitchOnForColor(DeviceItem? device)
     {
-        if (_session.IsConnected && device is not null)
+        if (_session.HasConnection && device is not null)
         {
             Lamps.SwitchOn(device.DeviceId);
         }
@@ -1653,7 +1653,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // them from. False when there is no engine to send them to.
     private bool PostRuns<T>(string kind, string deviceId, IReadOnlyList<T> edits, Func<IEngineApi, T, Task> send)
     {
-        if (!_session.IsConnected || LedEditor.Selection is not { } selection)
+        if (!_session.HasConnection || LedEditor.Selection is not { } selection)
         {
             return false;
         }
@@ -1767,7 +1767,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // UAC prompt; the line at the bottom says so meanwhile.
     private void RestartEngine()
     {
-        if (_session.IsConnected)
+        if (_session.HasConnection)
         {
             StatusMessage = Strings.Restarting;
             _session.Post(RestartCall, api => api.RestartAsync());
@@ -1952,7 +1952,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // elsewhere. In the queue, so it reads the engine after the calls of this app that wait.
     private void OnProfilesChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (!_session.IsConnected)
+        if (!_session.HasConnection)
         {
             return;
         }
@@ -2026,7 +2026,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The same for the options on Instellingen, such as the simulated lamps of another app.
     private void OnOptionsChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (!_session.IsConnected)
+        if (!_session.HasConnection)
         {
             return;
         }
