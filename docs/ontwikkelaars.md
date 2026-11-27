@@ -969,6 +969,13 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `WindowDialogsTests` controleert met de interne constructor (een eigen `ask` en `showFile`,
   zodat geen dialoog de focus van het bureaublad pakt) de eigenaar, de opties, het antwoord en de
   focus terug.
+- **Focus in een lijst:** `VisualTreeSearch` (in `Views`) zoekt in de visuele boom:
+  `FirstDescendant<T>` het eerste element in een sjabloon, `Ancestor<T>` het dichtstbijzijnde
+  eromheen (de scroller van een apparaatkaart) en `ItemsControl.FocusItemAt<T>(index)` geeft de
+  focus aan het eerste `T` van het item op die plek, of van het laatste als de lijst korter werd
+  (de tegel na een weggehaalde kleur of stap op Kleur, het nieuwe tijdveld na "+ Nog een tijd" op
+  Scènes); zonder item geeft hij `false` en kiest de pagina zelf een ander doel
+  (`VisualTreeSearchTests`).
 - **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om de zip
   (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app kiest
   alleen het bestand (`IFileDialogs.ChooseBackupToSave` en `ChooseBackupToRestore`, met

@@ -16,13 +16,7 @@ public partial class ScenesPage : UserControl
 
     // The new time is the last row; the focus goes to its field, so typing can start at once.
     private void OnAddTimeClick(object sender, RoutedEventArgs e) =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
-        {
-            if (TimesList.ItemContainerGenerator.ContainerFromIndex(TimesList.Items.Count - 1) is DependencyObject row && VisualTreeSearch.FirstDescendant<TextBox>(row) is { } field)
-            {
-                field.Focus();
-            }
-        });
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => TimesList.FocusItemAt<TextBox>(TimesList.Items.Count - 1));
 
     // A removed row takes its button with it; the focus goes to "+ Nog een tijd" instead of nowhere.
     private void OnRemoveTimeClick(object sender, RoutedEventArgs e) =>

@@ -142,14 +142,7 @@ public partial class ColorPage : UserControl
     {
         void Focus()
         {
-            var count = tiles.Items.Count;
-            if (count > 0
-                && tiles.ItemContainerGenerator.ContainerFromIndex(Math.Clamp(index, 0, count - 1)) is { } container
-                && VisualTreeSearch.FirstDescendant<Button>(container) is { } tile)
-            {
-                tile.Focus();
-            }
-            else
+            if (!tiles.FocusItemAt<Button>(index))
             {
                 fallback?.Focus();
             }

@@ -81,7 +81,7 @@ public partial class LedPreviewPanel : UserControl
     // the top of the card, less a small margin, becomes the offset, as far as the page can scroll.
     private static void ScrollToTop(FrameworkElement card)
     {
-        if (AncestorOf<ScrollViewer>(card) is not { } scroller)
+        if (VisualTreeSearch.Ancestor<ScrollViewer>(card) is not { } scroller)
         {
             return;
         }
@@ -182,20 +182,6 @@ public partial class LedPreviewPanel : UserControl
             if (element is FrameworkElement { DataContext: DevicePreviewViewModel device })
             {
                 return device;
-            }
-        }
-
-        return null;
-    }
-
-    private static T? AncestorOf<T>(DependencyObject element)
-        where T : DependencyObject
-    {
-        for (var parent = VisualTreeHelper.GetParent(element); parent is not null; parent = VisualTreeHelper.GetParent(parent))
-        {
-            if (parent is T match)
-            {
-                return match;
             }
         }
 
