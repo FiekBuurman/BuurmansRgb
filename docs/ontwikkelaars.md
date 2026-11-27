@@ -593,8 +593,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
   **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
   meldingen (`SettingsBackupViewModel`, `SharingViewModel`, `LampSync`, `SceneCardLoader`).
-  Sinds `mainviewmodel-opsplitsen` is ook het stilstaande beeld van het voorbeeld zo'n coördinator
-  (intern): `StillPreviewCoordinator` houdt de frames, het beeld en de flits.
+  Sinds `mainviewmodel-opsplitsen` zijn ook delen van `MainViewModel` zo'n coördinator (intern):
+  `StillPreviewCoordinator` houdt de frames, het beeld en de flits, en `EngineOptionsCoordinator`
+  leest, toont en stuurt de opties van Instellingen en de werkbalk op Kleur.
   `MainViewModel` maakt zijn kinderen in de constructor, in een vaste volgorde: eerst de
   sessie, dan de kinderen die niets nodig hebben, dan die er een paar krijgen. Scènes tonen gaat
   overal via `ShowProfiles` (de lijst, de kaarten en zo nodig welke scène aan staat).

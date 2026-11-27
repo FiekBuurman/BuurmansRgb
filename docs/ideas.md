@@ -906,7 +906,7 @@ uitbreidingen in `docs/bouwplan.md`.
   na de review bleef het staan; pas oppakken als het werk aan programma's en LED's groeit
 - Eén beschrijving per engine-optie: een nieuwe optie raakt nu zo'n tien plekken (`EngineSettings`,
   de JSON-converter, `EngineHost` bij laden en opslaan, `IEngineApi` met get, set en
-  `OptionsChanged`, `EngineApi`, de RPC, `MainViewModel` met lezen, tonen en sturen, het
+  `OptionsChanged`, `EngineApi`, de RPC, `EngineOptionsCoordinator` met lezen, tonen en sturen, het
   viewmodel en de XAML van Instellingen). Een gedeelde beschrijving met naam, standaard en
   geldige waarden zou de meeste daarvan uit één bron halen. `hadRealDevices` (`openrgb-weg`)
   raakte opnieuw negen plekken: `EngineSettings`, `EngineHost` tweemaal,
