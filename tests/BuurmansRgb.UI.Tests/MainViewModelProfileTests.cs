@@ -7,6 +7,7 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class MainViewModelProfileTests
 {
     private readonly FakeEngineConnector _connector = new();
+    private readonly FakeDialogs _dialogs = new();
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
 
@@ -197,7 +198,7 @@ public sealed class MainViewModelProfileTests
     public async Task Update_SavesUnderTheSceneAfterTheQuestion()
     {
         var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Gamen", "Nacht"]));
-        viewModel.Profiles.ConfirmUpdate = _ => true;
+        _dialogs.ConfirmUpdateScene = _ => true;
         viewModel.Profiles.SelectedName = "Nacht";
 
         viewModel.Profiles.UpdateCommand.Execute(null);
@@ -383,5 +384,5 @@ public sealed class MainViewModelProfileTests
         {
             api.Effects = TestEffects.StaticRainbowAndPerLed;
             arrange(api);
-        }, _connector);
+        }, _connector, dialogs: _dialogs);
 }

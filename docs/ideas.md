@@ -637,6 +637,13 @@ uitbreidingen in `docs/bouwplan.md`.
   alleen het toetsenbord, de schikking, de pennen per thread en `ColorContrast`, en het tekenen
   leest veel afhankelijkheidseigenschappen van de view, die zo'n klasse allemaal mee moet krijgen
   (refactorplan 26-11-2026)
+- Het verlaten van het naamvak van een eigen effect (`OnCustomEffectNameLostFocus`, dat
+  `EndNameEdit` aanroept en het vak de naam opnieuw laat tonen) en van het hexveld
+  (`OnHexLostFocus`) staan nog in `ColorPage.xaml.cs`. `CommitOnEnter` zou er een
+  `LostFocusCommand` bij kunnen krijgen, zodat die pagina alleen nog de focus na een klik regelt.
+  Bleef liggen bij `dialogen-als-service`: de taak noemde alleen Enter en Escape, en het
+  naamvak geeft de tekst van het vak mee, wat een eigen soort commando vraagt
+  (refactorplan 26-11-2026)
 - `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
   `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of

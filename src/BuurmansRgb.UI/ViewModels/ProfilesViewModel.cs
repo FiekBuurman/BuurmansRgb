@@ -13,6 +13,7 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed partial class ProfilesViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
+    private readonly IConfirmDialogs _confirm;
 
     public event EventHandler<string>? SaveRequested;
 
@@ -28,8 +29,14 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // stays.
     public event EventHandler<string>? AutomationNeeded;
 
-    // findPrograms lists the programs to pick from for Automation (RunningPrograms.Find).
-    public ProfilesViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null) => Automation = new(findPrograms);
+    // findPrograms lists the programs to pick from for Automation (RunningPrograms.Find), and
+    // fileDialogs has its "Bladeren…". confirmDialogs asks before a scene is deleted or updated;
+    // without it (NoDialogs) that goes without a question.
+    public ProfilesViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, IFileDialogs? fileDialogs = null, IConfirmDialogs? confirmDialogs = null)
+    {
+        Automation = new(findPrograms, fileDialogs);
+        _confirm = confirmDialogs ?? NoDialogs.Instance;
+    }
 
     // When the selected profile loads by itself.
     public ProfileAutomationViewModel Automation { get; }
@@ -79,14 +86,6 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // The line under the name field, which a screen reader reads when it comes: that Enter replaces the
     // scene that has this name already, which SaveLabel only shows on the button; null for a new name.
     public string? NameHelp => Find(Name) is { } existing ? UiText.Format(Strings.SceneNameOverwrites, existing) : null;
-
-    // Asked before a profile is deleted, with its name; the view shows the question. Without it,
-    // a profile is deleted without asking.
-    public Func<string, bool>? ConfirmDelete { get; set; }
-
-    // Asked before "Bijwerken met wat nu brandt" replaces the lighting of a scene, with its name, as
-    // ConfirmDelete; without it, the scene is updated without asking.
-    public Func<string, bool>? ConfirmUpdate { get; set; }
 
     // Shows the names of the engine and selects select, or else the profile that was selected,
     // when it is still there.
@@ -192,7 +191,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     private void Update()
     {
         var name = SelectedName!;
-        if (ConfirmUpdate?.Invoke(name) ?? true)
+        if (_confirm.ConfirmUpdateScene(name))
         {
             UpdateRequested?.Invoke(this, name);
         }
@@ -213,7 +212,8 @@ public sealed partial class ProfilesViewModel : ObservableObject
     private void Delete()
     {
         var name = SelectedName!;
-        if (ConfirmDelete?.Invoke(name) ?? true)
+        // A deleted scene cannot come back, so the user confirms it.
+        if (_confirm.ConfirmDeleteScene(name))
         {
             DeleteRequested?.Invoke(this, name);
         }

@@ -83,4 +83,28 @@ public sealed class RunningProgramsViewTests
             Assert.Null(list.SelectedItem);
         });
     }
+
+    // "Bladeren…" opens the program dialog of the window; the file name of the chosen .exe goes
+    // into the field, and the focus stays on the button.
+    [Fact]
+    public async Task Browsing_PutsTheChosenExeNameInTheField()
+    {
+        var dialogs = new FakeDialogs { ChooseProgram = () => @"C:\Games\ELDEN RING\Game\eldenring.exe" };
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Profiles.Add("Gamen"), dialogs: dialogs);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ScenesPage>(panel, viewModel);
+            PageViews.Click(PageViews.ButtonNamed(page, string.Format(Strings.SceneEditAccessibleName, "Gamen")));
+            OffscreenWindow.WaitUntilIdle();
+            var browse = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.ProgramBrowse));
+            browse.Focus();
+
+            PageViews.Click(browse);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("eldenring.exe", PageViews.Named<TextBox>(page, Strings.ProfileProgramLabel).Text);
+            Assert.True(browse.IsKeyboardFocused);
+        });
+    }
 }

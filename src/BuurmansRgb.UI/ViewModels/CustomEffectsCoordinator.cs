@@ -2,6 +2,7 @@ using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.Services;
 
 namespace BuurmansRgb.UI.ViewModels;
 
@@ -34,12 +35,13 @@ internal sealed class CustomEffectsCoordinator
     private int _customEffectChanges;
 
     // selectedEffect is the effect chosen on Kleur. The editor checks a name against the effects
-    // known here (IsNameTaken), so the coordinator makes it.
-    public CustomEffectsCoordinator(EngineSession session, Func<EffectOption?> selectedEffect)
+    // known here (IsNameTaken), so the coordinator makes it, with confirmDialogs to ask before an
+    // effect is deleted.
+    public CustomEffectsCoordinator(EngineSession session, Func<EffectOption?> selectedEffect, IConfirmDialogs? confirmDialogs = null)
     {
         _session = session;
         _selectedEffect = selectedEffect;
-        _editor = new CustomEffectEditorViewModel(IsNameTaken);
+        _editor = new CustomEffectEditorViewModel(IsNameTaken, confirmDialogs);
         _editor.Changed += (_, effect) => Send(effect);
         _editor.DeleteRequested += (_, id) => Delete(id);
     }

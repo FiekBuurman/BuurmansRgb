@@ -86,29 +86,7 @@ public partial class ColorPage : UserControl
         FocusTile(CustomColorTiles, index, fallback: AddCustomColor);
     }
 
-    // Enter keeps the name as Tab does, so the box need not lose the focus first; Escape puts back
-    // the name the effect has, and the box keeps the focus.
-    private void OnCustomEffectNameKeyDown(object sender, KeyEventArgs e)
-    {
-        if (sender is not TextBox box)
-        {
-            return;
-        }
-
-        if (e.Key == Key.Enter)
-        {
-            box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape && box.DataContext is CustomEffectEditorViewModel editor)
-        {
-            editor.CancelNameEdit();
-            box.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
-            e.Handled = true;
-        }
-    }
-
-    // The binding writes only here and with Enter, so a name that is not kept gives one message, the
+    // The binding writes only here and with Enter (CommitOnEnter), so a name that is not kept gives one message, the
     // one that says it made way for the name of the effect, which the box then shows again.
     private void OnCustomEffectNameLostFocus(object sender, RoutedEventArgs e)
     {
@@ -164,14 +142,7 @@ public partial class ColorPage : UserControl
     {
         void Focus()
         {
-            var count = tiles.Items.Count;
-            if (count > 0
-                && tiles.ItemContainerGenerator.ContainerFromIndex(Math.Clamp(index, 0, count - 1)) is { } container
-                && VisualTreeSearch.FirstDescendant<Button>(container) is { } tile)
-            {
-                tile.Focus();
-            }
-            else
+            if (!tiles.FocusItemAt<Button>(index))
             {
                 fallback?.Focus();
             }

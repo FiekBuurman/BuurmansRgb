@@ -17,6 +17,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     private readonly FakeEngineConnector _connector = new();
     private readonly AppClipboard _clipboard = new();
     private readonly TempDirectory _folder = new();
+    private readonly FakeDialogs _dialogs = new();
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
 
@@ -51,7 +52,7 @@ public sealed class MainViewModelSharingTests : IDisposable
         using var viewModel = await ConnectAsync();
         var path = _folder.File("Gamen.brgb.json");
         (string Title, string Name)? asked = null;
-        viewModel.Sharing.ChooseExportFile = (title, name) =>
+        _dialogs.ChooseShareToSave = (title, name) =>
         {
             asked = (title, name);
             return path;
@@ -71,7 +72,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     public async Task Export_Cancelled_AsksTheEngineNothing()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Sharing.ChooseExportFile = (_, _) => null;
+        _dialogs.ChooseShareToSave = (_, _) => null;
 
         await viewModel.Sharing.ExportSceneCommand.ExecuteAsync("Gamen");
 
@@ -82,7 +83,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     public async Task Export_FolderThatIsNotThere_SaysSo()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Sharing.ChooseExportFile = (_, _) => Path.Combine(_folder.Path, "weg", "Gamen.brgb.json");
+        _dialogs.ChooseShareToSave = (_, _) => Path.Combine(_folder.Path, "weg", "Gamen.brgb.json");
 
         await viewModel.Sharing.ExportSceneCommand.ExecuteAsync("Gamen");
 
@@ -137,7 +138,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     {
         using var viewModel = await ConnectAsync(api => api.Profiles.Add("Werk"));
         var path = WriteFile("Gamen.brgb.json", [1, 2, 3]);
-        viewModel.Sharing.ChooseImportFile = () => path;
+        _dialogs.ChooseShareToImport = () => path;
 
         await viewModel.Sharing.ImportCommand.ExecuteAsync(null);
 
@@ -158,7 +159,7 @@ public sealed class MainViewModelSharingTests : IDisposable
             file.SetLength(SharedFiles.MaxJsonBytes + 1);
         }
 
-        viewModel.Sharing.ChooseImportFile = () => path;
+        _dialogs.ChooseShareToImport = () => path;
 
         await viewModel.Sharing.ImportCommand.ExecuteAsync(null);
 
@@ -170,7 +171,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     public async Task Import_FileGone_SaysItCouldNotBeRead()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Sharing.ChooseImportFile = () => _folder.File("weg.brgb.json");
+        _dialogs.ChooseShareToImport = () => _folder.File("weg.brgb.json");
 
         await viewModel.Sharing.ImportCommand.ExecuteAsync(null);
 
@@ -296,7 +297,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     }
 
     private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? setUp = null, IClipboard? clipboard = null) =>
-        ConnectedViewModel.CreateAsync(setUp, _connector, clipboard: clipboard ?? _clipboard);
+        ConnectedViewModel.CreateAsync(setUp, _connector, clipboard: clipboard ?? _clipboard, dialogs: _dialogs);
 
     private sealed class RefusingClipboard : IClipboard
     {

@@ -11,7 +11,8 @@ internal static class ConnectedViewModel
     // prepares before the view model loads from it, also when it connects again. "Kies uit wat nu
     // draait" lists programs, or nothing, but never what runs on this pc, and what Instellingen
     // opens (the log, the guide at guideAddress) goes into opened instead of opening on this pc.
-    // animationEffects is "Animatie-effecten" of Windows, on without it.
+    // animationEffects is "Animatie-effecten" of Windows, on without it. dialogs answers the file
+    // dialogs and the questions; without it no file is chosen and nothing is asked (NoDialogs).
     internal static async Task<MainViewModel> CreateAsync(
         Action<FakeEngineApi>? arrange = null,
         FakeEngineConnector? connector = null,
@@ -21,7 +22,8 @@ internal static class ConnectedViewModel
         string? guideAddress = AppInfoViewModel.GuideAddress,
         IAnimationEffects? animationEffects = null,
         IProcessMeter? processMeter = null,
-        IClipboard? clipboard = null)
+        IClipboard? clipboard = null,
+        FakeDialogs? dialogs = null)
     {
         connector ??= new FakeEngineConnector();
         var viewModel = new MainViewModel(
@@ -31,7 +33,9 @@ internal static class ConnectedViewModel
             appInfo: AppInfoViewModel.ForThisApp(target => opened?.Add(target), guideAddress),
             animationEffects: animationEffects,
             processMeter: processMeter,
-            clipboard: clipboard);
+            clipboard: clipboard,
+            fileDialogs: dialogs,
+            confirmDialogs: dialogs);
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;

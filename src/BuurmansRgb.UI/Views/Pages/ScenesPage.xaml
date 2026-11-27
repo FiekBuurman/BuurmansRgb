@@ -242,7 +242,7 @@
                             <DockPanel Grid.Row="1" Margin="0,8,0,0">
                                 <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
                                         Content="{x:Static res:Strings.ProgramBrowse}" ToolTip="{x:Static res:Strings.ProgramBrowseToolTip}"
-                                        Click="OnBrowseProgramClick" />
+                                        Command="{Binding Profiles.Automation.BrowseProgramCommand}" />
                                 <ComboBox x:Name="RunningPrograms" ItemsSource="{Binding Profiles.Automation.RunningPrograms}"
                                           Tag="{x:Static res:Strings.ProgramPickPlaceholder}"
                                           IsVisibleChanged="OnRunningProgramsShown" DropDownOpened="OnRunningProgramsOpened" SelectionChanged="OnRunningProgramPicked"

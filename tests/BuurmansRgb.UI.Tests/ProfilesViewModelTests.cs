@@ -5,12 +5,14 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class ProfilesViewModelTests
 {
-    private readonly ProfilesViewModel _profiles = new();
+    private readonly FakeDialogs _dialogs = new();
+    private readonly ProfilesViewModel _profiles;
     private readonly List<string> _requests = [];
     private readonly List<string> _automationRequests = [];
 
     public ProfilesViewModelTests()
     {
+        _profiles = new(confirmDialogs: _dialogs);
         _profiles.SaveRequested += (_, name) => _requests.Add($"save {name}");
         _profiles.LoadRequested += (_, name) => _requests.Add($"load {name}");
         _profiles.DeleteRequested += (_, name) => _requests.Add($"delete {name}");
@@ -118,7 +120,7 @@ public sealed class ProfilesViewModelTests
     public void Delete_AsksForConfirmationFirst(bool confirmed, string[] expected)
     {
         string? asked = null;
-        _profiles.ConfirmDelete = name =>
+        _dialogs.ConfirmDeleteScene = name =>
         {
             asked = name;
             return confirmed;

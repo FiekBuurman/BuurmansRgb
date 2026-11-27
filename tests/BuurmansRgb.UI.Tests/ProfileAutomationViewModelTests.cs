@@ -508,6 +508,37 @@ public sealed class ProfileAutomationViewModelTests
         Assert.True(_automation.ApplyCommand.CanExecute(null));
     }
 
+    // "Bladeren…" asks the file dialogs for a program; its whole path gives the file name, after
+    // the names in the field. Cancelled, the field stays.
+    [Fact]
+    public void BrowseProgram_PutsTheChosenExeAfterTheField()
+    {
+        var dialogs = new FakeDialogs { ChooseProgram = () => @"C:\Games\ELDEN RING\Game\eldenring.exe" };
+        var automation = new ProfileAutomationViewModel(Found(), dialogs);
+        automation.Show("Gamen", ProfileAutomation.None);
+        automation.ProgramText = "cs2.exe";
+
+        automation.BrowseProgramCommand.Execute(null);
+
+        Assert.Equal("cs2.exe, eldenring.exe", automation.ProgramText);
+    }
+
+    [Fact]
+    public void BrowseProgram_Cancelled_LeavesTheField()
+    {
+        var asked = 0;
+        var dialogs = new FakeDialogs { ChooseProgram = () => { asked++; return null; } };
+        var automation = new ProfileAutomationViewModel(Found(), dialogs);
+        automation.Show("Gamen", ProfileAutomation.None);
+        automation.ProgramText = "cs2.exe";
+
+        automation.BrowseProgramCommand.Execute(null);
+
+        Assert.Equal(1, asked);
+        Assert.Equal("cs2.exe", automation.ProgramText);
+        Assert.Null(automation.Error);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData(@"C:\Users\me\Desktop\Spel.lnk")]

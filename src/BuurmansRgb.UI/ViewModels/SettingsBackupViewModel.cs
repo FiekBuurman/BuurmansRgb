@@ -11,32 +11,27 @@ namespace BuurmansRgb.UI.ViewModels;
 // "Instellingen bewaren…" and "Instellingen terugzetten…" on Instellingen. The engine makes the zip
 // and takes it back (ExportSettingsAsync, RestoreSettingsAsync): it holds the files and their
 // savers, so the zip has its last change and a restore is not written over by a save of what it
-// had. This app only picks the file and writes or reads it. The window gives the dialogs
-// (ChooseSaveFile, ChooseRestoreFile, ConfirmRestore); without them, as in a test that sets none,
-// nothing happens. What came of it goes to the status line (Message). A coordinator: it calls the
-// engine of the session itself, outside its call queue, and says what came of it.
+// had. This app only picks the file and writes or reads it, with the dialogs of the window
+// (IFileDialogs, IConfirmDialogs); without them (NoDialogs), as in a test that gives none, nothing
+// happens. What came of it goes to the status line (Message). A coordinator: it calls the engine of
+// the session itself, outside its call queue, and says what came of it.
 public sealed partial class SettingsBackupViewModel : ObservableObject
 {
     private readonly EngineSession _session;
     private readonly TimeProvider _time;
+    private readonly IFileDialogs _files;
+    private readonly IConfirmDialogs _confirm;
 
-    internal SettingsBackupViewModel(EngineSession session, TimeProvider? time = null)
+    internal SettingsBackupViewModel(EngineSession session, TimeProvider? time = null, IFileDialogs? files = null, IConfirmDialogs? confirm = null)
     {
         _session = session;
         _time = time ?? TimeProvider.System;
+        _files = files ?? NoDialogs.Instance;
+        _confirm = confirm ?? NoDialogs.Instance;
     }
 
     // Raised with the message for the status line.
     public event EventHandler<string>? Message;
-
-    // The save dialog with this suggested name; the path the user chose, or null.
-    public Func<string, string?>? ChooseSaveFile { get; set; }
-
-    // The open dialog; the path the user chose, or null.
-    public Func<string?>? ChooseRestoreFile { get; set; }
-
-    // "Je huidige instellingen worden vervangen…" with the name of the file; true for Terugzetten.
-    public Func<string, bool>? ConfirmRestore { get; set; }
 
     // Only with an engine to ask.
     [ObservableProperty]
@@ -56,7 +51,7 @@ public sealed partial class SettingsBackupViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task SaveAsync()
     {
-        if (ChooseSaveFile?.Invoke(SuggestedFileName) is not { } path || _session.Api is not { } engine)
+        if (_files.ChooseBackupToSave(SuggestedFileName) is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -64,7 +59,7 @@ public sealed partial class SettingsBackupViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            await UserFiles.WriteReplacingAsync(path, await engine.ExportSettingsAsync());
+            await _files.WriteReplacingAsync(path, await engine.ExportSettingsAsync());
 
             Say(UiText.Format(Strings.BackupSaved, Path.GetFileName(path)));
         }
@@ -83,7 +78,7 @@ public sealed partial class SettingsBackupViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RestoreAsync()
     {
-        if (ChooseRestoreFile?.Invoke() is not { } path || _session.Api is not { } engine)
+        if (_files.ChooseBackupToRestore() is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -91,13 +86,15 @@ public sealed partial class SettingsBackupViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            if (await UserFiles.ReadAtMostAsync(path, SettingsBackup.MaxArchiveBytes) is not { } archive)
+            if (await _files.ReadAtMostAsync(path, SettingsBackup.MaxArchiveBytes) is not { } archive)
             {
                 Say(Strings.BackupTooLarge);
                 return;
             }
 
-            if (ConfirmRestore?.Invoke(Path.GetFileName(path)) != true)
+            // "Je huidige instellingen worden vervangen…" with the name of the file; only
+            // Terugzetten goes on.
+            if (!_confirm.ConfirmRestore(Path.GetFileName(path)))
             {
                 return;
             }

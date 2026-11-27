@@ -544,13 +544,17 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   nieuwe naam bij de volgende wijziging. De app kijkt vóór hij iets stuurt
   (`CustomEffectsCoordinator.IsNameTaken`, met de namen van `GetEffectsAsync`) en zet de melding
   (`NameError`) onder het vak, een live region. Het vak schrijft de naam alleen bij Enter en als
-  het de focus verliest (`UpdateSourceTrigger=Explicit`, `ColorPage.xaml.cs`): dan bewaart
+  het de focus verliest (`UpdateSourceTrigger=Explicit`, met `CommitOnEnter` voor Enter en Escape en
+  `ColorPage.xaml.cs` voor de focus): dan bewaart
   `CustomEffectEditorViewModel.EndNameEdit` een goede naam, of zet de echte naam terug met een
   melding die de geweigerde en de echte naam noemt (`CustomEffectNameTakenKept`,
   `CustomEffectNameEmptyKept`), zodat een schermlezer één melding hoort. Die melding gaat weg bij
   een goede naam, een ander effect of een nieuwe naam van de engine; dezelfde melding voor een
   volgende naam leest een schermlezer opnieuw voor. Escape zet met
-  `CustomEffectEditorViewModel.CancelNameEdit` de echte naam terug, zonder melding.
+  `CustomEffectEditorViewModel.CancelNameEditCommand` (`CommitOnEnter.CancelCommand`) de echte
+  naam terug, zonder melding. `CommitOnEnter` (in `Views`) is er voor elk tekstvak dat pas telt
+  bij Enter of als het de focus verliest: `IsEnabled` voor alleen Enter, zoals het tijdveld van "Uit om" en
+  "Aan om" op Apparaten, een `CancelCommand` voor ook Escape (`CommitOnEnterTests`).
   `effects.json` met de hand aanpassen terwijl de engine draait, pikt hij niet op, net als
   `profiles.json` (zie `docs/ideas.md`).
 - **Beelden voor het voorbeeld:** een render zegt `PreviewFrames` (één per verbonden app) alleen
@@ -874,7 +878,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   en zet ze met `GetProfileDevicesAsync` en `SetProfileDevicesAsync` (`SceneDevicesViewModel`,
   elke klik meteen, zonder geen enkel apparaat een melding en geen aanroep); een id die er nu niet
   is, stuurt hij mee terug. "Bijwerken met wat nu brandt" (`ProfilesViewModel.UpdateCommand`)
-  vraagt eerst via `ConfirmUpdate` (`ConfirmDialog.ForSceneUpdate`).
+  vraagt eerst via `IConfirmDialogs.ConfirmUpdateScene` (`ConfirmDialog.ForSceneUpdate`).
 - **Sneltoetsen:** `WindowsGlobalHotkeys` registreert Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U
   (`AllOnOffHotkeys`, met `MOD_NOREPEAT`) met `RegisterHotKey` op een verborgen message-only
   venster op de thread van het tray-icoon; `WM_HOTKEY` komt binnen via de message loop die er al
@@ -948,10 +952,34 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   geven een nep-`open`, en zonder `appInfo` opent `MainViewModel` niets, zodat een test nooit
   echt Kladblok of de browser opent. `ShellLauncher` staat in `BuurmansRgb.Contracts`, want het
   item in het tray-menu gebruikt hem ook.
+- **Dialogen:** de viewmodels openen zelf geen venster. Ze krijgen van `MainViewModel` een
+  `IFileDialogs` (een bestand kiezen om te bewaren, terug te zetten, te delen of te importeren,
+  een programma kiezen bij "Bladeren…", en dat bestand schrijven of lezen met `UserFiles`) en een
+  `IConfirmDialogs` (de vragen voor het verwijderen of bijwerken van een scène, het verwijderen
+  van een eigen effect en het terugzetten van een back-up), beide in `UI/Services`. `App` maakt
+  eerst `MainWindow` en dan één `WindowDialogs` met dat venster als eigenaar van elke dialoog, en
+  geeft die als beide aan `MainViewModel`; `MainWindow` en de pagina's hebben dus geen
+  dialoogcode. Na elke dialoog krijgt het element dat de focus had (de knop die hem opende) die
+  terug, tenzij het intussen weg is. Zonder dialogen gebruikt `MainViewModel` `NoDialogs`: geen
+  bestand gekozen, verwijderen en bijwerken zonder vraag, terugzetten niet. Een nieuwe dialoog
+  komt als methode op een van de twee interfaces, met de opties in `WindowDialogs`. Tests geven
+  `FakeDialogs` mee (`ConnectedViewModel.CreateAsync(dialogs: ...)`, of aan de constructor van
+  het viewmodel): elk antwoord is een instelbare `Func` met de naam van de methode, zonder
+  antwoord doet hij wat `NoDialogs` doet, en de bestanden schrijft en leest hij echt.
+  `WindowDialogsTests` controleert met de interne constructor (een eigen `ask` en `showFile`,
+  zodat geen dialoog de focus van het bureaublad pakt) de eigenaar, de opties, het antwoord en de
+  focus terug.
+- **Focus in een lijst:** `VisualTreeSearch` (in `Views`) zoekt in de visuele boom:
+  `FirstDescendant<T>` het eerste element in een sjabloon, `Ancestor<T>` het dichtstbijzijnde
+  eromheen (de scroller van een apparaatkaart) en `ItemsControl.FocusItemAt<T>(index)` geeft de
+  focus aan het eerste `T` van het item op die plek, of van het laatste als de lijst korter werd
+  (de tegel na een weggehaalde kleur of stap op Kleur, het nieuwe tijdveld na "+ Nog een tijd" op
+  Scènes); zonder item geeft hij `false` en kiest de pagina zelf een ander doel
+  (`VisualTreeSearchTests`).
 - **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om de zip
   (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app kiest
-  alleen het bestand (`SaveFileDialog`, `OpenFileDialog` en `ConfirmDialog.ForRestore` in
-  `MainWindow`) en schrijft of leest het met `UserFiles` (schrijven eerst naar `<pad>.tmp` en dan
+  alleen het bestand (`IFileDialogs.ChooseBackupToSave` en `ChooseBackupToRestore`, met
+  `IConfirmDialogs.ConfirmRestore` ervoor, zie Dialogen) en schrijft of leest het met `UserFiles` (schrijven eerst naar `<pad>.tmp` en dan
   met `File.Move` eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat; lezen
   tot de grens en geen byte verder, ook bij een link, waarvan Windows de lengte 0 geeft). Bewust via de engine en
   niet door de bestanden zelf te lezen: zo heeft de zip de wijziging van de laatste seconde (de
@@ -987,8 +1015,8 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `BuurmansRgb.Platform`) met `ShellLauncher.Open`, net als het logbestand.
 - **Scènes en eigen effecten delen:** `SharingViewModel` op Scènes en Kleur vraagt de engine om
   de JSON (`IEngineApi.ExportSceneAsync`, `ExportCustomEffectAsync`) en geeft er een terug
-  (`ImportSharedAsync`); de app kiest alleen het bestand (`SaveFileDialog` en `OpenFileDialog` in
-  `MainWindow`, zonder vaste map) en schrijft of leest het met `UserFiles`, zoals bij bewaren, of zet
+  (`ImportSharedAsync`); de app kiest alleen het bestand (`IFileDialogs.ChooseShareToSave` en
+  `ChooseShareToImport`, zonder vaste map) en schrijft of leest het met `UserFiles`, zoals bij bewaren, of zet
   de code op het klembord en leest hem daar (`IClipboard`: `SystemClipboard` in `App`, anders
   `AppClipboard`, zodat een test nooit het klembord van de gebruiker raakt). De code is
   `ShareCode.Prefix` (`brgb1:`) en de JSON, met Brotli ingepakt en als base64url geschreven
