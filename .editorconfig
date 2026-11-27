@@ -19,6 +19,8 @@ trim_trailing_whitespace = false
 
 [*.cs]
 csharp_style_namespace_declarations = file_scoped:warning
+# Namespaces volgen de mappen bewust niet: zie "Mappen en namespaces" in docs/ontwikkelaars.md.
+dotnet_diagnostic.IDE0130.severity = none
 csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
