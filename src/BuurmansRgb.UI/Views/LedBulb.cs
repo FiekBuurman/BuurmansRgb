@@ -13,7 +13,7 @@ namespace BuurmansRgb.UI.Views;
 //
 // The glows are cached by size and color for all bulbs, with the color rounded to 5 bits per
 // channel, which a soft glow does not show: an animation then shows the same few hundred glows
-// over and over, where a new gradient per frame cost ~2 MB/s on Lampen with the rainbow. An
+// over and over, where a new gradient per frame cost ~2 MB/s on Apparaten with the rainbow. An
 // opacity mask per size instead allocated less but doubled the CPU of drawing.
 public sealed class LedBulb : FrameworkElement
 {

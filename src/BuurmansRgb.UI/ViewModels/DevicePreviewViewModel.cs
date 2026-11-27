@@ -294,7 +294,7 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         }
     }
 
-    // The LED in the middle of each twelfth of the device, as the strip of "Hele huis" on Lampen.
+    // The LED in the middle of each twelfth of the device, as the strip of "Hele huis" on Apparaten.
     private void ShowStrip(IReadOnlyList<RgbColor> colors)
     {
         var strip = StripSampler.Sample(colors, StripLength);

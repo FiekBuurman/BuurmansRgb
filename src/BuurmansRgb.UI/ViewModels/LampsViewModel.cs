@@ -8,7 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// The Lampen page: every device as a lamp that is on or off, the whole house with how many are on,
+// The Apparaten page: every device as a lamp that is on or off, the whole house with how many are on,
 // and a strip with what the lamps show now. This only asks; MainViewModel sends a switch to the
 // engine and asks the lighting of the lamps again with RefreshAsync.
 public sealed partial class LampsViewModel : ObservableObject
