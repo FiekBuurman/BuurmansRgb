@@ -574,6 +574,27 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   stopt de installer bij een update allebei (`PrepareToInstall`). Na het opstarten en na het
   sluiten van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan
   Windows (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
+- **Opbouw van de instellingen-app** (`engine-sessie-in-de-ui`): `MainViewModel` houdt de
+  verbinding met de engine niet zelf vast, maar in één `EngineSession` (intern). Die heeft de
+  verbinding van nu (`Current`, `Api`, `IsConnected`, `Attach`, `Detach`) en de wachtrij
+  (`CoalescingCallQueue`): `Post(sleutel, api => …)` zet een aanroep erin en doet niets zonder
+  verbinding; `Read(sleutel, aanroep, tonen)` leest iets en toont het alleen als de verbinding
+  nog dezelfde is; `TryCallAsync` roept direct aan en geeft een fout aan `OnCallFailed`; en
+  `IsCurrent(verbinding)` en `WhenCurrent` zijn de controle of een antwoord niet van een oude
+  verbinding komt. Die controle (`ReferenceEquals` met `Current`) staat alleen in `EngineSession`;
+  ze vergelijkt verbindingen en niet `Api`'s, want de nep-connector van de tests geeft soms
+  dezelfde `FakeEngineApi` opnieuw. `UiThread` (intern) onthoudt de `SynchronizationContext` van
+  de UI: `Run` voert iets meteen uit als je al op de UI-thread bent en zet het er anders op,
+  `Post` zet het er altijd op. Een view model dat iets van de engine toont, doet dat in
+  `ReentrancyGuard.Run` (`IsActive`), zodat dat tonen niet als wijziging van de gebruiker terug
+  naar de engine gaat. Een kind-view model van `MainViewModel` volgt een van twee patronen. **Puur:** het kent
+  de engine niet en vraagt alles met events (zoals `AppInfoViewModel.Message`,
+  `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
+  **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
+  meldingen (`SettingsBackupViewModel`, `SharingViewModel`, `LampSync`, `SceneCardLoader`).
+  `MainViewModel` maakt zijn kinderen in de constructor, in een vaste volgorde: eerst de
+  sessie, dan de kinderen die niets nodig hebben, dan die er een paar krijgen. Scènes tonen gaat
+  overal via `ShowProfiles` (de lijst, de kaarten en zo nodig welke scène aan staat).
 - **Verversen:** `IEngineApi.RescanDevicesAsync` laat elke `IRescannableDeviceProvider` tegelijk
   opnieuw zoeken (`LightingController.RescanDevicesAsync`) en neemt daarna hun lijsten over, zodat
   `DevicesChanged` vóór het antwoord over de pipe gaat. OpenRGB.NET kent geen rescan, dus
