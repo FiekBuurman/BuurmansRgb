@@ -1202,10 +1202,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowFrame(await api.GetFrameAsync());
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
-        Profiles.Show(await api.GetProfilesAsync());
+        ShowProfiles(await api.GetProfilesAsync());
         ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
-        _ = _sceneCards.ShowAsync();
-        _ = _sceneCards.ShowActiveAsync();
         ShowOptions(await ReadOptionsAsync(api));
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -1857,8 +1855,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Trace.TraceWarning(exception.ToString());
                 _session.WhenCurrent(connection, () =>
                 {
-                    Profiles.Show(current);
-                    _ = _sceneCards.ShowAsync();
+                    ShowProfiles(current, withActive: false);
                     StatusMessage = UiText.Format(Strings.ProfileGone, name);
                 });
                 return;
@@ -1867,9 +1864,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var names = await connection.Api.GetProfilesAsync();
             _session.WhenCurrent(connection, () =>
             {
-                Profiles.Show(names, select: name);
-                _ = _sceneCards.ShowAsync();
-                _ = _sceneCards.ShowActiveAsync();
+                ShowProfiles(names, select: name);
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
             });
@@ -1889,8 +1884,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _session.Read(new object(), api => api.GetProfilesAsync(), names =>
         {
-            Profiles.Show(names, select: name);
-            _ = _sceneCards.ShowAsync();
+            ShowProfiles(names, select: name, withActive: false);
         });
     }
 
@@ -1973,9 +1967,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 : (false, null);
             _session.WhenCurrent(connection, () =>
             {
-                Profiles.Show(names);
-                _ = _sceneCards.ShowAsync();
-                _ = _sceneCards.ShowActiveAsync();
+                ShowProfiles(names);
                 ShowWholeHouseTimes(wholeHouse);
                 if (devicesRead && Profiles.SelectedName == open)
                 {
@@ -1984,6 +1976,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             });
         });
     });
+
+    // The scenes of the engine on Scènes with select selected (Profiles.Show), and the cards that
+    // load what each one looks like; withActive asks again which one is on as well.
+    private void ShowProfiles(IReadOnlyList<string> names, string? select = null, bool withActive = true)
+    {
+        Profiles.Show(names, select);
+        _ = _sceneCards.ShowAsync();
+        if (withActive)
+        {
+            _ = _sceneCards.ShowActiveAsync();
+        }
+    }
 
     // "Uit om" and "Aan om" as the engine saved them. They are the times of "Alles uit": when that
     // scene is open on Scènes, its times there follow a change here. Whether the open scene has a
