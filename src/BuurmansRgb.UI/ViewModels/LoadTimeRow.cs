@@ -8,21 +8,20 @@ namespace BuurmansRgb.UI.ViewModels;
 // empty field is no time, and its days count for nothing.
 public sealed partial class LoadTimeRow : ObservableObject
 {
+    private readonly TimeAndDays _days = new();
+
     // Empty, on every day, without a time.
     public LoadTimeRow(LoadTime? time = null)
     {
         Show(time);
-        foreach (var day in Days)
-        {
-            day.PropertyChanged += (_, _) => Changed?.Invoke(this, EventArgs.Empty);
-        }
+        _days.DayChanged += (_, _) => Changed?.Invoke(this, EventArgs.Empty);
     }
 
     // Raised when the text or a day changed.
     public event EventHandler? Changed;
 
     // Monday to Sunday; all of them is every day.
-    public IReadOnlyList<DayOption> Days { get; } = DayOption.CreateWeek();
+    public IReadOnlyList<DayOption> Days => _days.Days;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasTime))]
@@ -44,14 +43,14 @@ public sealed partial class LoadTimeRow : ObservableObject
 
     public string RemoveAccessibleName => UiText.Format(Strings.ProfileTimeRemoveAccessibleName, Number);
 
-    public WeekDays CheckedDays => DayOption.Checked(Days);
+    public WeekDays CheckedDays => _days.CheckedDays;
 
     // The time and its days, or empty on every day for null. In the same row, so the field that has
     // the focus keeps it.
     public void Show(LoadTime? time)
     {
         Text = time is null ? string.Empty : LoadTime.WriteAt(time.At);
-        DayOption.Check(Days, time?.Days);
+        _days.Show(time?.Days);
     }
 
     // False when the text is not a time; true with a null time when it is empty.
