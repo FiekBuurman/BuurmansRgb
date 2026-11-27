@@ -29,11 +29,11 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // Counts the times the programs are read, so only the newest list shows.
     private int _programSearches;
 
-    // findPrograms lists the programs to pick from; by default WindowedPrograms.Find on the thread
+    // findPrograms lists the programs to pick from; by default RunningPrograms.Find on the thread
     // pool, as it reads the exe file of each program, which would make the list hang as it opens.
     public ProfileAutomationViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null)
     {
-        _findPrograms = findPrograms ?? (() => Task.Run(WindowedPrograms.Find));
+        _findPrograms = findPrograms ?? (() => Task.Run(Services.RunningPrograms.Find));
         Times.CollectionChanged += OnTimesChanged;
         Times.Add(new LoadTimeRow());
     }

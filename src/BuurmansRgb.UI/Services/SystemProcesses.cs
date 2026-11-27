@@ -4,7 +4,7 @@ using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.UI.Services;
 
-// The processes of Windows for WindowedPrograms: which ones show a window, and the description in
+// The processes of Windows for RunningPrograms: which ones show a window, and the description in
 // the exe file of each. Safe to call from any thread.
 internal static class SystemProcesses
 {
@@ -15,10 +15,10 @@ internal static class SystemProcesses
 
     // The processes with a main window, except this app itself. The name and the title come from
     // the process, so this also works for programs that run as administrator.
-    public static List<WindowedProcess> Windowed()
+    public static List<ProcessWindow> Windowed()
     {
         var own = Environment.ProcessId;
-        var windowed = new List<WindowedProcess>();
+        var windowed = new List<ProcessWindow>();
         foreach (var process in Process.GetProcesses())
         {
             using (process)
@@ -27,7 +27,7 @@ internal static class SystemProcesses
                 {
                     if (process.Id != own && process.MainWindowHandle != IntPtr.Zero)
                     {
-                        windowed.Add(new WindowedProcess(process.Id, process.ProcessName, process.MainWindowTitle));
+                        windowed.Add(new ProcessWindow(process.Id, process.ProcessName, process.MainWindowTitle));
                     }
                 }
                 catch (InvalidOperationException)
