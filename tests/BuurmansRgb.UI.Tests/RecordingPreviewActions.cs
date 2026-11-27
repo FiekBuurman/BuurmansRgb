@@ -25,7 +25,7 @@ internal sealed class RecordingPreviewActions : IPreviewActions
 
     public void StartZoneCount(ZoneCountStart start) => Requests.Add(start);
 
-    public void ChangeZoneCount(ZoneCountUpdate update) => Requests.Add(update);
+    public void ChangeZoneCount(ZoneCountChangeRequest request) => Requests.Add(request);
 
     public void StopZoneCount(ZoneCountStop stop) => Requests.Add(stop);
 

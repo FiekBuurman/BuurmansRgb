@@ -404,7 +404,7 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null, IPreview
         _requests?.StartZoneCount(start);
     }
 
-    void IPreviewRequests.ChangeZoneCount(ZoneCountUpdate update) => _requests?.ChangeZoneCount(update);
+    void IPreviewRequests.ChangeZoneCount(ZoneCountChangeRequest request) => _requests?.ChangeZoneCount(request);
 
     // The count ends here at once (ZoneCountTracker.Stop).
     void IPreviewRequests.StopZoneCount(ZoneCountStop stop)

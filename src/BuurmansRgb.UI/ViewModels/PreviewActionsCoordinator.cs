@@ -42,8 +42,8 @@ internal sealed class PreviewActionsCoordinator(
     public void StartZoneCount(ZoneCountStart start) =>
         SendZoneCount(start.DeviceId, start.ZoneIndex, "start", api => StartZoneCountAsync(api, start));
 
-    public void ChangeZoneCount(ZoneCountUpdate update) =>
-        SendZoneCount(update.DeviceId, update.ZoneIndex, update.Change, api => api.SetZoneCountAsync(update.DeviceId, update.ZoneIndex, update.Change));
+    public void ChangeZoneCount(ZoneCountChangeRequest request) =>
+        SendZoneCount(request.DeviceId, request.ZoneIndex, request.Change, api => api.SetZoneCountAsync(request.DeviceId, request.ZoneIndex, request.Change));
 
     public void StopZoneCount(ZoneCountStop stop) =>
         SendZoneCount(stop.DeviceId, stop.ZoneIndex, "stop", api => api.StopZoneCountAsync(stop.DeviceId, stop.ZoneIndex));

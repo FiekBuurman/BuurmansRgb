@@ -26,7 +26,7 @@ public interface IPreviewRequests
     // "Tellen" of a resizable zone, and what the user does with the count after that.
     void StartZoneCount(ZoneCountStart start);
 
-    void ChangeZoneCount(ZoneCountUpdate update);
+    void ChangeZoneCount(ZoneCountChangeRequest request);
 
     void StopZoneCount(ZoneCountStop stop);
 }

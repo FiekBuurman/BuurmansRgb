@@ -67,7 +67,7 @@ public sealed class PreviewActionsCoordinatorTests : IDisposable
     public void ZoneCount_StartChangeAndStop_GoToTheEngine()
     {
         _actions.StartZoneCount(new ZoneCountStart("strip", 0, 4));
-        _actions.ChangeZoneCount(new ZoneCountUpdate("strip", 0, new ZoneCountChange(Running: false)));
+        _actions.ChangeZoneCount(new ZoneCountChangeRequest("strip", 0, new ZoneCountChange(Running: false)));
         _actions.StopZoneCount(new ZoneCountStop("strip", 0));
 
         Assert.Equal(["count strip 0 4", "count strip 0 pause", "count strip 0 stop"], Api.Calls);
