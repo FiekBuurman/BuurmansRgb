@@ -460,7 +460,7 @@ public sealed class EngineHostTransferTests : IDisposable
     {
         using var host = CreateHost();
         await host.StartAsync(Ct);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), settingsTransfer: host);
+        using var api = new EngineApi(new EngineServices { Lighting = _lighting, ZoneLengths = _zoneLengths, Profiles = _profiles, SimulatedDevices = _simulatedDevices, OpenRgb = new FakeServerStatus(), SettingsTransfer = host });
         var lightingChanged = 0;
         api.LightingChanged += (_, _) => lightingChanged++;
 
@@ -476,7 +476,7 @@ public sealed class EngineHostTransferTests : IDisposable
     [Fact]
     public async Task EngineApi_WithoutTheHost_Throws()
     {
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus());
+        using var api = new EngineApi(new EngineServices { Lighting = _lighting, ZoneLengths = _zoneLengths, Profiles = _profiles, SimulatedDevices = _simulatedDevices, OpenRgb = new FakeServerStatus() });
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => api.ExportSettingsAsync(Ct));
         await Assert.ThrowsAsync<InvalidOperationException>(() => api.RestoreSettingsAsync([], Ct));

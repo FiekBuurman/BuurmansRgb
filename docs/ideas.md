@@ -1169,8 +1169,8 @@ uitbreidingen in `docs/bouwplan.md`.
   weer 1 keer in 6 volledige testruns. Bij `ledvoorbeeld-opsplitsen`, met de pennen van de ringen
   per thread, faalde hij niet in 3 volledige testruns en 10 losse runs van de
   `LedPreview*Tests`
-- `ProcessListTests.Find_SeesAProgramStartAndStop` faalde af en toe; de oorzaak is niet gevonden
-  (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
+- `RunningProgramsTests.Find_SeesAProgramStartAndStop` (Engine.Tests) faalde af en toe; de oorzaak is
+  niet gevonden (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
   `WaitUntilGone` het signaal van ping nu `TestTimeouts.Long`, en probeert `TempDirectory.Dispose`
   het wissen een tijd opnieuw. Faalt hij weer, leg dan vast op welke regel
 - De rij "Scènes" in de testtabel van `docs/ontwikkelaars.md` is één enorme cel; herschrijven als
@@ -1199,15 +1199,15 @@ uitbreidingen in `docs/bouwplan.md`.
 - `EngineRpcTests` (ca. 800 regels) per deel van `IEngineApi` splitsen, zoals de partials van
   `FakeEngineApi`: bij het delen van de nep-engine bleef de klasse heel, omdat de opzet (server en
   client over een pipe) per test hetzelfde is en splitsen alleen schuiven was (refactorplan 26-11-2026)
-- `EngineHostTransferTests` ook op `EngineApiParts` zetten en daarna de korte constructor van
-  `EngineApi` (de vijf vaste delen en `settingsTransfer`) weghalen, zodat er alleen
-  `EngineApi(EngineServices)` is. Bij `engine-host-dunner` moest die testklasse byte voor byte
-  gelijk blijven als bewijs dat bewaren en terugzetten niet veranderden; `SettingsAppSide` in
-  `TrayPresenterTests` deelt zijn verlichting met de tray en past daarom niet in `EngineApiParts`
-  (refactorplan 26-11-2026)
 - `EngineApiTests` (ca. 1130 regels) per gedrag splitsen: `engine-host-dunner` raakte de klasse
   wel (de delen komen nu uit `EngineApiParts`), maar dat waren veldnamen en geen gedrag; splitsen
   was alleen schuiven en zou de diff van de refactor onleesbaar maken (refactorplan 26-11-2026)
+- `FileErrors.IsAccessError` (Engine) naar `BuurmansRgb.Platform` verplaatsen, zodat `FileLog` (2×) en
+  de UI (`UserFiles`, `SharingViewModel`, `SettingsBackupViewModel`) hetzelfde filter delen in plaats
+  van eigen kopieën; kost een andere `using` in zo'n 10 Engine-bestanden (refactorplan 26-11-2026)
+- De zes coördinatortests (`EngineSession` met `FakeEngineConnection`) slikken `onCallFailed` in
+  (`_ => { }`), zodat een test een mislukte aanroep niet ziet. Dat zichtbaar maken (en dan één
+  gedeelde opzet) kan uitkomsten veranderen en is dus geen refactor (refactorplan 26-11-2026)
 - De rest van de `Profile*`-namen in de UI (viewmodels, views en tests heten nog `Profiles…` en
   `ProfileAutomationError`) en de `Lamp*`-klassen van de pagina Apparaten zijn bewust niet
   hernoemd: een volledige rename raakt AutomationIds en botst met `DeviceItem` (refactorplan

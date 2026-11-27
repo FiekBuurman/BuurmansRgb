@@ -49,7 +49,7 @@ internal sealed partial class LightingController
 
             // ZoneCountRun checks the pace, before the count that runs stops.
             var time = EffectTime;
-            var count = new ZoneCountRun(deviceId, zoneIndex, zone.Key, zone.Name, ledCount, ledsPerSecond, time);
+            var count = new ZoneCountRun(deviceId, zoneIndex, zone.Key, ledCount, ledsPerSecond, time);
             StopCountLocked();
             _count = count;
             _countSequence++;
