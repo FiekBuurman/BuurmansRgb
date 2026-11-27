@@ -11,56 +11,36 @@
         <ResourceDictionary Source="Tokens.xaml" />
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Focus rings: 2 px in text, drawn just outside the control, only when the keyboard moved the focus. -->
+    <!-- Focus rings: 2 px in text, drawn just outside the control, only when the keyboard moved the focus.
+         The ring is one template; a style based on it sets the corners with Corners.Radius, which the
+         template reads from the ring itself: a focus visual lives in the adorner layer, not in the
+         template of the control, so it cannot look up the corners of that control. -->
     <Style x:Key="FocusRing">
+        <Setter Property="views:Corners.Radius" Value="10" />
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="10" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
+                    <Border Margin="-3" CornerRadius="{TemplateBinding views:Corners.Radius}" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
     <!-- Around a card with the corners of a card (18), so the ring follows the whole card. -->
-    <Style x:Key="FocusRingCard">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="21" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+    <Style x:Key="FocusRingCard" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="21" />
     </Style>
     <!-- Around a button or slider with the corners of a button (12), 3 px further out. -->
-    <Style x:Key="FocusRingButton">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="15" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+    <Style x:Key="FocusRingButton" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="15" />
     </Style>
     <!-- Around a switch: round ends for a ring 38 px high. A larger radius would make WPF draw an
          ellipse instead of round ends. -->
-    <Style x:Key="FocusRingSwitch">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="19" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+    <Style x:Key="FocusRingSwitch" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="19" />
     </Style>
     <!-- Around a square control that is drawn as a circle, such as an icon button. -->
-    <Style x:Key="FocusRingRound">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="999" BorderThickness="2" BorderBrush="{DynamicResource TextBrush}" SnapsToDevicePixels="True" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+    <Style x:Key="FocusRingRound" BasedOn="{StaticResource FocusRing}">
+        <Setter Property="views:Corners.Radius" Value="999" />
     </Style>
 
     <!-- Line icons (§ 4): 24 by 24 like the screens of the design, drawn 22 px with a 2 px stroke. -->
