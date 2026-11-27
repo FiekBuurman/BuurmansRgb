@@ -13,6 +13,17 @@ internal sealed class CustomColorList
     // Raised when Colors got other colors, on the thread that set them; read Colors for the newest.
     public event EventHandler? Changed;
 
+    // For the settings app, which gets an error for one too many; settings.json and Colors leave
+    // the rest out instead. Static, so the engine checks also without a list (in tests). The
+    // parameter name is that of the IPC call (IEngineApi.SetCustomColorsAsync).
+    public static void ThrowIfTooMany(IReadOnlyList<RgbColor> colors)
+    {
+        if (colors.Count > CustomColors.MaxColors)
+        {
+            throw new ArgumentException($"At most {CustomColors.MaxColors} own colors, not {colors.Count}.", nameof(colors));
+        }
+    }
+
     // Empty until settings.json or the settings app gives colors; kept as CustomColors.Normalize
     // gives them, so a color twice or one too many is left out.
     public IReadOnlyList<RgbColor> Colors

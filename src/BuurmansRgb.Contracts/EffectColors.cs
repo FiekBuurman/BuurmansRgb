@@ -35,6 +35,16 @@ public sealed record EffectColors
     // Whether the effect takes a list of colors (EffectTraits.TakesColorList).
     public static bool Takes(string? effectId) => EffectTraits.Of(effectId).TakesColorList;
 
+    // For the engine, before it sets or clears the list of an effect; the parameter name is that
+    // of the IPC calls (IEngineApi.SetEffectColorsAsync and ClearEffectColorsAsync).
+    public static void ThrowIfNotTaken(string effectId)
+    {
+        if (!Takes(effectId))
+        {
+            throw new ArgumentException($"The effect '{effectId}' has no colors of its own.", nameof(effectId));
+        }
+    }
+
     public static bool IsValidList(IReadOnlyList<RgbColor>? colors) => colors is { Count: >= MinColors and <= MaxColors };
 
     // The colors of an effect without a list of its own on a lamp of lampColor (EffectTraits.DefaultColors).

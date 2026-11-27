@@ -13,33 +13,22 @@ namespace BuurmansRgb.Engine.Tests;
 // as a new scene or effect, with the devices found by id or by type and name.
 public sealed class SceneSharingTests : IDisposable
 {
-    private readonly SwitchableDeviceProvider _simulated = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
-    private readonly LightingController _lighting;
-    private readonly InMemoryProfileStore _profileStore = new();
-    private readonly ProfileLibrary _profiles;
-    private readonly SimulatedDevicesSwitch _simulatedDevices;
-    private readonly ZoneLengthKeeper _zoneLengths;
+    private readonly EngineApiParts _parts = new();
     private readonly InMemoryCustomEffectStore _effectStore = new();
     private readonly CustomEffectLibrary _effects;
     private readonly EngineApi _api;
 
     public SceneSharingTests()
     {
-        _lighting = new LightingController([_simulated]);
-        _zoneLengths = new ZoneLengthKeeper(_lighting);
-        _profiles = new ProfileLibrary(_profileStore, _lighting);
-        _simulatedDevices = new SimulatedDevicesSwitch(_simulated, _lighting);
-        _effects = new CustomEffectLibrary(_effectStore, _lighting);
-        _api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), customEffects: _effects);
+        _effects = new CustomEffectLibrary(_effectStore, _parts.Lighting);
+        _api = new EngineApi(_parts.Services with { CustomEffects = _effects });
     }
 
     public void Dispose()
     {
         _api.Dispose();
         _effects.Dispose();
-        _zoneLengths.Dispose();
-        _simulatedDevices.Dispose();
-        _lighting.Dispose();
+        _parts.Dispose();
     }
 
     // On the same pc: the copy gets a number, the same lighting on the same devices, and the own
@@ -47,7 +36,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportThenImport_OnThisPc_GivesTheSameSceneUnderANewName()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var disco = await _api.SaveCustomEffectAsync(new CustomEffect(string.Empty, "Disco", [new CustomEffectStep(Red), new CustomEffectStep(Blue, 2, 0)]), Ct);
         await _api.SetColorAsync(null, Orange, Ct);
         await _api.SetEffectAsync(null, disco.Id, Ct);
@@ -70,24 +59,24 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(1, changes);
         Assert.Equal(["Gamen", "Gamen (2)"], await _api.GetProfilesAsync(Ct));
         Assert.Equal([disco], await _api.GetCustomEffectsAsync(Ct));
-        var original = _profiles.Get("Gamen");
-        var copy = _profiles.Get("Gamen (2)");
+        var original = _parts.Profiles.Get("Gamen");
+        var copy = _parts.Profiles.Get("Gamen (2)");
         Assert.Equal(original.DeviceIds, copy.DeviceIds);
         Assert.Equal(original.Lighting.Global, copy.Lighting.Global);
         Assert.Equal(original.Lighting.Devices.OrderBy(pair => pair.Key), copy.Lighting.Devices.OrderBy(pair => pair.Key));
         Assert.Equal(original.Lighting.LedColors["simulated-keyboard"].Colors, copy.Lighting.LedColors["simulated-keyboard"].Colors);
         Assert.Equal(ProfileAutomation.None, copy.Automation);
         Assert.Equal(ProfileRole.None, copy.Role);
-        Assert.NotEqual("Gamen (2)", _profiles.ActiveName);
+        Assert.NotEqual("Gamen (2)", _parts.Profiles.ActiveName);
     }
 
     // The layer over the effect goes along with the device it is on, and comes in on that device here.
     [Fact]
     public async Task ExportThenImport_TheLayer_ComesBackOnItsDevice()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SetEffectAsync(null, EffectIds.Rainbow, Ct);
-        _lighting.SetOverlay("simulated-keyboard", 2, [Red, null, Red]);
+        _parts.Lighting.SetOverlay("simulated-keyboard", 2, [Red, null, Red]);
         await _api.SaveProfileAsync("Gamen", Ct);
 
         var json = await _api.ExportSceneAsync("Gamen", Ct);
@@ -97,8 +86,8 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(
             ["#FF0000", null, "#FF0000"],
             JsonNode.Parse(json)!["devices"]!.AsArray().Single(device => (string?)device!["id"] == "simulated-keyboard")!["overlay"]!.AsArray().Skip(2).Select(color => (string?)color));
-        Assert.Equal([null, null, Red, null, Red], _profiles.Get("Gamen (2)").Lighting.Overlays["simulated-keyboard"]);
-        Assert.Single(_profiles.Get("Gamen (2)").Lighting.Overlays);
+        Assert.Equal([null, null, Red, null, Red], _parts.Profiles.Get("Gamen (2)").Lighting.Overlays["simulated-keyboard"]);
+        Assert.Single(_parts.Profiles.Get("Gamen (2)").Lighting.Overlays);
     }
 
     // A layer from a device with more LEDs than the one here comes in without an error and as it is:
@@ -106,8 +95,8 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_LayerLongerThanTheDevice_ComesInAsItIs()
     {
-        await _lighting.DiscoverAsync(Ct);
-        var keyboard = _lighting.Devices.Single(device => device.Id == "simulated-keyboard");
+        await _parts.Lighting.DiscoverAsync(Ct);
+        var keyboard = _parts.Lighting.Devices.Single(device => device.Id == "simulated-keyboard");
         var overlay = new JsonArray([.. Enumerable.Range(0, keyboard.LedCount + 5).Select(index => (JsonNode?)(index == keyboard.LedCount + 4 ? "#FF0000" : null))]);
         var root = new JsonObject
         {
@@ -121,7 +110,7 @@ public sealed class SceneSharingTests : IDisposable
         var result = await _api.ImportSharedAsync(Bytes(root.ToJsonString()), Ct);
 
         Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
-        var layer = _profiles.Get("Lang").Lighting.Overlays["simulated-keyboard"];
+        var layer = _parts.Profiles.Get("Lang").Lighting.Overlays["simulated-keyboard"];
         Assert.Equal(keyboard.LedCount + 5, layer.Count);
         Assert.Equal(Red, layer[^1]);
     }
@@ -130,7 +119,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Export_WithoutALayer_HasNoOverlayField()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SetLedColorsAsync("simulated-keyboard", 0, [Red], Ct);
         await _api.SaveProfileAsync("Gamen", Ct);
 
@@ -147,11 +136,11 @@ public sealed class SceneSharingTests : IDisposable
     [InlineData(true, 2)]
     public async Task ExportScene_IsVersion2OnlyWithALayer(bool layer, int version)
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SetLedColorsAsync("simulated-keyboard", 0, [Red], Ct);
         if (layer)
         {
-            _lighting.SetOverlay("simulated-keyboard", 0, [Red]);
+            _parts.Lighting.SetOverlay("simulated-keyboard", 0, [Red]);
         }
 
         await _api.SaveProfileAsync("Gamen", Ct);
@@ -191,7 +180,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportThenImport_EveryFieldNotItsDefault_ComesBackTheSame()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var disco = await _api.SaveCustomEffectAsync(new CustomEffect(string.Empty, "Disco", [new CustomEffectStep(Red), new CustomEffectStep(Blue, 2, 0)]), Ct);
         var global = new DeviceLighting(Orange, 0.4, EffectIds.Comet, 2.5)
         {
@@ -210,7 +199,7 @@ public sealed class SceneSharingTests : IDisposable
         // The colors of the default loop, but not spread, is no default either.
         var keyboard = global with { EffectId = EffectIds.PerLed, On = true, Direction = 359, Loop = ColorLoop.Default with { Spread = false } };
         var ledColors = new LedColorEntry([Red, null, Blue], [2, 1]);
-        _profileStore.Profiles =
+        _parts.ProfileStore.Profiles =
         [
             new Profile("Alles", new LightingState(
                 global,
@@ -224,7 +213,7 @@ public sealed class SceneSharingTests : IDisposable
         var result = await _api.ImportSharedAsync(await _api.ExportSceneAsync("Alles", Ct), Ct);
 
         Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
-        var copy = _profiles.Get(result.Name!);
+        var copy = _parts.Profiles.Get(result.Name!);
         Assert.Equal(global, copy.Lighting.Global);
         Assert.Equal(fan, copy.Lighting.Devices["simulated-fan"]);
         Assert.Equal(keyboard, copy.Lighting.Devices["simulated-keyboard"]);
@@ -240,7 +229,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportScene_LeavesTheTimesProgramsAndRoleOut()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SaveProfileAsync("Gamen", Ct);
         await _api.SetProfileAutomationAsync("Gamen", new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], ["eldenring.exe", "cs2.exe"], ForegroundOnly: true), Ct);
 
@@ -256,8 +245,8 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_FromAnotherPc_FindsTheDevicesByTypeAndName()
     {
-        await _lighting.DiscoverAsync(Ct);
-        var fan = _lighting.Devices.First(device => device.Id == "simulated-fan");
+        await _parts.Lighting.DiscoverAsync(Ct);
+        var fan = _parts.Lighting.Devices.First(device => device.Id == "simulated-fan");
         var json = Bytes($$"""
             { "version": 1, "kind": "scene", "name": "Avond",
               "lighting": { "color": "#FF8800", "brightness": 0.5, "effect": "static" },
@@ -273,7 +262,7 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
         Assert.Equal("Avond", result.Name);
         Assert.Equal(["K70 RGB"], result.UnmatchedDevices!);
-        var scene = _profiles.Get("Avond");
+        var scene = _parts.Profiles.Get("Avond");
         Assert.Equal(["simulated-fan"], scene.DeviceIds!);
         Assert.Equal(Blue, scene.Lighting.Devices["simulated-fan"].Color);
         Assert.Equal(["simulated-fan"], scene.Lighting.Devices.Keys);
@@ -285,7 +274,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_DevicesNotHereWithoutAName_AreCountedNotNamed()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var json = Bytes("""
             { "version": 1, "kind": "scene", "name": "Avond",
               "lighting": { "color": "#FF8800", "brightness": 0.5, "effect": "static" },
@@ -307,7 +296,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_NoneOfItsDevicesHere_AddsNothing()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var json = Bytes("""
             { "version": 1, "kind": "scene", "name": "Bureau",
               "lighting": { "color": "#FF8800", "brightness": 1, "effect": "static" },
@@ -326,7 +315,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportScene_LeavesTheSceneFadeOut_AndTheImportFadesWithThisPc()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SetSceneFadeAsync(TimeSpan.FromSeconds(2), Ct);
         await _api.SetColorAsync(null, Orange, Ct);
         await _api.SaveProfileAsync("Gamen", Ct);
@@ -338,8 +327,8 @@ public sealed class SceneSharingTests : IDisposable
 
         Assert.DoesNotContain("fade", Encoding.UTF8.GetString(json), StringComparison.OrdinalIgnoreCase);
         Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
-        Assert.Equal(Orange, _lighting.State.Global.Color);
-        Assert.True(_lighting.IsFading);
+        Assert.Equal(Orange, _parts.Lighting.State.Global.Color);
+        Assert.True(_parts.Lighting.IsFading);
     }
 
     // A file that is wrong adds nothing, and no event goes out.
@@ -362,7 +351,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_SceneWithAnOwnEffect_BringsItAlong()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var other = await _api.SaveCustomEffectAsync(new CustomEffect(string.Empty, "Disco", [new CustomEffectStep(Green)]), Ct);
         var json = Bytes("""
             { "version": 1, "kind": "scene", "name": "Feest",
@@ -377,14 +366,14 @@ public sealed class SceneSharingTests : IDisposable
         Assert.NotEqual(other.Id, brought.Id);
         Assert.NotEqual("custom:abc", brought.Id);
         Assert.Equal([new CustomEffectStep(Red)], brought.Steps);
-        Assert.Equal(brought.Id, _profiles.Get("Feest").Lighting.Global.EffectId);
+        Assert.Equal(brought.Id, _parts.Profiles.Get("Feest").Lighting.Global.EffectId);
     }
 
     // An own effect that only a device that is not here shows is left out with that device.
     [Fact]
     public async Task Import_OwnEffectOnlyOfADeviceNotHere_IsNotAdded()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var json = Bytes("""
             { "version": 1, "kind": "scene", "name": "Feest",
               "lighting": { "color": "#FF8800", "brightness": 1, "effect": "static" },
@@ -399,7 +388,7 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(["K70 RGB"], result.UnmatchedDevices!);
         Assert.Empty(result.AddedEffects!);
         Assert.Empty(await _api.GetCustomEffectsAsync(Ct));
-        Assert.Empty(_profiles.Get("Feest").Lighting.Devices);
+        Assert.Empty(_parts.Profiles.Get("Feest").Lighting.Devices);
     }
 
     // A profiles.json that cannot be written adds no scene, and so none of its own effects either:
@@ -408,12 +397,12 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_SceneThatCannotBeSaved_AddsNoOwnEffect()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var sceneChanges = 0;
         var effectChanges = 0;
         _api.ProfilesChanged += (_, _) => sceneChanges++;
         _api.CustomEffectsChanged += (_, _) => effectChanges++;
-        _profileStore.SaveException = new IOException("profiles.json is read-only");
+        _parts.ProfileStore.SaveException = new IOException("profiles.json is read-only");
 
         await Assert.ThrowsAsync<IOException>(() => _api.ImportSharedAsync(SceneWithAnOwnEffect, Ct));
 
@@ -427,10 +416,10 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task Import_SceneWhileTheScenesDoNotRead_AddsNoOwnEffect()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var changes = 0;
         _api.CustomEffectsChanged += (_, _) => changes++;
-        _profileStore.LoadException = new IOException("profiles.json is locked");
+        _parts.ProfileStore.LoadException = new IOException("profiles.json is locked");
 
         await Assert.ThrowsAsync<IOException>(() => _api.ImportSharedAsync(SceneWithAnOwnEffect, Ct));
 
@@ -486,8 +475,8 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportScene_WithAnOwnEffectThatIsGone_GivesStatic()
     {
-        await _lighting.DiscoverAsync(Ct);
-        _profileStore.Profiles = [new Profile("Weg", LightingStates.Uniform(new DeviceLighting(Red, 1.0, "custom:gone")))];
+        await _parts.Lighting.DiscoverAsync(Ct);
+        _parts.ProfileStore.Profiles = [new Profile("Weg", LightingStates.Uniform(new DeviceLighting(Red, 1.0, "custom:gone")))];
 
         var root = Parse(await _api.ExportSceneAsync("Weg", Ct));
 
@@ -499,7 +488,7 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportScene_NameWithASlash_GoesWithADash()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SaveProfileAsync("Film/TV", Ct);
 
         var json = await _api.ExportSceneAsync("Film/TV", Ct);
@@ -514,9 +503,9 @@ public sealed class SceneSharingTests : IDisposable
     [Fact]
     public async Task ExportScene_BeyondTheLimitsOfAnImport_Throws()
     {
-        await _lighting.DiscoverAsync(Ct);
+        await _parts.Lighting.DiscoverAsync(Ct);
         var devices = Enumerable.Range(0, SharedFiles.MaxDevices + 1).ToDictionary(i => "openrgb:gone-" + i, _ => new DeviceLighting(Red, 1.0, EffectIds.Static));
-        _profileStore.Profiles = [new Profile("Vol", new LightingState(DeviceLighting.Default, devices, new Dictionary<string, LedColorEntry>()))];
+        _parts.ProfileStore.Profiles = [new Profile("Vol", new LightingState(DeviceLighting.Default, devices, new Dictionary<string, LedColorEntry>()))];
         using var trace = new TraceCapture();
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _api.ExportSceneAsync("Vol", Ct));

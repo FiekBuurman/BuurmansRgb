@@ -14,11 +14,8 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private const string Fan = "simulated-fan";
 
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
-    private readonly LightingController _lighting;
-    private readonly SimulatedDevicesSwitch _simulatedDevices;
-    private readonly ZoneLengthKeeper _zoneLengths;
+    private readonly EngineApiParts _parts = new();
     private readonly ZoneCounter _zoneCounter;
-    private readonly FakeServerStatus _openRgb = new();
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<EngineConnection> _clients = [];
     private readonly SemaphoreSlim _allClientsGone = new(0);
@@ -26,11 +23,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
     public EngineIpcServerTests()
     {
-        var simulated = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
-        _lighting = new LightingController([simulated]);
-        _simulatedDevices = new SimulatedDevicesSwitch(simulated, _lighting);
-        _zoneLengths = new ZoneLengthKeeper(_lighting);
-        _zoneCounter = new ZoneCounter(_lighting, _zoneLengths);
+        _zoneCounter = new ZoneCounter(_parts.Lighting, _parts.ZoneLengths);
     }
 
     public async ValueTask DisposeAsync()
@@ -49,9 +42,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         _shutdown.Dispose();
         _allClientsGone.Dispose();
         _zoneCounter.Dispose();
-        _zoneLengths.Dispose();
-        _simulatedDevices.Dispose();
-        _lighting.Dispose();
+        _parts.Dispose();
     }
 
     [Fact]
@@ -238,9 +229,9 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         await DisconnectAsync(client);
 
-        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_lighting.Count.IsCounting);
+        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_parts.Lighting.Count.IsCounting);
 
-        int ArgbHeader() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount;
+        int ArgbHeader() => _parts.Lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount;
     }
 
     // "Dit is de laatste": the length the user counted goes through ResizeZoneAsync and stays.
@@ -262,8 +253,8 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         await client.Api.ResizeZoneAsync(argb, 0, 37, Ct);
 
         await ended.Task.WaitAsync(TestTimeouts.Short, Ct);
-        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 37);
-        Assert.Equal(37, _zoneLengths.Lengths[argb]["ARGB 1"]);
+        await Eventually.TrueAsync(() => _parts.Lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 37);
+        Assert.Equal(37, _parts.ZoneLengths.Lengths[argb]["ARGB 1"]);
     }
 
     [Fact]
@@ -272,12 +263,12 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         const string argb = "simulated-argb";
         var client = await StartAndConnectAsync();
         await client.Api.StartZoneCountAsync(argb, 0, 1, Ct);
-        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 60);
+        await Eventually.TrueAsync(() => _parts.Lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 60);
 
         Assert.True(await client.Api.RescanDevicesAsync(Ct));
 
         Assert.False((await client.Api.GetZoneCountAsync(Ct)).IsCounting);
-        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 20);
+        await Eventually.TrueAsync(() => _parts.Lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 20);
     }
 
     // The engine sends DevicesChanged before the answer, over the same pipe, but the client raises
@@ -342,7 +333,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         client.Api.OpenRgbStatusChanged += (_, status) => received.TrySetResult(status);
         Assert.Equal(ServerStatus.Connecting, await client.Api.GetOpenRgbStatusAsync(Ct));
 
-        _openRgb.Change(new ServerStatus(ServerState.Unreachable));
+        _parts.OpenRgb.Change(new ServerStatus(ServerState.Unreachable));
 
         Assert.Equal(new ServerStatus(ServerState.Unreachable), await received.Task.WaitAsync(TestTimeouts.Short, Ct));
     }
@@ -353,8 +344,8 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     public async Task ResumeEffectsAsync_EndsTheManualPauseAndTheClientHearsTheRest()
     {
         var client = await StartAndConnectAsync();
-        _lighting.SetPaused(PauseReasons.Manual, true);
-        _lighting.SetPaused(PauseReasons.Locked, true);
+        _parts.Lighting.SetPaused(PauseReasons.Manual, true);
+        _parts.Lighting.SetPaused(PauseReasons.Locked, true);
         Assert.Equal(PauseReasons.Manual | PauseReasons.Locked, await client.Api.GetPauseAsync(Ct));
 
         // The events of the pauses above may still be on their way, so this waits for the new one.
@@ -369,7 +360,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         await client.Api.ResumeEffectsAsync(Ct);
 
         await received.Task.WaitAsync(TestTimeouts.Short, Ct);
-        Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+        Assert.Equal(PauseReasons.Locked, _parts.Lighting.Pause);
     }
 
     [Fact]
@@ -449,9 +440,9 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
     private async Task<EngineConnection> StartAndConnectAsync(Action? restart = null)
     {
-        await _lighting.DiscoverAsync(Ct);
-        _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb, zoneCounter: _zoneCounter, restart: restart), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        await _parts.Lighting.DiscoverAsync(Ct);
+        _parts.Lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_parts.Services with { Profiles = new ProfileLibrary(new InMemoryProfileStore(), _parts.Lighting), ZoneCounter = _zoneCounter, Restart = restart }), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

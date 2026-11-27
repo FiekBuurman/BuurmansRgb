@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
@@ -34,11 +33,14 @@ internal sealed class EngineHost(
     OtherRgbSoftwareCheck? otherRgbSoftware = null,
     SettingsFiles? files = null) : IEngineHost, ISettingsTransfer, IDisposable
 {
-    // One backup or restore at a time, also from two settings apps.
-    private readonly Lock _transferGate = new();
+    private readonly SettingsTransfer _transfer = new(settingsStore, lighting, files, simulatedDevices, profiles, customEffects);
 
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
+
+    // The options the saver keeps besides the lighting (CreateOptions), made at their first use in
+    // StartAsync, as a field initializer cannot use the host.
+    private OptionBinding[]? _options;
 
     // Set once the user chose autostart (AutoStartChosen); read when the saver comes, for a
     // choice before it.
@@ -85,12 +87,15 @@ internal sealed class EngineHost(
             _saver.ChangeOptions(saved => saved with { StartScenesCreated = true });
         }
 
-        simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
-        simulatedDevices?.HadRealDevicesChanged += OnHadRealDevicesChanged;
+        foreach (var option in Options)
+        {
+            option.Listen();
+        }
+
         if (simulatedDevices?.HadRealDevices == true && !settings.HadRealDevices)
         {
             // A real device was in the first list already, before anyone listened.
-            OnHadRealDevicesChanged(this, EventArgs.Empty);
+            _saver.ChangeOptions(SaveHadRealDevices);
         }
 
         if (Volatile.Read(ref _autoStartChosen))
@@ -99,17 +104,6 @@ internal sealed class EngineHost(
             OnAutoStartChosen(this, EventArgs.Empty);
         }
 
-        zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
-        profiles?.ActiveChanged += OnActiveSceneChanged;
-        lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
-        autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
-        lighting.PausedLightsChanged += OnPausedLightsChanged;
-        lighting.SceneFadeChanged += OnSceneFadeChanged;
-        lighting.ZonesAlikeChanged += OnZonesAlikeChanged;
-        profileTimer?.CatchUpChanged += OnCatchUpChanged;
-        hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
-        customColors?.Changed += OnCustomColorsChanged;
-        otherRgbSoftware?.DismissedChanged += OnOtherRgbSoftwareDismissed;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -120,6 +114,8 @@ internal sealed class EngineHost(
         {
             _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay, holdSaves: _saver.HoldSaves);
         }
+
+        _transfer.Start(_saver, _reloader, ApplyChangedByHand);
 
         // Once, before the settings app can ask; after waking up and at "Verversen" the check
         // itself and EngineApi look again.
@@ -142,19 +138,11 @@ internal sealed class EngineHost(
     {
         _reloader?.Dispose();
         autoStart?.Chosen -= OnAutoStartChosen;
-        simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
-        simulatedDevices?.HadRealDevicesChanged -= OnHadRealDevicesChanged;
-        zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
-        profiles?.ActiveChanged -= OnActiveSceneChanged;
-        lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
-        autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
-        lighting.PausedLightsChanged -= OnPausedLightsChanged;
-        lighting.SceneFadeChanged -= OnSceneFadeChanged;
-        lighting.ZonesAlikeChanged -= OnZonesAlikeChanged;
-        profileTimer?.CatchUpChanged -= OnCatchUpChanged;
-        hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
-        customColors?.Changed -= OnCustomColorsChanged;
-        otherRgbSoftware?.DismissedChanged -= OnOtherRgbSoftwareDismissed;
+        foreach (var option in _options ?? [])
+        {
+            option.StopListening();
+        }
+
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -163,203 +151,10 @@ internal sealed class EngineHost(
         _saver?.Dispose();
     }
 
-    // "Instellingen bewaren…": the changes that still wait are written first, so the zip has what
-    // the engine has now. The files are read as they are, without the stores: each is written as a
-    // whole by a move (JsonFile), so a read gets the old or the new one, never half of one.
-    public byte[] Export()
-    {
-        var known = FilesOrThrow();
-        lock (_transferGate)
-        {
-            FlushSaves();
-            return SettingsArchive.Create(known.Read());
-        }
-    }
+    // "Instellingen bewaren…" and "terugzetten…", which SettingsTransfer does.
+    public byte[] Export() => _transfer.Export();
 
-    // "Instellingen terugzetten…": nothing changes until the archive passed every check
-    // (SettingsArchive.Read) and the files of now are in a zip in the backups folder. Then the own
-    // effects, the scenes and the settings are replaced in that order, each through the part of
-    // the engine that keeps it, so no save of what the engine held before comes over them: the
-    // libraries drop what waited, and settings.json goes in as a change by hand, which the
-    // reloader applies at once (ReloadNow), as an edit in an editor, while the saver waits for
-    // it. A file that cannot be written, or not read again, is put back with the ones before it.
-    public SettingsRestoreResult Restore(byte[] archive)
-    {
-        var known = FilesOrThrow();
-        var content = SettingsArchive.Read(archive);
-        if (content.Error is { } refused)
-        {
-            Trace.TraceWarning($"A backup was not restored: {refused.Outcome}{(refused.FileName is null ? "" : $" ({refused.FileName})")}.");
-            return refused;
-        }
-
-        lock (_transferGate)
-        {
-            FlushSaves();
-            var before = known.Read();
-            try
-            {
-                known.WriteBackup(before);
-            }
-            catch (Exception exception) when (FileErrors.IsAccessError(exception))
-            {
-                Trace.TraceError($"A backup was not restored: the files of now could not be copied first: {exception}");
-                return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
-            }
-
-            // What the files change on the engine besides themselves: an own effect the backup has
-            // not makes a device static, and a scene it has not goes off.
-            var lightingBefore = lighting.State;
-            var activeBefore = profiles?.ActiveName;
-            var replaced = new List<string>();
-            try
-            {
-                foreach (var name in SettingsBackup.FileNames)
-                {
-                    // Added before Replace: a file that was written but could not be read again
-                    // goes back too, and putting back one that was not written yet changes nothing.
-                    if (content.Files.TryGetValue(name, out var json))
-                    {
-                        replaced.Add(name);
-                        Replace(known, name, json);
-                    }
-                }
-            }
-            catch (Exception exception) when (FileErrors.IsAccessError(exception))
-            {
-                Trace.TraceError($"Restoring a backup failed at {replaced[^1]}; putting back {string.Join(", ", replaced)}: {exception}");
-                PutBack(known, replaced, before, lightingBefore, activeBefore);
-                return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
-            }
-
-            Trace.TraceInformation($"Restored a backup: {string.Join(", ", replaced)}.");
-            return new SettingsRestoreResult(SettingsRestoreOutcome.Restored);
-        }
-    }
-
-    private SettingsFiles FilesOrThrow() =>
-        files ?? throw new InvalidOperationException("This engine has no settings files to back up.");
-
-    // Between reloads: a save during one waits for it, and would not be in the file yet.
-    private void FlushSaves()
-    {
-        if (_saver is { } saver)
-        {
-            if (_reloader is { } reloader)
-            {
-                reloader.RunBetweenReloads(saver.Flush);
-            }
-            else
-            {
-                saver.Flush();
-            }
-        }
-
-        customEffects?.Flush();
-    }
-
-    private void Replace(SettingsFiles known, string name, byte[] json)
-    {
-        switch (name)
-        {
-            case SettingsBackup.EffectsFileName when customEffects is not null:
-                customEffects.Replace(json);
-                break;
-            case SettingsBackup.ProfilesFileName when profiles is not null:
-                profiles.Replace(json);
-                break;
-            case SettingsBackup.SettingsFileName:
-                ReplaceSettings(json);
-                break;
-            default:
-                JsonFile.Write(known.PathOf(name), json);
-                break;
-        }
-    }
-
-    // A file that was not there before the restore goes again, through the part of the engine that
-    // keeps it; a file without its part of the engine (settings.json, or any in tests) is just
-    // deleted. For settings.json only the file goes, the engine keeps its settings; hardly ever
-    // reached, as LoadOrCreate writes it at the start and it is restored last.
-    private void Remove(SettingsFiles known, string name)
-    {
-        switch (name)
-        {
-            case SettingsBackup.EffectsFileName when customEffects is not null:
-                customEffects.Reset();
-                break;
-            case SettingsBackup.ProfilesFileName when profiles is not null:
-                profiles.Reset();
-                break;
-            default:
-                File.Delete(known.PathOf(name));
-                break;
-        }
-    }
-
-    // With autoStartChosen, hadRealDevices and startScenesCreated of this pc
-    // (SettingsArchive.WithThisPc): the Run key stays as it is, what the user chose about it here
-    // still counts at the next update, and the start scenes do not come again on this pc.
-    private void ReplaceSettings(byte[] json)
-    {
-        var saver = _saver ?? throw new InvalidOperationException("The engine has not started yet.");
-        var options = saver.Options;
-        settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true, options.StartScenesCreated));
-        if (_reloader is not null)
-        {
-            // Normally applied when this returns; a file that cannot be read yet only later.
-            _reloader.ReloadNow();
-            return;
-        }
-
-        // Without a watcher (in tests) there is no reloader, and so nobody else in HoldSaves.
-        saver.HoldSaves(() =>
-        {
-            if (settingsStore.LoadIfChanged().Settings is { } settings)
-            {
-                ApplyChangedByHand(settings);
-            }
-        });
-    }
-
-    // Best effort: a file that was not there before goes again, so the engine is as it was; one
-    // that cannot be put back stays as the backup had it, and the copy is in the backups folder.
-    // Then the lighting and the scene of before go back on, as changes, so the saver keeps them:
-    // the files of before have the own effects and the scene again. One that could not be put
-    // back has not, and the lighting then shows static instead (LightingController.Apply), or no
-    // scene is on.
-    private void PutBack(SettingsFiles known, List<string> replaced, Dictionary<string, byte[]> before, LightingState lightingBefore, string? activeBefore)
-    {
-        foreach (var name in replaced)
-        {
-            try
-            {
-                if (before.TryGetValue(name, out var json))
-                {
-                    Replace(known, name, json);
-                }
-                else
-                {
-                    Remove(known, name);
-                }
-            }
-            catch (Exception exception) when (FileErrors.IsAccessError(exception))
-            {
-                Trace.TraceError($"Could not put {name} back; the copy is in {known.BackupsFolder}: {exception.Message}");
-            }
-        }
-
-        // A new lighting ends the scene, so the scene comes after it.
-        if (!EngineSettings.SameLighting(lightingBefore, lighting.State))
-        {
-            lighting.Replace(lightingBefore);
-        }
-
-        if (profiles is not null && !string.Equals(profiles.ActiveName, activeBefore, StringComparison.Ordinal))
-        {
-            profiles.PutBackActive(activeBefore);
-        }
-    }
+    public SettingsRestoreResult Restore(byte[] archive) => _transfer.Restore(archive);
 
     // settings.json changed by hand: applied as the settings app would, through the same
     // properties, so the app follows (OptionsChanged, LightingChanged, DevicesChanged) and the
@@ -396,17 +191,10 @@ internal sealed class EngineHost(
     // The options besides the lighting and zone lengths, at the start and after a change by hand.
     private void ApplyOptions(EngineSettings settings)
     {
-        simulatedDevices?.Mode = settings.SimulatedDevices;
-        simulatedDevices?.HadRealDevices = settings.HadRealDevices;
-        lighting.FramesPerSecond = settings.FramesPerSecond;
-        autoPause?.Enabled = settings.PauseOnLockAndSleep;
-        lighting.PausedLights = settings.PausedLights;
-        lighting.SceneFade = settings.ReadSceneFade();
-        lighting.ZonesAlike = settings.ReadZonesAlike();
-        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
-        hotkeys?.Enabled = settings.Hotkeys;
-        customColors?.Colors = settings.ReadCustomColors();
-        otherRgbSoftware?.Dismissed = settings.ReadDismissedOtherRgbSoftware();
+        foreach (var option in Options)
+        {
+            option.Apply?.Invoke(settings);
+        }
     }
 
     // Before the devices are fetched, so the tray menu shows it from the start. A file without
@@ -470,48 +258,99 @@ internal sealed class EngineHost(
         _saver?.ChangeOptions(settings => settings with { AutoStartChosen = true });
     }
 
-    // Reads the newest mode, so two changes that cross each other still save the last one.
-    private void OnSimulatedDevicesModeChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { SimulatedDevices = simulatedDevices!.Mode });
+    private OptionBinding[] Options => _options ??= CreateOptions();
+
+    // Every option the saver keeps besides the lighting, in one list, so StartAsync listens to
+    // each, Dispose stops listening to each and ApplyOptions sets each in this order. Each save
+    // reads the newest value, so two changes that cross each other still save the last one. The
+    // zone lengths and the scene that is on have no apply: StartAsync and ApplyChangedByHand set
+    // them their own way.
+    private OptionBinding[] CreateOptions() =>
+    [
+        Bind(
+            handler => simulatedDevices?.ModeChanged += handler,
+            handler => simulatedDevices?.ModeChanged -= handler,
+            settings => simulatedDevices?.Mode = settings.SimulatedDevices,
+            settings => settings with { SimulatedDevices = simulatedDevices!.Mode }),
+        Bind(
+            handler => simulatedDevices?.HadRealDevicesChanged += handler,
+            handler => simulatedDevices?.HadRealDevicesChanged -= handler,
+            settings => simulatedDevices?.HadRealDevices = settings.HadRealDevices,
+            SaveHadRealDevices),
+        Bind(
+            handler => zoneLengths?.LengthsChanged += handler,
+            handler => zoneLengths?.LengthsChanged -= handler,
+            apply: null,
+            settings => settings.WithZoneLengths(zoneLengths!.Lengths)),
+        Bind(
+            handler => profiles?.ActiveChanged += handler,
+            handler => profiles?.ActiveChanged -= handler,
+            apply: null,
+            settings => settings with { ActiveScene = profiles!.ActiveName }),
+
+        // The options from the settings app.
+        Bind(
+            handler => lighting.FramesPerSecondChanged += handler,
+            handler => lighting.FramesPerSecondChanged -= handler,
+            settings => lighting.FramesPerSecond = settings.FramesPerSecond,
+            settings => settings with { FramesPerSecond = lighting.FramesPerSecond }),
+        Bind(
+            handler => autoPause?.EnabledChanged += handler,
+            handler => autoPause?.EnabledChanged -= handler,
+            settings => autoPause?.Enabled = settings.PauseOnLockAndSleep,
+            settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled }),
+        Bind(
+            handler => lighting.PausedLightsChanged += handler,
+            handler => lighting.PausedLightsChanged -= handler,
+            settings => lighting.PausedLights = settings.PausedLights,
+            settings => settings with { PausedLights = lighting.PausedLights }),
+        Bind(
+            handler => lighting.SceneFadeChanged += handler,
+            handler => lighting.SceneFadeChanged -= handler,
+            settings => lighting.SceneFade = settings.ReadSceneFade(),
+            settings => settings.WithSceneFade(lighting.SceneFade)),
+        Bind(
+            handler => lighting.ZonesAlikeChanged += handler,
+            handler => lighting.ZonesAlikeChanged -= handler,
+            settings => lighting.ZonesAlike = settings.ReadZonesAlike(),
+            settings => settings.WithZonesAlike(lighting.ZonesAlike)),
+        Bind(
+            handler => profileTimer?.CatchUpChanged += handler,
+            handler => profileTimer?.CatchUpChanged -= handler,
+            settings => profileTimer?.CatchUp = settings.CatchUpSceneTimes,
+            settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp }),
+        Bind(
+            handler => hotkeys?.EnabledChanged += handler,
+            handler => hotkeys?.EnabledChanged -= handler,
+            settings => hotkeys?.Enabled = settings.Hotkeys,
+            settings => settings with { Hotkeys = hotkeys!.Enabled }),
+        Bind(
+            handler => customColors?.Changed += handler,
+            handler => customColors?.Changed -= handler,
+            settings => customColors?.Colors = settings.ReadCustomColors(),
+            settings => settings.WithCustomColors(customColors!.Colors)),
+
+        // A program the user dismissed in the app, so its message stays away after a restart.
+        Bind(
+            handler => otherRgbSoftware?.DismissedChanged += handler,
+            handler => otherRgbSoftware?.DismissedChanged -= handler,
+            settings => otherRgbSoftware?.Dismissed = settings.ReadDismissedOtherRgbSoftware(),
+            settings => settings.WithDismissedOtherRgbSoftware(otherRgbSoftware!.Dismissed)),
+    ];
 
     // The fact that a real device was in the list, so it still counts after a restart.
-    private void OnHadRealDevicesChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { HadRealDevices = simulatedDevices!.HadRealDevices });
+    private EngineSettings SaveHadRealDevices(EngineSettings settings) =>
+        settings with { HadRealDevices = simulatedDevices!.HadRealDevices };
 
-    // Also reads the newest lengths, for the same reason.
-    private void OnZoneLengthsChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithZoneLengths(zoneLengths!.Lengths));
+    // A change of the option, on any thread, goes to the saver once it is there.
+    private OptionBinding Bind(Action<EventHandler> listen, Action<EventHandler> stopListening, Action<EngineSettings>? apply, Func<EngineSettings, EngineSettings> save) =>
+        new(listen, stopListening, apply, (_, _) => _saver?.ChangeOptions(save));
 
-    // And the scene that is on now.
-    private void OnActiveSceneChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { ActiveScene = profiles!.ActiveName });
+    // One option: how the host listens to its event, and how a settings file sets it (Apply).
+    private sealed record OptionBinding(Action<EventHandler> Add, Action<EventHandler> Remove, Action<EngineSettings>? Apply, EventHandler Changed)
+    {
+        public void Listen() => Add(Changed);
 
-    // The options from the settings app, also the newest value each.
-    private void OnFramesPerSecondChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { FramesPerSecond = lighting.FramesPerSecond });
-
-    private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
-
-    private void OnPausedLightsChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { PausedLights = lighting.PausedLights });
-
-    private void OnSceneFadeChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithSceneFade(lighting.SceneFade));
-
-    private void OnZonesAlikeChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithZonesAlike(lighting.ZonesAlike));
-
-    private void OnCatchUpChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp });
-
-    private void OnHotkeysEnabledChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { Hotkeys = hotkeys!.Enabled });
-
-    private void OnCustomColorsChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithCustomColors(customColors!.Colors));
-
-    // A program the user dismissed in the app, so its message stays away after a restart.
-    private void OnOtherRgbSoftwareDismissed(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithDismissedOtherRgbSoftware(otherRgbSoftware!.Dismissed));
+        public void StopListening() => Remove(Changed);
+    }
 }

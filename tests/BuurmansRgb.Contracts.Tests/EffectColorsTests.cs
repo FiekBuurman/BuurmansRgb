@@ -28,6 +28,21 @@ public sealed class EffectColorsTests
         Assert.Equal(takes, EffectColors.Takes(effectId));
     }
 
+    [Fact]
+    public void ThrowIfNotTaken_EffectWithoutAList_ThrowsForTheEffect()
+    {
+        var exception = Assert.Throws<ArgumentException>(() => EffectColors.ThrowIfNotTaken(EffectIds.Wave));
+
+        Assert.Equal("effectId", exception.ParamName);
+        Assert.StartsWith("The effect 'wave' has no colors of its own.", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ThrowIfNotTaken_EffectWithAList_DoesNotThrow()
+    {
+        EffectColors.ThrowIfNotTaken(EffectIds.Comet);
+    }
+
     // Without a list the comet, the scanner and the twinkle have the lamp color, the fire its warm
     // colors.
     [Fact]
