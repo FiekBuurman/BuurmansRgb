@@ -41,27 +41,6 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
     private volatile IReadOnlySet<string>? _frameDevices;
 
-    // Only for EngineHostTransferTests, which task engine-host-dunner kept unchanged; goes once that
-    // class uses EngineApiParts (docs/ideas.md).
-    public EngineApi(
-        LightingController lighting,
-        ZoneLengthKeeper zoneLengths,
-        ProfileLibrary profiles,
-        SimulatedDevicesSwitch simulatedDevices,
-        IServerStatusSource openRgb,
-        ISettingsTransfer? settingsTransfer = null)
-        : this(new EngineServices
-        {
-            Lighting = lighting,
-            ZoneLengths = zoneLengths,
-            Profiles = profiles,
-            SimulatedDevices = simulatedDevices,
-            OpenRgb = openRgb,
-            SettingsTransfer = settingsTransfer,
-        })
-    {
-    }
-
     public EngineApi(EngineServices services)
     {
         ArgumentNullException.ThrowIfNull(services);
