@@ -8,9 +8,10 @@ BuurmansRgb draait als klein achtergrondproces met een tray-icoon. De instelling
 
 ## Stand
 
-Taak 0 t/m 9 zijn gebouwd en in `main` gemerged, en daarna een reeks uitbreidingen (zie
-"Uitbreidingen na taak 9" onderaan). Wat nog open staat, zijn de acceptatiecriteria die
-alleen met echte hardware te testen zijn: taak 3 en taak 5 t/m 8. Die test de gebruiker zelf;
+Taak 0 t/m 9 zijn gebouwd en in `main` gemerged, en daarna een reeks uitbreidingen en refactors
+(zie "Uitbreidingen na taak 9" onderaan, tot en met #173). Taak 3 is op 24-11-2026 thuis met
+echte apparaten getest en gehaald. Wat nog open staat, zijn de criteria van taak 5 t/m 8 die
+niet voor elk type en elk apparaat helemaal gehaald zijn (zie daar). Die test de gebruiker zelf;
 de stappen staan in `ontwikkelaars.md` onder "Zelf testen op echte hardware". De installer
 (taak 9) is getest op de eigen pc van de gebruiker.
 
@@ -67,7 +68,11 @@ voor alles aan en uit (`Hotkeys`), `settings.json` live oppikken (`SettingsFileW
 bewaren en terugzetten van zonelengtes (`ZoneLengthKeeper`) en het wisselen tussen gesimuleerde
 en echte apparaten (`SimulatedDevicesSwitch`). Ook bewaart hij de eigen kleuren onder
 Kleuren voor de instellingen-app (`CustomColorList`), die zelf niets bewaart, en de eigen
-effecten van stappen in `effects.json` (`CustomEffectLibrary`).
+effecten van stappen in `effects.json` (`CustomEffectLibrary`). Verder herstart hij zichzelf en
+de services OpenRGB en PawnIO (`Restart`), deelt hij scènes en eigen effecten als bestand of code
+(`Sharing`), meldt hij andere RGB-software (`OtherRgbSoftwareList`), bewaart en zet hij de
+instellingen terug als zip (`SettingsTransfer`) en voert hij opdrachten van een tweede start uit,
+zoals `--scene` (`EngineCommand`, via `CommandMailbox` in `Platform`).
 
 Kern-interfaces in `Core`. Zo zijn ze nu; taak 0 begon met een kleinere versie (`RgbZone` met
 alleen `Resizable`, minder apparaattypes):
@@ -81,7 +86,8 @@ public enum DeviceType
     Mousemat, HeadsetStand, Speaker, Gamepad, Microphone, Keypad,
 }
 
-// Resizable als MinLedCount < MaxLedCount; Matrix en LedNames komen van OpenRGB.
+// Resizable als MinLedCount < MaxLedCount; Matrix en LedNames komen van OpenRGB,
+// Id (los van de naam) hebben alleen de gesimuleerde zones.
 public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int MaxLedCount);
 
 // Met daarnaast Source (OpenRGB of gesimuleerd), Location en HasDirectMode.
@@ -104,7 +110,9 @@ public interface IEffect
 
 Een provider kan meer: `IDynamicDeviceProvider` (meldt een nieuwe apparatenlijst),
 `IResizableDeviceProvider` (zonelengte instellen), `IRestorableDeviceProvider` (apparaten
-opnieuw klaarzetten na slaapstand) en `IServerStatusSource` (de OpenRGB-status).
+opnieuw klaarzetten na slaapstand), `IRescannableDeviceProvider` (opnieuw zoeken, Verversen) en
+`IServerStatusSource` (de OpenRGB-status). Een effect dat een richting kan hebben, is een
+`IDirectedEffect`.
 
 De loop per LED ziet er zo uit, hier als regenboog die over de strip schuift:
 
@@ -188,7 +196,7 @@ Maatregelen die dit mogelijk maken:
 - **Geen allocaties in de loop.** LED-buffers worden hergebruikt (`Span<RgbColor>`, vooraf gealloceerde arrays).
 - **Alleen wijzigingen versturen.** Vergelijk met het vorige frame en stuur per apparaat alleen als er iets veranderde.
 - **Instelbare framerate.** Standaard 30 fps, maximaal 60; animaties zijn tijdgebaseerd, niet frame-gebaseerd.
-- **Lichte GC-instellingen in de engine:** `ServerGarbageCollector=false`, `ConcurrentGarbageCollection=false`, `InvariantGlobalization=true`.
+- **Lichte GC-instellingen in de engine:** `ServerGarbageCollection=false`, `ConcurrentGarbageCollection=false`, `InvariantGlobalization=true`.
 - **Pauzeren bij vergrendelen of slaapstand** via `SystemEvents.SessionSwitch` en `PowerModeChanged`, en bij scherm uit (`GUID_SESSION_DISPLAY_STATUS`, het scherm van de eigen sessie) of schermbeveiliging (een `.scr` vooraan, bevestigd met `SPI_GETSCREENSAVERRUNNING`); na hervatten alles opnieuw toepassen, want veel apparaten resetten na slaap.
 - **UI is een apart proces.** Sluiten = proces stopt = geheugen vrij.
 
@@ -508,11 +516,9 @@ Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; 
 
 | Risico | Gevolg | Aanpak |
 | --- | --- | --- |
-| iCUE, Armoury Crate, Synapse, G Hub, Mystic Light draaien mee | Flikkeren, kleuren springen terug | Uitschakelen of autostart uitzetten; noteren in `docs/hardware.md`. De app meldt de meeste ervan in de statusregel (`conflict-melding`) |
-| Moederbord, RAM en GPU gaan via SMBus | OpenRGB heeft eenmalig adminrechten en een low-level driver nodig | Dat regelt OpenRGB; BuurmansRgb zelf blijft zonder admin. Volg de actuele OpenRGB-documentatie voor de driver |
+| iCUE, Armoury Crate, Synapse, G Hub, Mystic Light draaien mee | Flikkeren, kleuren springen terug | Uitschakelen of autostart uitzetten; wat thuis uit moet, staat in `docs/hardware.md`. De app meldt ze in de statusregel (`conflict-melding`; G HUB sinds #143) |
+| Moederbord, RAM en GPU gaan via SMBus | OpenRGB heeft eenmalig adminrechten en een low-level driver nodig | De installer zet OpenRGB als service onder LocalSystem en de driver PawnIO neer (taak 9, `docs/installatie.md`); BuurmansRgb zelf blijft zonder admin |
 | Anti-cheat in sommige games | Low-level hardwaretoegang kan gemarkeerd worden | Geldt voor OpenRGB en de driver PawnIO, niet voor BuurmansRgb; wat bekend is per anti-cheat staat in `docs/installatie.md` ("Games met anti-cheat") |
-| Apparaat niet ondersteund door OpenRGB | Geen aansturing mogelijk | Check de supported-devices-lijst van OpenRGB vóór fase 5–8; headsets zijn het vaakst niet ondersteund |
-| Apparaten resetten na slaapstand | Standaard fabriekseffect na hervatten | Na `PowerModeChanged.Resume` alles opnieuw toepassen (zit in fase 5–8 acceptatie) |
+| Apparaat niet ondersteund door OpenRGB | Geen aansturing mogelijk | Check de supported-devices-lijst van OpenRGB; headsets zijn het vaakst niet ondersteund. Thuis ziet OpenRGB de videokaart niet en de G733 niet altijd (`docs/hardware.md`) |
+| Apparaten resetten na slaapstand | Standaard fabriekseffect na hervatten | De engine past na `PowerModeChanged.Resume` alles opnieuw toe, kort na het ontwaken en nog een keer later (`ResumeRestorer`); thuis gezien op moederbord, G213 en G502, niet bevestigd op de G733 |
 | OpenRGB SDK-protocolversie wijzigt | Verbinding of functies vallen weg | `OpenRGB.NET` en OpenRGB samen bijwerken; de engine logt de protocolversie bij verbinden (`engine.log`) |
-
-Open vraag: welke merken en modellen zitten er in de pc? Vul dat in `docs/hardware.md` in, zodat de criteria van taak 5–8 getoetst kunnen worden tegen de OpenRGB-lijst.
