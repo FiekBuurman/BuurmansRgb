@@ -8,17 +8,15 @@ public sealed partial class DayOption(WeekDays day) : ObservableObject
 {
     public WeekDays Day { get; } = day;
 
-    public string ShortName { get; } = UiText.Lookup("DayShort", day) ?? day.ToString();
+    public string ShortName { get; } = UiText.ShortDay(day);
 
-    public string Name { get; } = UiText.Lookup("DayLong", day) ?? day.ToString();
+    public string Name { get; } = UiText.LongDay(day);
 
     [ObservableProperty]
     public partial bool IsChecked { get; set; } = true;
 
     // Monday first, as a Dutch week starts.
-    public static IReadOnlyList<DayOption> CreateWeek() =>
-        [.. new[] { WeekDays.Monday, WeekDays.Tuesday, WeekDays.Wednesday, WeekDays.Thursday, WeekDays.Friday, WeekDays.Saturday, WeekDays.Sunday }
-            .Select(day => new DayOption(day))];
+    public static IReadOnlyList<DayOption> CreateWeek() => [.. UiText.Week.Select(day => new DayOption(day))];
 
     // The days that are checked.
     public static WeekDays Checked(IEnumerable<DayOption> days) =>

@@ -27,12 +27,21 @@ internal static class UiText
         _ => Format(Strings.NamesAnd, string.Join(", ", names.Take(names.Count - 1)), names[^1]),
     };
 
-    // "Elke dag", "Werkdagen", "In het weekend", or the days themselves: "ma, wo, vr".
+    // Monday first, as a Dutch week starts.
+    public static IReadOnlyList<WeekDays> Week { get; } =
+        [WeekDays.Monday, WeekDays.Tuesday, WeekDays.Wednesday, WeekDays.Thursday, WeekDays.Friday, WeekDays.Saturday, WeekDays.Sunday];
+
+    // "ma" and "maandag", from Strings.resx ("DayShort_<day>", "DayLong_<day>").
+    public static string ShortDay(WeekDays day) => Lookup("DayShort", day) ?? day.ToString();
+
+    public static string LongDay(WeekDays day) => Lookup("DayLong", day) ?? day.ToString();
+
+    // "Elke dag","Werkdagen", "In het weekend", or the days themselves: "ma, wo, vr".
     public static string Days(WeekDays days) => (days & WeekDays.Every) switch
     {
         WeekDays.Every or WeekDays.None => Strings.DaysEvery,
         WeekDays.Workdays => Strings.DaysWorkdays,
         WeekDays.Weekend => Strings.DaysWeekend,
-        var some => string.Join(", ", DayOption.CreateWeek().Where(day => (some & day.Day) != WeekDays.None).Select(day => day.ShortName)),
+        var some => string.Join(", ", Week.Where(day => (some & day) != WeekDays.None).Select(ShortDay)),
     };
 }
