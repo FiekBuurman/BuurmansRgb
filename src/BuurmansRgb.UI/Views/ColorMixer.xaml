@@ -1,0 +1,175 @@
+<!-- The mixing panel of Kleur (ColorPage): left a big preview with the strip, the name of the color and its hex
+     code, right the Rood, Groen and Blauw sliders, the presets and the own colors, whose color goes on at once.
+     The preview beside the sliders, or above them when the text of a larger text size of Windows needs the room.
+     Its DataContext is that of the page (MainViewModel); the page shows and hides it.
+     A panel rather than a UserControl (ColorMixer.xaml.cs). -->
+<StackPanel x:Class="BuurmansRgb.UI.Views.ColorMixer"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+            xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+            xmlns:vm="clr-namespace:BuurmansRgb.UI.ViewModels"
+            xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
+            mc:Ignorable="d"
+            d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <StackPanel.Resources>
+        <!-- The twelve bulbs of the strip in the preview. -->
+        <x:Array x:Key="StripBulbs" Type="sys:Int32">
+            <sys:Int32>1</sys:Int32><sys:Int32>2</sys:Int32><sys:Int32>3</sys:Int32><sys:Int32>4</sys:Int32>
+            <sys:Int32>5</sys:Int32><sys:Int32>6</sys:Int32><sys:Int32>7</sys:Int32><sys:Int32>8</sys:Int32>
+            <sys:Int32>9</sys:Int32><sys:Int32>10</sys:Int32><sys:Int32>11</sys:Int32><sys:Int32>12</sys:Int32>
+        </x:Array>
+
+        <!-- The least width of a column, in em of the body text, as the column of "Bewaar als scène" of the page:
+             the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding and border
+             of the preview (38 px), with a little to spare: 358 px at 100 %. -->
+        <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
+
+        <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
+             A field like the others, with their border, hover and focus, so you see you can type in it;
+             without their fill, so it stays on the dark of the preview. Just wide enough for a code, at
+             every text size of Windows: seven characters of 0.6 em in the mono font, plus 54 px for the
+             padding, the border of the focus and the caret (180 px at 30 px). The width only follows the
+             font size, so it does not change while you type. -->
+        <views:EmConverter x:Key="HexBoxWidth" Ems="4.2" Extra="54" />
+        <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="FontSize" Value="{DynamicResource HexCodeSize}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource HexBoxWidth}}" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="MaxLength" Value="7" />
+        </Style>
+
+        <!-- A tile of the toolbox, of a preset or an own color: shows its Color under its Name, a click
+             mixes it, and it is marked when it is the mixed color. -->
+        <Style x:Key="ToolboxTile" TargetType="Button" BasedOn="{StaticResource SmallPresetTile}">
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
+            <Setter Property="ToolTip" Value="{Binding Name}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <Setter Property="CommandParameter" Value="{Binding Color}" />
+            <Setter Property="Tag">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EqualValues}">
+                        <Binding Path="Color" />
+                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </StackPanel.Resources>
+
+    <views:CardGrid MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource MixColumnWidth}}">
+        <Border VerticalAlignment="Top" Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}" Padding="18,26,18,20"
+                AutomationProperties.Name="{x:Static res:Strings.ColorPreviewAccessibleName}">
+            <StackPanel>
+                <Border Style="{StaticResource StripBoard}">
+                    <views:DecorativeItemsControl ItemsSource="{StaticResource StripBulbs}" Focusable="False" IsTabStop="False" VerticalAlignment="Center">
+                        <views:DecorativeItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1" />
+                            </ItemsPanelTemplate>
+                        </views:DecorativeItemsControl.ItemsPanel>
+                        <views:DecorativeItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4" OffRingBrush="{StaticResource StripLedOffRingBrush}"
+                                               Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </DataTemplate>
+                        </views:DecorativeItemsControl.ItemTemplate>
+                    </views:DecorativeItemsControl>
+                </Border>
+                <DockPanel Margin="0,22,0,0">
+                    <TextBlock DockPanel.Dock="Right" Margin="12,0,0,8" VerticalAlignment="Bottom" Style="{StaticResource MonoValue}" FontSize="{DynamicResource SubTextSize}"
+                               Text="{Binding ColorPicker.RgbText}" />
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />
+                        <!-- The name of the color before its hex code, "Warm wit · #FFF4E5"; the code goes
+                             under the name when the text of a larger text size of Windows needs the room,
+                             with the dot before it, so no dot stays behind the name.
+                             The name follows the color while you drag, so it is no live region. -->
+                        <WrapPanel>
+                            <TextBlock Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
+                                       Text="{Binding ColorPicker.ColorName}"
+                                       AutomationProperties.Name="{Binding ColorPicker.ColorName}" AutomationProperties.AutomationId="CurrentColorName" />
+                            <StackPanel Orientation="Horizontal">
+                                <views:DecorativeText Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
+                                                      Foreground="{DynamicResource TextMutedBrush}" Text="·" />
+                                <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
+                                         GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
+                                         LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
+                            </StackPanel>
+                        </WrapPanel>
+                    </StackPanel>
+                </DockPanel>
+                <!-- A code that is no color makes way for that of the color when the field loses the focus; this says so. -->
+                <DockPanel Margin="0,6,0,0" Visibility="{Binding ColorPicker.HexError, Converter={StaticResource NullToCollapsed}}">
+                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                    <TextBlock TextWrapping="Wrap" Text="{Binding ColorPicker.HexError, NotifyOnTargetUpdated=True}"
+                               AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
+                </DockPanel>
+            </StackPanel>
+        </Border>
+
+        <StackPanel>
+            <views:ValueSlider Label="{x:Static res:Strings.ChannelRed}" ValueText="{Binding ColorPicker.Red, StringFormat={}{0:0}}" FillBrush="{StaticResource LedRedBrush}"
+                               Minimum="0" Maximum="255" Value="{Binding ColorPicker.Red}" SmallChange="1" LargeChange="16" TickFrequency="1" />
+            <views:ValueSlider Margin="0,14,0,0" Label="{x:Static res:Strings.ChannelGreen}" ValueText="{Binding ColorPicker.Green, StringFormat={}{0:0}}" FillBrush="{StaticResource LedGreenBrush}"
+                               Minimum="0" Maximum="255" Value="{Binding ColorPicker.Green}" SmallChange="1" LargeChange="16" TickFrequency="1" />
+            <views:ValueSlider Margin="0,14,0,0" Label="{x:Static res:Strings.ChannelBlue}" ValueText="{Binding ColorPicker.Blue, StringFormat={}{0:0}}" FillBrush="{StaticResource LedBlueBrush}"
+                               Minimum="0" Maximum="255" Value="{Binding ColorPicker.Blue}" SmallChange="1" LargeChange="16" TickFrequency="1" />
+
+            <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" AutomationProperties.HeadingLevel="Level3" />
+            <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine of the design and
+                 the full colors fit one row in a wide window, and the rest wraps under them. -->
+            <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False"
+                          AutomationProperties.Name="{x:Static res:Strings.ToolboxHeader}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ColorPreset}">
+                        <Button Style="{StaticResource ToolboxTile}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- The own colors, kept by the engine: "+" first, so the tiles after it wrap within the
+                 column; a click mixes one, Delete or its context menu takes it away. -->
+            <TextBlock Margin="0,10,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.CustomColorsHeader}" AutomationProperties.HeadingLevel="Level3" />
+            <DockPanel>
+                <Button x:Name="AddCustomColor" DockPanel.Dock="Left" Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource AddTile}" Content="+"
+                        ToolTip="{x:Static res:Strings.CustomColorsAddToolTip}" ToolTipService.ShowOnDisabled="True"
+                        AutomationProperties.Name="{x:Static res:Strings.CustomColorsAdd}"
+                        Command="{Binding CustomColors.AddCommand}" Click="OnAddCustomColorClick" />
+                <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False"
+                              AutomationProperties.Name="{x:Static res:Strings.CustomColorsHeader}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:CustomColorItem}">
+                            <Button Style="{StaticResource ToolboxTile}" AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
+                                    PreviewKeyDown="OnCustomColorKeyDown" views:FocusKeeper.Key="{Binding FocusKey}">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{x:Static res:Strings.CustomColorRemove}" Click="OnRemoveCustomColorClick" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </StackPanel>
+    </views:CardGrid>
+</StackPanel>
