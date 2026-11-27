@@ -53,8 +53,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
-    private readonly SynchronizationContext? _uiContext;
-    private readonly CoalescingCallQueue _calls;
+    private readonly UiThread _ui;
+    private readonly EngineSession _session;
     private readonly LampSync _lampSync;
     private readonly SceneCardLoader _sceneCards;
     private readonly ReentrancyGuard _syncing = new();
@@ -63,7 +63,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ITimer _fadeStillTimer;
     private long? _lastPick;
     private string? _flashPending;
-    private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
 
     // The color of the selected device, which the color picker shows again when the effect
@@ -131,21 +130,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null, IClipboard? clipboard = null)
     {
         _connector = connector;
+        _ui = new UiThread();
+        _session = new EngineSession(_ui, OnCallFailed, OnCallSucceeded);
+
+        // The children that need nothing else, first and in a fixed order: those below, such as
+        // AfterRestart and StatusLine, take some of them.
+        Navigation = new NavigationViewModel();
+        Lamps = new LampsViewModel();
+        ColorPicker = new ColorPickerViewModel();
+        LedEditor = new LedEditorViewModel();
+        ColorLoopEditor = new ColorLoopEditorViewModel();
+        EffectColorsEditor = new ColorListEditorViewModel(EffectColors.MinColors, EffectColors.MaxColors, [RgbColor.White]);
+        EffectTiles = new EffectTilesViewModel();
+        WholeHouseTimes = new WholeHouseTimesViewModel();
+        SimulatedDevices = new SimulatedDevicesViewModel();
+        EffectOptions = new EffectOptionsViewModel();
+        SceneTimes = new SwitchOptionViewModel(isOn: false);
+        Hotkeys = new SwitchOptionViewModel(isOn: true);
+        AutoStart = new SwitchOptionViewModel(isOn: false);
+        OpenRgbStatus = new OpenRgbStatusViewModel();
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
-        AppInfo.Failed += (_, message) => StatusMessage = message;
-        Backup = new SettingsBackupViewModel(() => _connection?.Api, time);
+        AppInfo.Message += (_, message) => StatusMessage = message;
+        Backup = new SettingsBackupViewModel(_session, time);
         Backup.Message += (_, message) => StatusMessage = message;
-        Sharing = new SharingViewModel(() => _connection?.Api, clipboard ?? new AppClipboard());
+        Sharing = new SharingViewModel(_session, clipboard ?? new AppClipboard());
         Sharing.Message += (_, message) => StatusMessage = message;
         Sharing.Imported += (_, result) => ShowImported(result);
         EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
-        _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
-        _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _stillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        _fadeStillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _flashTimer = _time.CreateTimer(_ => _ui.Run(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _stillTimer = _time.CreateTimer(_ => _ui.Run(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _fadeStillTimer = _time.CreateTimer(_ => _ui.Run(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         Motion = new PreviewMotionViewModel(animationEffects ?? AnimationEffectsOn.Instance);
         Motion.StillChanged += (_, _) =>
         {
@@ -157,9 +174,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DeviceRescan = new DeviceRescanViewModel(_time);
         OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
         StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
-        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), key => RunOnUi(() => OnCallSucceeded(key)));
-        _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
-        _sceneCards = new SceneCardLoader(Profiles, () => _connection);
+        _lampSync = new LampSync(Lamps, _session);
+        _sceneCards = new SceneCardLoader(Profiles, _session);
         CustomColors = new CustomColorsViewModel(ColorPicker);
         CustomEffectEditor = new CustomEffectEditorViewModel(IsCustomEffectNameTaken);
         CustomEffectEditor.Changed += (_, effect) => SendCustomEffect(effect);
@@ -288,9 +304,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Whether the preview, and the lamps on Lampen, move or stand still (Animatie-effecten).
     public PreviewMotionViewModel Motion { get; }
 
-    public NavigationViewModel Navigation { get; } = new();
+    public NavigationViewModel Navigation { get; }
 
-    public LampsViewModel Lamps { get; } = new();
+    public LampsViewModel Lamps { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]
@@ -311,22 +327,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
     public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
 
-    public ColorPickerViewModel ColorPicker { get; } = new();
+    public ColorPickerViewModel ColorPicker { get; }
 
     // "Eigen kleuren" in the toolbox, which the engine keeps; "+" adds the color of ColorPicker.
     public CustomColorsViewModel CustomColors { get; }
 
     // While LEDs are selected in the preview, the color picker colors those LEDs instead of the device.
-    public LedEditorViewModel LedEditor { get; } = new();
+    public LedEditorViewModel LedEditor { get; }
 
     // With the color-loop effect, the color picker colors the selected color of the loop.
-    public ColorLoopEditorViewModel ColorLoopEditor { get; } = new();
+    public ColorLoopEditorViewModel ColorLoopEditor { get; }
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
 
     // With an effect that has a list of colors (comet, scanner, twinkle, fire), the color picker
     // colors the selected color of that list.
-    public ColorListEditorViewModel EffectColorsEditor { get; } = new(EffectColors.MinColors, EffectColors.MaxColors, [RgbColor.White]);
+    public ColorListEditorViewModel EffectColorsEditor { get; }
 
     public bool HasEffectColors => EffectColors.Takes(SelectedEffect?.Id);
 
@@ -341,7 +357,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private bool IsDeviceColorUnused => SelectedEffect is { } effect && !EffectIds.UsesDeviceColor(effect.Id);
 
     // The effect tiles at the top of Kleur, with the choice of the own effects behind "Eigen effect".
-    public EffectTilesViewModel EffectTiles { get; } = new();
+    public EffectTilesViewModel EffectTiles { get; }
 
     // "Eigen effect" was clicked without own effects: card 4 shows "Jouw effect" while the light
     // keeps its effect, until another effect comes (OnSelectedEffectChanged) or another device or
@@ -403,9 +419,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ProfilesViewModel Profiles { get; }
 
     // "Uit om" and "Aan om" in the block Hele huis on Apparaten.
-    public WholeHouseTimesViewModel WholeHouseTimes { get; } = new();
+    public WholeHouseTimesViewModel WholeHouseTimes { get; }
 
-    public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
+    public SimulatedDevicesViewModel SimulatedDevices { get; }
 
     // The line on Apparaten that says the simulated devices are there to try the app, and that the
     // real ones come by themselves through OpenRGB: only with "Automatisch", while every device is a
@@ -429,21 +445,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // with "Opnieuw verbinden", is the status line (StatusLine).
     public bool ShowsDevicesLost => HadRealDevices == true && !Lamps.HasLamps;
 
-    public EffectOptionsViewModel EffectOptions { get; } = new();
+    public EffectOptionsViewModel EffectOptions { get; }
 
     // The option of the scene times on Instellingen: whether a time that passed while the pc slept
     // or the engine did not run is caught up on. Off, as the engine has it until said.
-    public SwitchOptionViewModel SceneTimes { get; } = new(isOn: false);
+    public SwitchOptionViewModel SceneTimes { get; }
 
     // The option of the hotkeys on Instellingen: whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U
     // switch everything on and off; the engine registers or frees the keys. On, as the engine has
     // it until said.
-    public SwitchOptionViewModel Hotkeys { get; } = new(isOn: true);
+    public SwitchOptionViewModel Hotkeys { get; }
 
     // "Starten met Windows" on Instellingen, the same as the item in the tray menu: the engine
     // keeps it in the registry, and tells through OptionsChanged when the tray menu changes it.
     // Off until the engine said.
-    public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
+    public SwitchOptionViewModel AutoStart { get; }
 
     // "Na een herstart" on Instellingen: what comes back after a restart, and whether by itself.
     public AfterRestartViewModel AfterRestart { get; }
@@ -460,7 +476,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Licht op de achtergrond" on Instellingen: the memory and CPU of the engine.
     public EngineUsageViewModel EngineUsage { get; }
 
-    public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
+    public OpenRgbStatusViewModel OpenRgbStatus { get; }
 
     public EffectsPauseViewModel EffectsPause { get; }
 
@@ -573,7 +589,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var connection = await _connector.ConnectAsync(CancellationToken.None);
-            _connection = connection;
+            _session.Attach(connection);
             Preview.Reset();
             Lamps.Reset();
             connection.Disconnected += OnDisconnected;
@@ -633,7 +649,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 // Posted: WPF ignores a change to the source it is updating, so setting it right
                 // away would leave the list showing no selection.
-                PostToUi(() =>
+                _ui.Post(() =>
                 {
                     if (SelectedDevice is null && Devices.Contains(oldValue))
                     {
@@ -708,7 +724,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         try
         {
             var processId = await connection.Api.GetProcessIdAsync();
-            if (ReferenceEquals(connection, _connection))
+            if (_session.IsCurrent(connection))
             {
                 EngineUsage.ProcessId = processId;
             }
@@ -724,26 +740,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void SendFramesWanted()
     {
         var wanted = WantsFrames;
-        if (_connection is not { } connection || wanted == _framesWanted)
+        if (!_session.HasConnection || wanted == _framesWanted)
         {
             return;
         }
 
         _framesWanted = wanted;
-        _calls.Post(FramesWantedCall, () => connection.Api.SetFramesWantedAsync(wanted));
+        _session.Post(FramesWantedCall, api => api.SetFramesWantedAsync(wanted));
     }
 
     // Also only when it differs from what this connection told the engine last.
     private void SendFrameDevices()
     {
         var device = FrameDevice;
-        if (_connection is not { } connection || device == _frameDevice)
+        if (!_session.HasConnection || device == _frameDevice)
         {
             return;
         }
 
         _frameDevice = device;
-        _calls.Post(FrameDevicesCall, () => connection.Api.SetFrameDevicesAsync(device is null ? null : [device]));
+        _session.Post(FrameDevicesCall, api => api.SetFrameDevicesAsync(device is null ? null : [device]));
     }
 
     // While the preview stands still, the engine sends no frames (WantsFrames), and the preview
@@ -757,7 +773,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // lamp.
     private void RequestStill()
     {
-        if (!Motion.IsStill || !ShowsPreview || _connection is not { } connection)
+        if (!Motion.IsStill || !ShowsPreview || !_session.HasConnection)
         {
             return;
         }
@@ -769,27 +785,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _calls.Post(StillCall, async () =>
+        _session.Read(StillCall, api => api.GetFrameAsync(), frame =>
         {
-            var frame = await connection.Api.GetFrameAsync();
-            RunOnUi(() =>
+            if (!Motion.IsStill)
             {
-                if (!ReferenceEquals(connection, _connection) || !Motion.IsStill)
-                {
-                    return;
-                }
+                return;
+            }
 
-                // A flash that went through just before this image was taken holds the stills
-                // only now, as OnCallSucceeded reaches the UI thread first: the image may show
-                // the white of it, so it goes, and a new one comes after the flash.
-                if (_stillsHeldUntil > _time.GetUtcNow())
-                {
-                    RequestStill();
-                    return;
-                }
+            // A flash that went through just before this image was taken holds the stills only
+            // now, as OnCallSucceeded reaches the UI thread first: the image may show the white of
+            // it, so it goes, and a new one comes after the flash.
+            if (_stillsHeldUntil > _time.GetUtcNow())
+            {
+                RequestStill();
+                return;
+            }
 
-                ShowFrame(frame);
-            });
+            ShowFrame(frame);
         });
     }
 
@@ -999,14 +1011,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // A new name shows in the effect choice at once.
     private void SendCustomEffect(CustomEffect effect)
     {
-        if (_connection is not { } connection)
+        if (!_session.HasConnection)
         {
             return;
         }
 
         _customEffectChanges++;
         ShowCustomEffect(effect);
-        _calls.Post((CustomEffectCall, effect.Id), () => CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect)));
+        _session.PostOn((CustomEffectCall, effect.Id), connection => CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect)));
     }
 
     // The engine gives every device that shows it, and so this one, the static effect; the choice
@@ -1014,7 +1026,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // the effect that still waits.
     private void DeleteCustomEffect(string id)
     {
-        if (_connection is not { } connection || _customEffects.FirstOrDefault(effect => effect.Id == id) is not { } deleted)
+        if (!_session.HasConnection || _customEffects.FirstOrDefault(effect => effect.Id == id) is not { } deleted)
         {
             return;
         }
@@ -1030,20 +1042,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
         ShowEffects();
         ShowPickerColor();
-        _calls.Post((CustomEffectCall, id), async () =>
+        _session.PostOn((CustomEffectCall, id), async connection =>
         {
             await CallOrShowCustomEffectsAsync(connection, async () =>
             {
                 await connection.Api.DeleteCustomEffectAsync(id);
                 return true;
             });
-            RunOnUi(() =>
-            {
-                if (ReferenceEquals(connection, _connection))
-                {
-                    StatusMessage = UiText.Format(Strings.CustomEffectDeleted, deleted.Name);
-                }
-            });
+            _session.WhenCurrent(connection, () => StatusMessage = UiText.Format(Strings.CustomEffectDeleted, deleted.Name));
         });
     }
 
@@ -1052,14 +1058,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanTakeLedPattern))]
     private async Task TakeLedPatternAsync()
     {
-        if (_connection is not { } connection || SelectedDevice?.DeviceId is not { } deviceId)
+        if (_session.Current is not { } connection || SelectedDevice?.DeviceId is not { } deviceId)
         {
             return;
         }
 
         var effectId = CustomEffectEditor.EffectId;
-        var (ok, colors) = await TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
-        if (ok && ReferenceEquals(connection, _connection) && CustomEffectEditor.EffectId == effectId && IsCustomEffect)
+        var (ok, colors) = await _session.TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
+        if (ok && _session.IsCurrent(connection) && CustomEffectEditor.EffectId == effectId && IsCustomEffect)
         {
             CustomEffectEditor.ShowPattern(colors);
         }
@@ -1074,7 +1080,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanCreateCustomEffect))]
     private void NewCustomEffect()
     {
-        if (_connection is not { } connection)
+        if (!_session.HasConnection)
         {
             return;
         }
@@ -1084,23 +1090,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             candidate => _customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
         var effect = new CustomEffect(string.Empty, name, [new CustomEffectStep(_deviceColor), new CustomEffectStep(RgbColor.Black)]);
         _customEffectChanges++;
-        _calls.Post(new object(), async () =>
+        _session.PostOn(new object(), async connection =>
         {
             var saved = await CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect));
-            RunOnUi(() =>
+            _session.WhenCurrent(connection, () =>
             {
-                if (!ReferenceEquals(connection, _connection))
-                {
-                    return;
-                }
-
                 ShowCustomEffect(saved);
                 SelectedEffect = Effects.FirstOrDefault(option => option.Id == saved.Id) ?? SelectedEffect;
             });
         });
     }
 
-    private bool CanCreateCustomEffect() => _connection is not null && _customEffects.Count < CustomEffects.MaxEffects;
+    private bool CanCreateCustomEffect() => _session.HasConnection && _customEffects.Count < CustomEffects.MaxEffects;
 
     // Whether another own effect, or an effect of the engine, has the name in the effect choice;
     // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
@@ -1135,13 +1136,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             try
             {
                 var effects = await connection.Api.GetCustomEffectsAsync();
-                RunOnUi(() =>
+                _session.WhenCurrent(connection, () =>
                 {
-                    if (ReferenceEquals(connection, _connection))
-                    {
-                        _customEffects = effects;
-                        ShowEffects();
-                    }
+                    _customEffects = effects;
+                    ShowEffects();
                 });
             }
             catch (Exception reloadException)
@@ -1155,25 +1153,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Another settings app saved or deleted an effect, or this one did. In the queue, behind the
     // changes of this app that wait, and only shown when no change was sent meanwhile.
-    private void OnCustomEffectsChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnCustomEffectsChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (_connection is not { } connection)
+        if (!_session.HasConnection)
         {
             return;
         }
 
         var changes = _customEffectChanges;
-        _calls.Post(CustomEffectsReloadCall, async () =>
+        _session.Read(CustomEffectsReloadCall, api => api.GetCustomEffectsAsync(), effects =>
         {
-            var effects = await connection.Api.GetCustomEffectsAsync();
-            RunOnUi(() =>
+            if (changes == _customEffectChanges)
             {
-                if (ReferenceEquals(connection, _connection) && changes == _customEffectChanges)
-                {
-                    _customEffects = effects;
-                    ShowEffects();
-                }
-            });
+                _customEffects = effects;
+                ShowEffects();
+            }
         });
 
         // An own effect that runs may have new steps: a preview that stands still shows them.
@@ -1208,10 +1202,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowFrame(await api.GetFrameAsync());
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
+        // The names first, so they are there when reading the times fails; the cards once both are read.
         Profiles.Show(await api.GetProfilesAsync());
         ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
-        _ = _sceneCards.ShowAsync();
-        _ = _sceneCards.ShowActiveAsync();
+        ShowSceneCards();
         ShowOptions(await ReadOptionsAsync(api));
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -1279,13 +1273,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // color, and a color the user is mixing with the rainbow stays.
     private async Task ReloadDevicesAsync()
     {
-        if (_connection is not { } connection)
+        if (_session.Current is not { } connection)
         {
             return;
         }
 
-        var (ok, devices) = await TryCallAsync(connection, api => api.GetDevicesAsync());
-        if (ok && ReferenceEquals(connection, _connection))
+        var (ok, devices) = await _session.TryCallAsync(connection, api => api.GetDevicesAsync());
+        if (ok && _session.IsCurrent(connection))
         {
             var selectedId = SelectedDevice?.DeviceId;
             ShowDevices(devices);
@@ -1308,17 +1302,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ShowsCustomCard = false;
         RebuildPreview();
-        if (_connection is not { } connection)
+        if (_session.Current is not { } connection)
         {
             return;
         }
 
         var deviceId = SelectedDevice?.DeviceId;
-        var (ok, lighting) = await TryCallAsync(connection, api => api.GetLightingAsync(deviceId));
+        var (ok, lighting) = await _session.TryCallAsync(connection, api => api.GetLightingAsync(deviceId));
 
         // The user may have picked another device, or the connection may have been made again,
         // while this one was loading.
-        if (!ok || !ReferenceEquals(connection, _connection) || SelectedDevice?.DeviceId != deviceId)
+        if (!ok || !_session.IsCurrent(connection) || SelectedDevice?.DeviceId != deviceId)
         {
             return;
         }
@@ -1333,23 +1327,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // for when it does not).
     private void FollowLighting()
     {
-        if (_connection is not { } connection)
+        if (!_session.HasConnection)
         {
             return;
         }
 
         var deviceId = SelectedDevice?.DeviceId;
         var sentChanges = _sentChanges;
-        _calls.Post(FollowLightingCall, async () =>
+        _session.Read(FollowLightingCall, api => api.GetLightingAsync(deviceId), lighting =>
         {
-            var lighting = await connection.Api.GetLightingAsync(deviceId);
-            RunOnUi(() =>
+            if (SelectedDevice?.DeviceId == deviceId && sentChanges == _sentChanges)
             {
-                if (ReferenceEquals(connection, _connection) && SelectedDevice?.DeviceId == deviceId && sentChanges == _sentChanges)
-                {
-                    ShowLighting(lighting, keepMixedColor: ColorPicker.HasColorNotOnDevice);
-                }
-            });
+                ShowLighting(lighting, keepMixedColor: ColorPicker.HasColorNotOnDevice);
+            }
         });
     }
 
@@ -1380,14 +1370,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void Send(string setting, Func<IEngineApi, string?, Task> call)
     {
-        if (_connection is not { } connection || SelectedDevice is not { } selected)
+        if (!_session.HasConnection || SelectedDevice is not { } selected)
         {
             return;
         }
 
         var deviceId = selected.DeviceId;
         _sentChanges++;
-        _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
+        _session.Post((setting, deviceId), api => call(api, deviceId));
     }
 
     // The picker colors, in this order: the selected LEDs, the selected color of the loop or of the
@@ -1432,7 +1422,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // old one. "Hele huis" switches every lamp on when any is off, as it colors them all.
     private void SwitchOnForColor(DeviceItem? device)
     {
-        if (_connection is not null && device is not null)
+        if (_session.HasConnection && device is not null)
         {
             Lamps.SwitchOn(device.DeviceId);
         }
@@ -1577,7 +1567,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select, bool selectOnStart = true)
     {
         var started = false;
-        if (_connection is not { } connection)
+        if (_session.Current is not { } connection)
         {
             return;
         }
@@ -1586,7 +1576,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (_startingEdit is not { } starting || starting.DeviceId != deviceId || !ReferenceEquals(starting.Connection, connection))
             {
-                starting = new(connection, deviceId, firstIndex, TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId)), TryCallAsync(connection, api => api.GetOverlayAsync(deviceId)));
+                starting = new(connection, deviceId, firstIndex, _session.TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId)), _session.TryCallAsync(connection, api => api.GetOverlayAsync(deviceId)));
                 _startingEdit = starting;
             }
 
@@ -1597,7 +1587,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 _startingEdit = null;
             }
 
-            if (!ok || !layerOk || !ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
+            if (!ok || !layerOk || !_session.IsCurrent(connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
             {
                 return;
             }
@@ -1665,20 +1655,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // them from. False when there is no engine to send them to.
     private bool PostRuns<T>(string kind, string deviceId, IReadOnlyList<T> edits, Func<IEngineApi, T, Task> send)
     {
-        if (_connection is not { } connection || LedEditor.Selection is not { } selection)
+        if (!_session.HasConnection || LedEditor.Selection is not { } selection)
         {
             return false;
         }
 
         _sentChanges++;
-        _calls.Post((kind, deviceId, selection.Leds), async () =>
+        _session.Post((kind, deviceId, selection.Leds), async (IEngineApi api) =>
         {
             // Stopping at the first run that fails is good enough: the runs go in rising order, what
             // makes one fail (a lost engine, a device that went) makes the rest fail too, and the
             // next step of the edit sends all runs again.
             foreach (var edit in edits)
             {
-                await send(connection.Api, edit);
+                await send(api, edit);
             }
         });
         return true;
@@ -1688,10 +1678,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // the preview; an LED edit of that device ends then, because its LEDs moved.
     private void OnZoneResizeRequested(ZoneResize resize)
     {
-        if (_connection is { } connection)
-        {
-            _calls.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
-        }
+        _session.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), api => api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
     }
 
     // A flash goes at once and replaces one that waits from the list (FlashChosen), so that one
@@ -1699,19 +1686,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void FlashDevice(string deviceId)
     {
         CancelPendingFlash();
-        if (_connection is { } connection)
-        {
-            _calls.Post(new FlashTarget(deviceId, ZoneIndex: null), () => connection.Api.FlashDeviceAsync(deviceId));
-        }
+        _session.Post(new FlashTarget(deviceId, ZoneIndex: null), api => api.FlashDeviceAsync(deviceId));
     }
 
     private void FlashZone(ZoneFlash flash)
     {
         CancelPendingFlash();
-        if (_connection is { } connection)
-        {
-            _calls.Post(new FlashTarget(flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
-        }
+        _session.Post(new FlashTarget(flash.DeviceId, flash.ZoneIndex), api => api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
     }
 
     // A count of LEDs: the engine reports how it goes through ZoneCountChanged, and the device at
@@ -1720,10 +1701,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void SendZoneCount(string deviceId, int zoneIndex, object kind, Func<IEngineApi, Task> send)
     {
         CancelPendingFlash();
-        if (_connection is { } connection)
-        {
-            _calls.Post((CountCall, deviceId, zoneIndex, kind), () => send(connection.Api));
-        }
+        _session.Post((CountCall, deviceId, zoneIndex, kind), send);
     }
 
     // A start that fails is not a count of this app; the failure itself goes on to OnCallFailed.
@@ -1735,7 +1713,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch
         {
-            RunOnUi(() => Preview.ForgetZoneCountStart(start));
+            _ui.Run(() => Preview.ForgetZoneCountStart(start));
             throw;
         }
     }
@@ -1744,42 +1722,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // preview; the frames that follow show the zones alike, or each with its own part again.
     private void SendZonesAlike(ZonesAlikeChoice choice)
     {
-        if (_connection is { } connection)
-        {
-            _calls.Post((ZonesAlikeCall, choice.DeviceId), () => connection.Api.SetZonesAlikeAsync(choice.DeviceId, choice.Alike));
-        }
+        _session.Post((ZonesAlikeCall, choice.DeviceId), api => api.SetZonesAlikeAsync(choice.DeviceId, choice.Alike));
     }
 
     // The engine shows or hides the simulated devices and reports the new list through
     // DevicesChanged, so the list here follows by itself.
     private void SendSimulatedDevices(SimulatedDevicesMode mode)
     {
-        if (_connection is { } connection)
-        {
-            _calls.Post(SimulatedDevicesCall, () => connection.Api.SetSimulatedDevicesAsync(mode));
-        }
+        _session.Post(SimulatedDevicesCall, api => api.SetSimulatedDevicesAsync(mode));
     }
 
     // The engine saves the option itself; a pause that starts or ends by it comes through
     // PauseChanged.
     private void SendOption(string call, Func<IEngineApi, Task> send)
     {
-        if (_connection is { } connection)
-        {
-            _calls.Post(call, () => send(connection.Api));
-        }
+        _session.Post(call, send);
     }
 
     // A change comes back through OptionsChanged. When Windows did not let it change, the switch
     // shows what the engine has again, with the message the tray menu gives too.
     private void SendAutoStart(bool enabled)
     {
-        if (_connection is not { } connection)
-        {
-            return;
-        }
-
-        _calls.Post(AutoStartCall, async () =>
+        _session.PostOn(AutoStartCall, async connection =>
         {
             if (await connection.Api.SetAutoStartAsync(enabled))
             {
@@ -1787,13 +1751,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
 
             var current = await connection.Api.GetAutoStartAsync();
-            RunOnUi(() =>
+            _session.WhenCurrent(connection, () =>
             {
-                if (ReferenceEquals(connection, _connection))
-                {
-                    AutoStart.Show(current);
-                    StatusMessage = Strings.AutoStartFailed;
-                }
+                AutoStart.Show(current);
+                StatusMessage = Strings.AutoStartFailed;
             });
         });
     }
@@ -1801,20 +1762,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The engine reports the pause that is left through PauseChanged, so the message follows by itself.
     private void ResumeEffects()
     {
-        if (_connection is { } connection)
-        {
-            _calls.Post(ResumeCall, () => connection.Api.ResumeEffectsAsync());
-        }
+        _session.Post(ResumeCall, api => api.ResumeEffectsAsync());
     }
 
     // "Herstarten" beside the OpenRGB status: the engine closes this app and starts anew, after the
     // UAC prompt; the line at the bottom says so meanwhile.
     private void RestartEngine()
     {
-        if (_connection is { } connection)
+        if (_session.HasConnection)
         {
             StatusMessage = Strings.Restarting;
-            _calls.Post(RestartCall, () => connection.Api.RestartAsync());
+            _session.Post(RestartCall, api => api.RestartAsync());
         }
     }
 
@@ -1827,13 +1785,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // may name is the list the engine gave after it looked again at this search.
     private async Task RescanDevicesAsync(int search)
     {
-        if (_connection is not { } connection)
+        if (_session.Current is not { } connection)
         {
             DeviceRescan.Finish(search, RescanOutcome.Rescanned);
             return;
         }
 
-        var (ok, outcome) = await TryCallAsync(connection, async api =>
+        var (ok, outcome) = await _session.TryCallAsync(connection, async api =>
         {
             try
             {
@@ -1850,7 +1808,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             outcome = RescanOutcome.Rescanned;
         }
 
-        if (ReferenceEquals(connection, _connection))
+        if (_session.IsCurrent(connection))
         {
             DeviceRescan.Finish(search, outcome, OtherRgbSoftware.Programs);
         }
@@ -1874,12 +1832,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // not exist yet.
     private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false, Action? failed = null)
     {
-        if (_connection is not { } connection)
-        {
-            return;
-        }
-
-        _calls.Post(new object(), async () =>
+        _session.PostOn(new object(), async connection =>
         {
             try
             {
@@ -1895,42 +1848,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 {
                     if (failed is not null)
                     {
-                        RunOnUi(() =>
-                        {
-                            if (ReferenceEquals(connection, _connection))
-                            {
-                                failed();
-                            }
-                        });
+                        _session.WhenCurrent(connection, failed);
                     }
 
                     throw;
                 }
 
                 Trace.TraceWarning(exception.ToString());
-                RunOnUi(() =>
+                _session.WhenCurrent(connection, () =>
                 {
-                    if (ReferenceEquals(connection, _connection))
-                    {
-                        Profiles.Show(current);
-                        _ = _sceneCards.ShowAsync();
-                        StatusMessage = UiText.Format(Strings.ProfileGone, name);
-                    }
+                    ShowProfiles(current, withActive: false);
+                    StatusMessage = UiText.Format(Strings.ProfileGone, name);
                 });
                 return;
             }
 
             var names = await connection.Api.GetProfilesAsync();
-            RunOnUi(() =>
+            _session.WhenCurrent(connection, () =>
             {
-                if (!ReferenceEquals(connection, _connection))
-                {
-                    return;
-                }
-
-                Profiles.Show(names, select: name);
-                _ = _sceneCards.ShowAsync();
-                _ = _sceneCards.ShowActiveAsync();
+                ShowProfiles(names, select: name);
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
             });
@@ -1943,35 +1879,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // in the effect choice.
     private void ShowImported(ShareImportResult result)
     {
-        if (result.Kind != SharedKind.Scene || result.Name is not { } name || _connection is not { } connection)
+        if (result.Kind != SharedKind.Scene || result.Name is not { } name)
         {
             return;
         }
 
-        _calls.Post(new object(), async () =>
+        _session.Read(new object(), api => api.GetProfilesAsync(), names =>
         {
-            var names = await connection.Api.GetProfilesAsync();
-            RunOnUi(() =>
-            {
-                if (ReferenceEquals(connection, _connection))
-                {
-                    Profiles.Show(names, select: name);
-                    _ = _sceneCards.ShowAsync();
-                }
-            });
+            ShowProfiles(names, select: name, withActive: false);
         });
     }
 
     // Unless the user picked another profile, or the connection was made again, in the meantime.
     private async Task ShowProfileAutomationAsync(string name)
     {
-        if (_connection is not { } connection)
+        if (_session.Current is not { } connection)
         {
             return;
         }
 
-        var (ok, automation) = await TryCallAsync(connection, api => api.GetProfileAutomationAsync(name));
-        if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        var (ok, automation) = await _session.TryCallAsync(connection, api => api.GetProfileAutomationAsync(name));
+        if (ok && _session.IsCurrent(connection) && Profiles.SelectedName == name)
         {
             Profiles.Automation.Show(name, automation);
         }
@@ -1983,13 +1911,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // meantime or the connection was made again.
     private async Task ShowSceneDevicesAsync(string name)
     {
-        if (_connection is not { } connection)
+        if (_session.Current is not { } connection)
         {
             return;
         }
 
-        var (ok, deviceIds) = await TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
-        if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        var (ok, deviceIds) = await _session.TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
+        if (ok && _session.IsCurrent(connection) && Profiles.SelectedName == name)
         {
             ShowSceneDevices(name, deviceIds);
         }
@@ -2006,7 +1934,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // A frame that was on its way when the preview came to stand still is dropped: only
     // RequestStill brings an image then.
-    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() =>
+    private void OnFrameRendered(object? sender, LightingFrame frame) => _ui.Run(() =>
     {
         if (!Motion.IsStill)
         {
@@ -2024,37 +1952,50 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // follow, the selection stays, and so do fields being typed in for the same scene. The boxes
     // of the devices of the open scene follow too, so the next click does not undo a change made
     // elsewhere. In the queue, so it reads the engine after the calls of this app that wait.
-    private void OnProfilesChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnProfilesChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (_connection is not { } connection)
+        if (!_session.HasConnection)
         {
             return;
         }
 
         var open = Profiles.SelectedName;
-        _calls.Post(ProfilesReloadCall, async () =>
+        _session.PostOn(ProfilesReloadCall, async connection =>
         {
             var names = await connection.Api.GetProfilesAsync();
             var wholeHouse = await connection.Api.GetWholeHouseTimesAsync();
             var (devicesRead, deviceIds) = open is not null && names.Contains(open, ProfileNames.Comparer)
-                ? await TryCallAsync(connection, api => api.GetProfileDevicesAsync(open))
+                ? await _session.TryCallAsync(connection, api => api.GetProfileDevicesAsync(open))
                 : (false, null);
-            RunOnUi(() =>
+            _session.WhenCurrent(connection, () =>
             {
-                if (ReferenceEquals(connection, _connection))
+                ShowProfiles(names);
+                ShowWholeHouseTimes(wholeHouse);
+                if (devicesRead && Profiles.SelectedName == open)
                 {
-                    Profiles.Show(names);
-                    _ = _sceneCards.ShowAsync();
-                    _ = _sceneCards.ShowActiveAsync();
-                    ShowWholeHouseTimes(wholeHouse);
-                    if (devicesRead && Profiles.SelectedName == open)
-                    {
-                        ShowSceneDevices(open!, deviceIds);
-                    }
+                    ShowSceneDevices(open!, deviceIds);
                 }
             });
         });
     });
+
+    // The scenes of the engine on Scènes with select selected (Profiles.Show), and their cards.
+    private void ShowProfiles(IReadOnlyList<string> names, string? select = null, bool withActive = true)
+    {
+        Profiles.Show(names, select);
+        ShowSceneCards(withActive);
+    }
+
+    // The cards of the scenes on Scènes load what each one looks like; withActive asks again which
+    // one is on as well.
+    private void ShowSceneCards(bool withActive = true)
+    {
+        _ = _sceneCards.ShowAsync();
+        if (withActive)
+        {
+            _ = _sceneCards.ShowActiveAsync();
+        }
+    }
 
     // "Uit om" and "Aan om" as the engine saved them. They are the times of "Alles uit": when that
     // scene is open on Scènes, its times there follow a change here. Whether the open scene has a
@@ -2078,45 +2019,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // with ProfilesChanged too, which shows them again.
     private void SendWholeHouseTimes(WholeHouseTimes times)
     {
-        if (_connection is not { } connection)
-        {
-            return;
-        }
-
-        _calls.Post(WholeHouseTimesCall, async () =>
+        _session.PostOn(WholeHouseTimesCall, async connection =>
         {
             await connection.Api.SetWholeHouseTimesAsync(times);
             var saved = await connection.Api.GetWholeHouseTimesAsync();
-            RunOnUi(() =>
+            _session.WhenCurrent(connection, () =>
             {
-                if (ReferenceEquals(connection, _connection))
-                {
-                    ShowWholeHouseTimes(saved);
-                    StatusMessage = Strings.WholeHouseTimesSaved;
-                }
+                ShowWholeHouseTimes(saved);
+                StatusMessage = Strings.WholeHouseTimesSaved;
             });
         });
     }
 
     // The same for the options on Instellingen, such as the simulated lamps of another app.
-    private void OnOptionsChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnOptionsChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (_connection is not { } connection)
+        if (!_session.HasConnection)
         {
             return;
         }
 
-        _calls.Post(OptionsReloadCall, async () =>
-        {
-            var options = await ReadOptionsAsync(connection.Api);
-            RunOnUi(() =>
-            {
-                if (ReferenceEquals(connection, _connection))
-                {
-                    ShowOptions(options);
-                }
-            });
-        });
+        _session.Read(OptionsReloadCall, ReadOptionsAsync, ShowOptions);
 
         // Such as the lights during a pause: a preview that stands still shows them.
         RequestStill();
@@ -2146,7 +2069,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CustomColors.Show(options.CustomColors);
     }
 
-    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnLightingChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
         _ = _lampSync.RefreshAsync();
         _ = _sceneCards.ShowActiveAsync();
@@ -2155,13 +2078,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RequestStillAfterFade();
     });
 
-    private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnDevicesChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
         _ = ReloadDevicesAsync();
         RequestStill();
     });
 
-    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => RunOnUi(() =>
+    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => _ui.Run(() =>
     {
         _openRgbStatusChanges++;
         OpenRgbStatus.Show(status);
@@ -2171,7 +2094,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     });
 
-    private void OnPauseChanged(object? sender, PauseReasons pause) => RunOnUi(() =>
+    private void OnPauseChanged(object? sender, PauseReasons pause) => _ui.Run(() =>
     {
         _pauseChanges++;
         ShowPause(pause);
@@ -2179,34 +2102,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     });
 
     // Read anew, as the event carries no list; the newest read wins in the call queue.
-    private void OnOtherRgbSoftwareChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnOtherRgbSoftwareChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
         _otherRgbSoftwareChanges++;
-        if (_connection is not { } connection)
-        {
-            return;
-        }
-
-        _calls.Post(OtherRgbSoftwareReloadCall, async () =>
-        {
-            var programs = await connection.Api.GetOtherRgbSoftwareAsync();
-            RunOnUi(() =>
-            {
-                if (ReferenceEquals(connection, _connection))
-                {
-                    OtherRgbSoftware.Show(programs);
-                }
-            });
-        });
+        _session.Read(OtherRgbSoftwareReloadCall, api => api.GetOtherRgbSoftwareAsync(), OtherRgbSoftware.Show);
     });
 
     // "Niet meer melden": the engine keeps it in settings.json, and tells with its new list.
     private void DismissOtherRgbSoftware(string id)
     {
-        if (_connection is { } connection)
-        {
-            _calls.Post((DismissOtherRgbSoftwareCall, id), () => connection.Api.DismissOtherRgbSoftwareAsync(id));
-        }
+        _session.Post((DismissOtherRgbSoftwareCall, id), api => api.DismissOtherRgbSoftwareAsync(id));
     }
 
     private void ShowPause(PauseReasons pause)
@@ -2218,13 +2123,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // At each LED of a count, so at most a few times a second.
     // While the preview stands still, it gets an image at each step too: one LED more, nothing
     // that goes on and off.
-    private void OnZoneCountChanged(object? sender, ZoneCountInfo count) => RunOnUi(() =>
+    private void OnZoneCountChanged(object? sender, ZoneCountInfo count) => _ui.Run(() =>
     {
         Preview.ShowZoneCount(count);
         RequestStill();
     });
 
-    private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
+    private void OnSettingsSaved(object? sender, SettingsSaveResult result) => _ui.Run(() =>
     {
         var now = _time.GetLocalNow();
         SaveStatus = UiText.Format(result.Succeeded ? Strings.SavedAt : Strings.SaveFailedAt, now);
@@ -2237,28 +2142,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ShowDevices(_devices.Where(device => deviceId is null || device.Id == deviceId), wholeHouse: deviceId is null);
     }
 
-    private void OnDisconnected(object? sender, EventArgs e) => RunOnUi(() =>
+    private void OnDisconnected(object? sender, EventArgs e) => _ui.Run(() =>
     {
-        if (ReferenceEquals(sender, _connection))
+        if (_session.IsCurrent(sender))
         {
             Fail(Strings.ConnectionLost);
         }
     });
-
-    // One engine call whose answer is awaited. A failure goes to OnCallFailed and gives Ok false;
-    // the caller still checks that the answer is not out of date.
-    private async Task<(bool Ok, T Value)> TryCallAsync<T>(IEngineConnection connection, Func<IEngineApi, Task<T>> call)
-    {
-        try
-        {
-            return (true, await call(connection.Api));
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
-            return (false, default!);
-        }
-    }
 
     private void OnCallFailed(Exception exception)
     {
@@ -2317,12 +2207,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void DropConnection()
     {
-        if (_connection is not { } connection)
+        if (_session.Detach() is not { } connection)
         {
             return;
         }
 
-        _connection = null;
         EngineUsage.ProcessId = null;
         connection.Disconnected -= OnDisconnected;
         connection.Api.FrameRendered -= OnFrameRendered;
@@ -2337,31 +2226,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.CustomEffectsChanged -= OnCustomEffectsChanged;
         connection.Api.OtherRgbSoftwareChanged -= OnOtherRgbSoftwareChanged;
         connection.Dispose();
-    }
-
-    private void RunOnUi(Action action)
-    {
-        if (_uiContext is null || SynchronizationContext.Current == _uiContext)
-        {
-            action();
-        }
-        else
-        {
-            PostToUi(action);
-        }
-    }
-
-    // Runs after the current UI work, or right away without a UI thread (tests).
-    private void PostToUi(Action action)
-    {
-        if (_uiContext is null)
-        {
-            action();
-        }
-        else
-        {
-            _uiContext.Post(_ => action(), state: null);
-        }
     }
 
     // The key of a flash in the queue, so OnCallSucceeded knows which flash went through; a null

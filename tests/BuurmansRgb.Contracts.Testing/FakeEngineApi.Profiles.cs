@@ -106,7 +106,13 @@ public sealed partial class FakeEngineApi
     // "Uit om" and "Aan om"; OffScene stays as the test gives it, as the engine keeps the scene.
     public WholeHouseTimes WholeHouseTimes { get; set; } = WholeHouseTimes.None;
 
-    public Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default) => Task.FromResult(WholeHouseTimes);
+    // Such as the engine that cannot be reached while the app reads the times.
+    public Exception? GetWholeHouseTimesException { get; set; }
+
+    public Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default) =>
+        GetWholeHouseTimesException is { } exception
+            ? Task.FromException<WholeHouseTimes>(exception)
+            : Task.FromResult(WholeHouseTimes);
 
     // What came in, as it came in, before Normalize.
     public List<WholeHouseTimes> WholeHouseTimesCalls { get; } = [];

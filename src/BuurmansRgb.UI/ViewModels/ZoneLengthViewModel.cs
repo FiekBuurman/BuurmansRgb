@@ -16,7 +16,7 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     private readonly RgbZone _zone;
     private readonly IPreviewActions? _actions;
     private readonly TimeProvider _time;
-    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+    private readonly UiThread _ui = new();
 
     // Made on the first change, so a zone nobody touches holds no timer.
     private ITimer? _sendTimer;
@@ -186,14 +186,7 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     // The timer runs on the thread pool; the length is read and sent on the UI thread.
     private void OnSendTimer()
     {
-        if (_uiContext is null)
-        {
-            Send();
-        }
-        else
-        {
-            _uiContext.Post(_ => Send(), state: null);
-        }
+        _ui.Post(() => Send());
     }
 
     // Hands the length to the actions, unless the engine was asked for it already or a drag goes on.

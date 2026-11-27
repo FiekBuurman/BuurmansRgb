@@ -780,6 +780,12 @@ uitbreidingen in `docs/bouwplan.md`.
     kleurruimte die het oog gelijkmatiger vindt, zodat rood naar blauw niet even dof paars wordt
   - Een overgang na het hervatten van een pauze of na het ontwaken (nu direct, zodat het
     terugkomen niet wacht), als iemand dat mist
+- Een melding voor een scène die niet te lezen is: lukt het lezen van een scènekaart of van de
+  scène die aan staat niet (`SceneCardLoader`), dan blijft de kaart donker en komt de fout alleen
+  in het log (`EngineSession.OnReadFailed`). Via `OnCallFailed` zou de app "De engine kon de
+  wijziging niet verwerken." tonen, wat niet klopt voor een lezing; een eigen zin, of de kaart
+  "Niet te lezen" laten zeggen, maakt het zichtbaar. Een scène die net in het tray-menu verwijderd
+  is, moet dan stil blijven (refactorplan 26-11-2026)
 
 ## Tray-menu
 

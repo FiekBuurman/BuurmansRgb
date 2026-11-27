@@ -15,9 +15,19 @@ namespace BuurmansRgb.UI.ViewModels;
 // ImportSharedAsync); this app only picks the file and writes or reads it, puts the code on the
 // clipboard (ShareCode) or reads it from there. The window gives the dialogs (ChooseExportFile,
 // ChooseImportFile); without them, as in a test that sets none, nothing happens. What came of it
-// goes to the status line (Message), a live region.
-public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard clipboard) : ObservableObject
+// goes to the status line (Message), a live region. A coordinator: it calls the engine of the
+// session itself, outside its call queue, and says what came of it.
+public sealed partial class SharingViewModel : ObservableObject
 {
+    private readonly EngineSession _session;
+    private readonly IClipboard _clipboard;
+
+    internal SharingViewModel(EngineSession session, IClipboard clipboard)
+    {
+        _session = session;
+        _clipboard = clipboard;
+    }
+
     // Raised with the message for the status line.
     public event EventHandler<string>? Message;
 
@@ -80,7 +90,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task ImportAsync()
     {
-        if (ChooseImportFile?.Invoke() is not { } path || api() is not { } engine)
+        if (ChooseImportFile?.Invoke() is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -118,7 +128,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task PasteCodeAsync()
     {
-        if (api() is not { } engine)
+        if (_session.Api is not { } engine)
         {
             return;
         }
@@ -126,7 +136,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
         IsBusy = true;
         try
         {
-            var text = clipboard.GetText();
+            var text = _clipboard.GetText();
             byte[] json;
             if (text is not null && text.AsSpan().TrimStart().StartsWith("{"))
             {
@@ -211,7 +221,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
 
     private async Task ExportAsync(string name, string title, Func<IEngineApi, Task<byte[]>> export)
     {
-        if (ChooseExportFile?.Invoke(title, FileNameFor(name)) is not { } path || api() is not { } engine)
+        if (ChooseExportFile?.Invoke(title, FileNameFor(name)) is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -238,7 +248,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
 
     private async Task CopyCodeAsync(string name, Func<IEngineApi, Task<byte[]>> export)
     {
-        if (api() is not { } engine)
+        if (_session.Api is not { } engine)
         {
             return;
         }
@@ -247,7 +257,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
         try
         {
             var code = ShareCode.Encode(await export(engine));
-            Say(clipboard.TrySetText(code) ? UiText.Format(Strings.ShareCodeCopied, name) : Strings.ShareCopyFailed);
+            Say(_clipboard.TrySetText(code) ? UiText.Format(Strings.ShareCodeCopied, name) : Strings.ShareCopyFailed);
         }
         catch (Exception exception)
         {

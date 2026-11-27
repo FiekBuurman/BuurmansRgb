@@ -19,7 +19,7 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
     private IReadOnlyList<string>? _saved;
 
     // While Display fills in the boxes.
-    private bool _displaying;
+    private readonly ReentrancyGuard _displaying = new();
 
     public event EventHandler<SceneDevicesChange>? ApplyRequested;
 
@@ -86,8 +86,7 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
 
     private void Display(string? profileName, IReadOnlyList<string>? deviceIds, bool isAllOff)
     {
-        _displaying = true;
-        try
+        _displaying.Run(() =>
         {
             _saved = deviceIds;
             ProfileName = profileName;
@@ -98,11 +97,7 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
             var away = AwayIds().Count;
             AwayNote = away == 0 ? null : UiText.ForCount(away, Strings.SceneDevicesAwayOne, Strings.SceneDevicesAway, away);
             Error = null;
-        }
-        finally
-        {
-            _displaying = false;
-        }
+        });
     }
 
     // The same devices as before keep their boxes, so the box that has the focus keeps it after its
@@ -135,30 +130,25 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
     // so the scene stays as it was until a box goes off.
     partial void OnAllDevicesChanged(bool value)
     {
-        if (_displaying)
+        if (_displaying.IsActive)
         {
             return;
         }
 
-        _displaying = true;
-        try
+        _displaying.Run(() =>
         {
             foreach (var option in Options)
             {
                 option.IsChecked = true;
             }
-        }
-        finally
-        {
-            _displaying = false;
-        }
+        });
 
         Apply();
     }
 
     private void OnOptionChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (!_displaying && e.PropertyName == nameof(SceneDeviceOption.IsChecked))
+        if (!_displaying.IsActive && e.PropertyName == nameof(SceneDeviceOption.IsChecked))
         {
             Apply();
         }

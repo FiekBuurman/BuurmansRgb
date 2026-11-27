@@ -15,7 +15,7 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposable
 {
     private readonly TimeProvider _time;
-    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+    private readonly UiThread _ui = new();
     private ITimer? _timeoutTimer;
 
     // Counts the searches, so the answer of an older one (after a timeout, or from a connection
@@ -122,14 +122,7 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
     // The timer runs on the thread pool; the button belongs to the UI thread.
     private void OnTimeout()
     {
-        if (_uiContext is null)
-        {
-            EndSlowSearch();
-        }
-        else
-        {
-            _uiContext.Post(_ => EndSlowSearch(), state: null);
-        }
+        _ui.Post(() => EndSlowSearch());
     }
 
     private void EndSlowSearch()

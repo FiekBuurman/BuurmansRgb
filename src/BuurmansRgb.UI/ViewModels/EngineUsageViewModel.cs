@@ -18,7 +18,7 @@ public sealed partial class EngineUsageViewModel : ObservableObject, IDisposable
     private readonly IProcessMeter _meter;
     private readonly TimeProvider _time;
     private readonly int _processorCount;
-    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+    private readonly UiThread _ui = new();
     private readonly ITimer _timer;
 
     // Guards the meter and the last reading against a tick that runs while the page goes.
@@ -153,20 +153,19 @@ public sealed partial class EngineUsageViewModel : ObservableObject, IDisposable
     // On the UI thread, unless the run stopped or changed meanwhile.
     private void Show(int run, string text)
     {
-        if (_uiContext is null || SynchronizationContext.Current == _uiContext)
+        if (_ui.IsCurrent)
         {
             Text = text;
             return;
         }
 
-        _uiContext.Post(
-            _ =>
+        _ui.Post(
+            () =>
             {
                 if (run == Volatile.Read(ref _run))
                 {
                     Text = text;
                 }
-            },
-            state: null);
+            });
     }
 }

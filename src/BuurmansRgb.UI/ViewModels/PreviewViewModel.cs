@@ -12,7 +12,7 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed partial class PreviewViewModel(TimeProvider? time = null) : ObservableObject, IPreviewActions, IDisposable
 {
     private readonly TimeProvider _time = time ?? TimeProvider.System;
-    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+    private readonly UiThread _ui = new();
     private LightingFrame _latestFrame = LightingFrame.Empty;
 
     // The flash that is marked now (MarkFlash), with a null ZoneIndex for the whole device, and
@@ -412,14 +412,7 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
     // came meanwhile keeps its mark.
     private void OnFlashMarkTimer()
     {
-        if (_uiContext is null)
-        {
-            EndFlashMark();
-        }
-        else
-        {
-            _uiContext.Post(_ => EndFlashMark(), state: null);
-        }
+        _ui.Post(() => EndFlashMark());
     }
 
     private void EndFlashMark()

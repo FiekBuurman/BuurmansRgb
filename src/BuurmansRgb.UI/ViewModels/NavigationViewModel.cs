@@ -9,7 +9,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // updating).
 public sealed partial class NavigationViewModel : ObservableObject
 {
-    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+    private readonly UiThread _ui = new();
 
     public NavigationViewModel() => SelectedItem = Items[0];
 
@@ -43,13 +43,6 @@ public sealed partial class NavigationViewModel : ObservableObject
             return;
         }
 
-        if (_uiContext is null)
-        {
-            SelectedItem = oldValue;
-        }
-        else
-        {
-            _uiContext.Post(_ => SelectedItem ??= oldValue, state: null);
-        }
+        _ui.Post(() => SelectedItem ??= oldValue);
     }
 }

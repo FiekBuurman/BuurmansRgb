@@ -35,7 +35,7 @@ public sealed partial class AppInfoViewModel(Action<string> open, string engineL
             DataFolder.Path);
 
     // Raised with the message for the status line when something could not be opened.
-    public event EventHandler<string>? Failed;
+    public event EventHandler<string>? Message;
 
     // "buurmansRgb 1.2.0": the version without the commit that the build adds after a +.
     public string VersionText { get; } = UiText.Format(Strings.AppVersion, ReadableVersion(version));
@@ -96,7 +96,7 @@ public sealed partial class AppInfoViewModel(Action<string> open, string engineL
         catch (Exception exception) when (exception is Win32Exception or IOException or InvalidOperationException)
         {
             Trace.TraceError(exception.ToString());
-            Failed?.Invoke(this, failure);
+            Message?.Invoke(this, failure);
         }
     }
 }
