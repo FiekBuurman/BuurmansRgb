@@ -97,6 +97,6 @@ internal static class SceneLook
         ([var time, ..], null) => UiText.Format(Strings.SceneAtTimes, UiText.Days(time.Days), time.At, times.Count - 1),
         (_, { }) => UiText.Format(Strings.SceneWithProgram, program),
         _ when !lighting.On => Strings.SceneOff,
-        _ => UiText.Format(Strings.SceneLighting, EffectOption.Create(lighting.EffectId).DisplayName, lighting.Brightness * 100.0),
+        _ => UiText.Format(Strings.SceneLighting, EffectOption.NameOf(lighting.EffectId), lighting.Brightness * 100.0),
     };
 }

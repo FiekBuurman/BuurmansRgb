@@ -38,8 +38,11 @@ public sealed partial class EffectOption(string id, string displayName, int step
 
     // The Dutch name comes from Strings.resx ("Effect_<id>"); an effect without one shows its id.
     // An own effect, of which only the id is known here, such as on a scene card, is "Eigen effect".
-    public static EffectOption Create(string id) =>
-        new(id, UiText.Lookup("Effect", id) ?? (CustomEffects.IsCustom(id) ? Strings.Effect_custom : id));
+    public static EffectOption Create(string id) => new(id, NameOf(id));
+
+    // Just that name, without making an option.
+    public static string NameOf(string id) =>
+        UiText.Lookup("Effect", id) ?? (CustomEffects.IsCustom(id) ? Strings.Effect_custom : id);
 
     // An own effect under its own name, with its steps.
     public static EffectOption For(CustomEffect effect) => new(effect.Id, effect.Name, effect.Steps.Count);

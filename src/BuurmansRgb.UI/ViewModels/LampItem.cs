@@ -63,7 +63,7 @@ public sealed partial class LampItem(DeviceItem device) : ObservableObject
     private string? Look =>
         _lighting is not { } lighting ? null
         : SceneLook.OneColorOf(lighting) is { } color ? ColorNames.StandaloneNameOf(color)
-        : EffectName?.Invoke(lighting.EffectId) ?? EffectOption.Create(lighting.EffectId).DisplayName;
+        : EffectName?.Invoke(lighting.EffectId) ?? EffectOption.NameOf(lighting.EffectId);
 
     public void Show(LightingInfo lighting) => _showing.Run(() =>
     {
