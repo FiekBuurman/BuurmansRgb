@@ -1202,10 +1202,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowFrame(await api.GetFrameAsync());
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
-        var profileNames = await api.GetProfilesAsync();
-        var wholeHouseTimes = await api.GetWholeHouseTimesAsync();
-        ShowProfiles(profileNames);
-        ShowWholeHouseTimes(wholeHouseTimes);
+        // The names first, so they are there when reading the times fails; the cards once both are read.
+        Profiles.Show(await api.GetProfilesAsync());
+        ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
+        ShowSceneCards();
         ShowOptions(await ReadOptionsAsync(api));
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -1979,11 +1979,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
     });
 
-    // The scenes of the engine on Scènes with select selected (Profiles.Show), and the cards that
-    // load what each one looks like; withActive asks again which one is on as well.
+    // The scenes of the engine on Scènes with select selected (Profiles.Show), and their cards.
     private void ShowProfiles(IReadOnlyList<string> names, string? select = null, bool withActive = true)
     {
         Profiles.Show(names, select);
+        ShowSceneCards(withActive);
+    }
+
+    // The cards of the scenes on Scènes load what each one looks like; withActive asks again which
+    // one is on as well.
+    private void ShowSceneCards(bool withActive = true)
+    {
         _ = _sceneCards.ShowAsync();
         if (withActive)
         {

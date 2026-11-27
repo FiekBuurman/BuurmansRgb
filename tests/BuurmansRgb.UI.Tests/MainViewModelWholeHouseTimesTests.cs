@@ -83,6 +83,23 @@ public sealed class MainViewModelWholeHouseTimesTests
         Assert.False(viewModel.WholeHouseTimes.IsAvailable);
     }
 
+    // The scenes are read and shown before the times, so their names are there when reading the
+    // times fails and the app could not connect.
+    [Fact]
+    public async Task Connect_TimesCannotBeRead_StillShowsTheScenes()
+    {
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+        {
+            api.Profiles.Add("Gamen");
+            api.GetWholeHouseTimesException = new IOException("broken pipe");
+        }));
+
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+
+        Assert.Equal(Strings.ConnectFailed, viewModel.StatusMessage);
+        Assert.Contains("Gamen", viewModel.Profiles.Names);
+    }
+
     private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange) =>
         ConnectedViewModel.CreateAsync(arrange, _connector);
 }
