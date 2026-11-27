@@ -232,7 +232,7 @@ public sealed partial class LampsViewModel : ObservableObject
         for (var i = 0; i < Strip.Count; i++)
         {
             Strip[i].IsLit = false;
-            var led = (int)((i + 0.5) * total / Strip.Count);
+            var led = StripSampler.LedAt(i, Strip.Count, total);
             foreach (var (lamp, leds) in lit)
             {
                 var count = leds.Length / 3;
